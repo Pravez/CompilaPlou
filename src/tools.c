@@ -37,7 +37,7 @@ void debugi(char* s, int i, enum color c){
 }
 
 int increment_register(){
-    int tmp = ++current_reg;
+    int tmp = ++current_regi;
     sprintf(current_reg, "x%i", tmp);
     return tmp;
 }

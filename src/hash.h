@@ -3,6 +3,15 @@
 
 #define SIZE 1013
 
+#include "type.h"
+
+//////Scope
+struct Scope{
+    symbol_t* scope_maps[SIZE];
+    int current_level; //Pas necessaire
+};
+////////////
+
 typedef struct {
     char *name;
     int type;
@@ -10,7 +19,7 @@ typedef struct {
     char *var;
 } symbol_t;
 
-symbol_t EMPTY={"",0,"",""}; // un symbole vide
+symbol_t EMPTY_HASH={"",0,"",""}; // un symbole vide
 symbol_t hachtab[SIZE];
 
 int hachage(char *s);

@@ -1,18 +1,15 @@
 #ifndef COMPILAPIOU_TYPE_H
 #define COMPILAPIOU_TYPE_H
 
-/*
-#include "hash.h"
+
 enum TYPE{
-    INT, DOUBLE, FLOAT, VOID
+    T_INT, T_DOUBLE, T_FLOAT, T_VOID
 };
-*/
-/*
+
 enum RETTYPE{
-    INT, DOUBLE, FLOAT, VOID
+    R_INT, R_DOUBLE, R_FLOAT, R_VOID
 };
-*/
-/*
+
 union VALUE{
     int value_int;
     double value_double;
@@ -29,7 +26,7 @@ struct Variable{
 struct Function{
     enum TYPE return_type; // Peut être VOID
     char* identifier;
-    struct plou_var* var_list;
+    struct Variable* var_list;
     int var_list_size;
 };
 
@@ -39,10 +36,4 @@ union Declarator{
     struct Function function;
 };
 
-//////Scope
-struct Scope{
-    symbol_t* scope_maps[SIZE];
-    int current_level; //Pas necessaire
-};
-*/
 #endif //COMPILAPIOU_TYPE_H

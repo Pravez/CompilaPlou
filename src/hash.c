@@ -10,7 +10,7 @@ int hachage(char *s) {
 }
 symbol_t findtab(char *s) {
     if (strcmp(hachtab[hachage(s)].name,s)) return hachtab[hachage(s)];
-    return EMPTY;
+    return EMPTY_HASH;
 }
 void addtab(char *s,int type) {
     symbol_t *h=&hachtab[hachage(s)];
@@ -18,5 +18,5 @@ void addtab(char *s,int type) {
 }
 void init() {
     int i;
-    for (i=0; i<SIZE; i++) hachtab[i]=EMPTY;
+    for (i=0; i<SIZE; i++) hachtab[i]=EMPTY_HASH;
 }

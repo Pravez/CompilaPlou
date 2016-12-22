@@ -35,6 +35,8 @@ size_t HASH_NB = 50; // nb max de bloc
     char *string;
     int consti;
     double constf;
+
+
     //struct Function function;
     //struct Variable variable;
     /*
@@ -71,7 +73,7 @@ shift_expression
 ;
 
 primary_expression
-        : IDENTIFIER {printf("used %s\n",$1); /*$$.nom_temp = $1; char *c; asprintf(&c, "%%x%i", ++id);*/}
+: IDENTIFIER {printf("used %s\n",$1); /*$$.nom_temp = $1; char *c; asprintf(&c, "%%x%i", ++id);*/}
 | CONSTANTI  {printf("TOKEN_CONSTANTI \t: %d\n",$1);}
 | CONSTANTF  {printf("TOKEN_CONSTANTF \t: %f\n",$1);}
 | '(' expression ')' {printf("expression\n");}
@@ -141,22 +143,22 @@ assignment_operator
 ;
 
 declaration
-        : type_name declarator_list ';' {/*$2 = $1;*/}
+: type_name declarator_list ';' {/*$2 = $1;*/}
 ;
 
 declarator_list
-        : declarator {/*$<t>0.symbol = $1.symbol; $1 = $<t>0; printType($1);*/}
+: declarator {/*$<t>0.symbol = $1.symbol; $1 = $<t>0; printType($1);*/}
 | declarator_list ',' declarator { /*$<t>0.symbol = $3.symbol; $1 = $<t>0; $3 = $<t>0; printType($3);*/}
 ;
 
 type_name
-        : VOID {/*$$.id = ID_FUNCTION; $$.a.fonction.ret = RET_VOID; $$.a.fonction.n_arg=0;*/}
+: VOID {/*$$.id = ID_FUNCTION; $$.a.fonction.ret = RET_VOID; $$.a.fonction.n_arg=0;*/}
 | INT {/*$$.id = ID_INT;*/}
 | DOUBLE {/*$$.id = ID_DOUBLE;*/}
 ;
 
 declarator
-        : IDENTIFIER {/*$<t>0.symbol = $1;*/}
+: IDENTIFIER {/*$<t>0.symbol = $1;*/}
 | '(' declarator ')' {/*$$.symbol = $2.symbol; $2 = $<t>0;*/}
 | declarator '(' parameter_list ')'
 {/*char * buff = $1.symbol;
@@ -173,12 +175,12 @@ declarator
 ;
 
 parameter_list
-        : parameter_declaration {/*$<arg>0.arg=addArg($<arg>0.arg,$<arg>0.n_arg,$1);$<arg>0.n_arg++;$$=$<arg>0;*/}
+: parameter_declaration {/*$<arg>0.arg=addArg($<arg>0.arg,$<arg>0.n_arg,$1);$<arg>0.n_arg++;$$=$<arg>0;*/}
 | parameter_list ',' parameter_declaration {/*$<arg>0.arg=addArg($1.arg,$1.n_arg,$3); $<arg>0.n_arg=$1.n_arg+1; $$=$<arg>0;*/}
 ;
 
 parameter_declaration
-        : type_name declarator {/*$2 = $1; printType($2);
+: type_name declarator {/*$2 = $1; printType($2);
    if ($1.id == ID_INT) $<typarg>0 = ARG_INT;
    else if ($1.id == ID_DOUBLE) $<typarg>0 = ARG_DOUBLE;*/}
 ;
@@ -192,37 +194,37 @@ statement
 ;
 
 LB
-        : '{' {level++ ; debugi("level", level, RED);}// pour le hash[i] il faut faire attention si on retourne à un même level, ce n'est pas forcément le même bloc ! il faudra sûrement utiliser deux var, une disant le dernier hash_nb atteint et le hash_nb actuel à utiliser
+: '{' {level++ ; debugi("level", level, RED);}// pour le hash[i] il faut faire attention si on retourne à un même level, ce n'est pas forcément le même bloc ! il faudra sûrement utiliser deux var, une disant le dernier hash_nb atteint et le hash_nb actuel à utiliser
 ;
 
 RB
-        : '}' {level--; debugi("level", level, RED); /*hash_nb--;*/} // normalement ici pas de soucis pour le hash_nb
+: '}' {level--; debugi("level", level, RED); /*hash_nb--;*/} // normalement ici pas de soucis pour le hash_nb
 ;
 
 compound_statement
-        : LB RB
+: LB RB
 | LB statement_list RB
 | LB declaration_list statement_list RB
 | LB declaration_list RB
 ;
 
 declaration_list
-        : declaration
+: declaration
 | declaration_list declaration
 ;
 
 statement_list
-        : statement
+: statement
 | statement_list statement
 ;
 
 expression_statement
-        : ';'
+: ';'
 | expression ';'
 ;
 
 selection_statement
-        : IF '(' expression ')' statement {printf("if\n");}
+: IF '(' expression ')' statement {printf("if\n");}
 | IF '(' expression ')' statement ELSE statement
 | FOR '(' expression ';' expression ';' expression ')' statement
 | FOR '(' expression ';' expression ';'            ')' statement
@@ -235,27 +237,27 @@ selection_statement
 ;
 
 iteration_statement
-        : WHILE '(' expression ')' statement
+: WHILE '(' expression ')' statement
 | DO statement WHILE '(' expression ')'
 ;
 
 jump_statement
-        : RETURN ';'
+: RETURN ';'
 | RETURN expression ';'
 ;
 
 program
-        : external_declaration
+: external_declaration
 | program external_declaration
 ;
 
 external_declaration
-        : function_definition
+: function_definition
 | declaration
 ;
 
 function_definition
-        : type_name declarator compound_statement {/*printType($2);*/}
+: type_name declarator compound_statement {/*printType($2);*/}
 ;
 
 %%
@@ -280,7 +282,7 @@ int main (int argc, char *argv[]) {
     FILE *input = NULL;
     if (argc==2) {
         input = fopen (argv[1], "r");
-        file_name = strdup (argv[1]);
+        file_name = strdup(argv[1]);
         if (input) {
             yyin = input;
         }

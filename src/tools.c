@@ -36,6 +36,20 @@ void debugi(char* s, int i, enum color c){
     }
 }
 
+void debugs(char* s, char* m, enum color c){
+    switch(c){
+        case RED:
+            printf("\033[31m%s: %s\033[0m\n",s, m);
+            break;
+        case BLUE:
+            printf("\033[34m%s: %s\033[0m\n",s, m);
+            break;
+        case GREEN:
+            printf("\033[32m%s: %s\033[0m\n",s, m);
+            break;
+    }
+}
+
 int increment_register(){
     int tmp = ++current_regi;
     sprintf(current_reg, "x%i", tmp);

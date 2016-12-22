@@ -8,7 +8,7 @@
 #include "tools.h"
 extern int yylineno;
 int yylex ();
-int yyerror ();
+void yyerror (char const*);
 int level = 0; // ne peut pas être négatif
 size_t HASH_SIZE = 100; // nb max de IDENTIFIER stockable par level
 size_t HASH_NB = 50; // nb max de bloc
@@ -30,12 +30,27 @@ size_t HASH_NB = 50; // nb max de bloc
 //%type <function> parameter_list
 //%type <typarg> parameter_declaration
 //%type <expr> primary_expression postfix_expression unary_expression multiplicative_expression additive_expression
+%type <plou_declarator_list> declarator_list
+%type <plou_declarator> declarator
+%type <plou_type> type_name
 %start program
 %union {
     char *string;
     int consti;
     double constf;
 
+    //Declaration
+    struct DeclaratorList plou_declarator_list;
+    struct Declarator plou_declarator;
+
+    //Variables and functions
+    struct Variable plou_variable;
+    struct Function plou_function;
+
+    //Basics : values and types
+    enum TYPE plou_type;
+    enum RETTYPE plou_rettype;
+    union VALUE plou_value;
 
     //struct Function function;
     //struct Variable variable;
@@ -52,22 +67,22 @@ size_t HASH_NB = 50; // nb max de bloc
 %%
 
 conditional_expression
-        : logical_or_expression
+: logical_or_expression
 ;
 
 logical_or_expression
-        : logical_and_expression
+: logical_and_expression
 | logical_or_expression OR logical_and_expression
 ;
 
 logical_and_expression
-        : comparison_expression
+: comparison_expression
 | logical_and_expression AND comparison_expression
 ;
 
 
 shift_expression
-        : additive_expression
+: additive_expression
 | shift_expression SHL additive_expression
 | shift_expression SHR additive_expression
 ;
@@ -82,42 +97,42 @@ primary_expression
 ;
 
 postfix_expression
-        : primary_expression
+: primary_expression
 | postfix_expression INC_OP
 | postfix_expression DEC_OP
 ;
 
 argument_expression_list
-        : expression
+: expression
 | argument_expression_list ',' expression
 ;
 
 unary_expression
-        : postfix_expression
+: postfix_expression
 | INC_OP unary_expression {}
 | DEC_OP unary_expression  {}
 | unary_operator unary_expression {}
 ;
 
 unary_operator
-        : '-'
+: '-'
 ;
 
 multiplicative_expression
-        : unary_expression
+: unary_expression
 | multiplicative_expression '*' unary_expression
 | multiplicative_expression '/' unary_expression
 | multiplicative_expression REM unary_expression
 ;
 
 additive_expression
-        : multiplicative_expression
+: multiplicative_expression
 | additive_expression '+' multiplicative_expression
 | additive_expression '-' multiplicative_expression
 ;
 
 comparison_expression
-        : shift_expression
+: shift_expression
 | comparison_expression '<' shift_expression
 | comparison_expression '>' shift_expression
 | comparison_expression LE_OP shift_expression
@@ -127,12 +142,12 @@ comparison_expression
 ;
 
 expression
-        : unary_expression assignment_operator conditional_expression { printf("Assignement\n");/*printf("%s = load i32, i32* v.addr\n", c, ++id); */}
+: unary_expression assignment_operator conditional_expression { printf("Assignement\n");/*printf("%s = load i32, i32* v.addr\n", c, ++id); */}
 | conditional_expression
 ;
 
 assignment_operator
-        : '='
+: '='
 | MUL_ASSIGN
 | DIV_ASSIGN
 | REM_ASSIGN
@@ -143,25 +158,25 @@ assignment_operator
 ;
 
 declaration
-: type_name declarator_list ';' {/*$2 = $1;*/}
+: type_name declarator_list ';' { $2 = apply_type($1, $2); print_declarator_list($2);/*$2 = $1;*/}
 ;
 
 declarator_list
-: declarator {/*$<t>0.symbol = $1.symbol; $1 = $<t>0; printType($1);*/}
-| declarator_list ',' declarator { /*$<t>0.symbol = $3.symbol; $1 = $<t>0; $3 = $<t>0; printType($3);*/}
+: declarator { $$ = add_declarator($$, $1); /*$<t>0.symbol = $1.symbol; $1 = $<t>0; printType($1);*/}
+| declarator_list ',' declarator { $$ = $1; $$ = add_declarator($$, $3); /*$<t>0.symbol = $3.symbol; $1 = $<t>0; $3 = $<t>0; printType($3);*/}
 ;
 
 type_name
-: VOID {/*$$.id = ID_FUNCTION; $$.a.fonction.ret = RET_VOID; $$.a.fonction.n_arg=0;*/}
-| INT {/*$$.id = ID_INT;*/}
-| DOUBLE {/*$$.id = ID_DOUBLE;*/}
+: VOID { $$ = T_VOID;/*$$.id = ID_FUNCTION; $$.a.fonction.ret = RET_VOID; $$.a.fonction.n_arg=0;*/}
+| INT { $$ = T_INT; /*$$.id = ID_INT;*/}
+| DOUBLE { $$ = T_DOUBLE;/*$$.id = ID_DOUBLE;*/}
 ;
 
 declarator
-: IDENTIFIER {/*$<t>0.symbol = $1;*/}
-| '(' declarator ')' {/*$$.symbol = $2.symbol; $2 = $<t>0;*/}
+: IDENTIFIER { $$.declarator.variable.identifier = $1; $$.decl_type = VARIABLE; /*$<t>0.symbol = $1;*/}
+| '(' declarator ')' { $$ = $2; /*$$.symbol = $2.symbol; $2 = $<t>0;*/}
 | declarator '(' parameter_list ')'
-{/*char * buff = $1.symbol;
+{ $$.decl_type = FUNCTION;/*char * buff = $1.symbol;
   if ($<t>0.id != ID_FUNCTION)
     {$1= constructFunction($<t>0.id,$3.arg,$3.n_arg);
       $<t>0 = $1;}
@@ -186,7 +201,7 @@ parameter_declaration
 ;
 
 statement
-        : compound_statement
+: compound_statement
 | expression_statement
 | selection_statement
 | iteration_statement
@@ -271,10 +286,11 @@ extern FILE *yyin;
 
 char *file_name = NULL;
 
-int yyerror (char *s) {
-    fflush (stdout);
+//Voir le error handling de gnu bison et le location-type
+void yyerror (char const *s) {
+    //fflush (stdout);
     fprintf (stderr, "%s:%d:%d: %s\n", file_name, yylineno, column, s);
-    return 0;
+    //return 0;
 }
 
 

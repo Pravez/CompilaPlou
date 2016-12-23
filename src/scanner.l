@@ -30,6 +30,7 @@ L[a-zA-Z_]
 "/="		{ count(); return(DIV_ASSIGN); }
 "<<="		{ count(); return(SHL_ASSIGN); }
 ">>="		{ count(); return(SHR_ASSIGN); }
+"%="		{ count(); return(REM_ASSIGN); }
 "++"		{ count(); return(INC_OP); }
 "--"		{ count(); return(DEC_OP); }
 "<="		{ count(); return(LE_OP); }

@@ -114,12 +114,15 @@ unary_expression
 : postfix_expression
 | INC_OP unary_expression {printf("add 1\n");}
 | DEC_OP unary_expression  {printf("sub 1\n");}
-| unary_operator unary_expression {}
+//| unary_operator unary_expression {printf("negation de l'espace\n");}
+| '-' unary_expression {printf("negation de l'espace\n");}
 ;
 
+/*
 unary_operator
 : '-'
 ;
+*/
 
 multiplicative_expression
 : unary_expression

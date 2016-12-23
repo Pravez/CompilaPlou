@@ -1,12 +1,9 @@
 int main(){
     int i;
 
-    int i;
-
-
     i = 0;
 
-    int j;
+    int w, t;
 
     return 0;
 }

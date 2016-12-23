@@ -193,7 +193,8 @@ parameter_declaration
 ;
 
 statement
-: compound_statement
+: declaration
+| compound_statement
 | expression_statement
 | selection_statement
 | iteration_statement
@@ -211,18 +212,19 @@ RB
 compound_statement
 : LB RB
 | LB statement_list RB
-| LB declaration_list statement_list RB
-| LB declaration_list RB
+/*| LB declaration_list statement_list RB
+| LB declaration_list RB*/
 ;
-
+/*
 declaration_list
 : declaration
 | declaration_list declaration
 ;
+*/
 
 statement_list
-: statement
-| statement_list statement
+: statement                 {debug("Statement", GREEN);}
+| statement_list statement  {debug("Statement list", GREEN);}
 ;
 
 expression_statement

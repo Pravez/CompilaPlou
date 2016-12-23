@@ -5,6 +5,7 @@
 #include <search.h>
 
 #include "type.h"
+#include "hash.h"
 #include "tools.h"
 extern int yylineno;
 int yylex ();
@@ -12,6 +13,9 @@ void yyerror (char const*);
 int level = 0; // ne peut pas être négatif
 size_t HASH_SIZE = 100; // nb max de IDENTIFIER stockable par level
 size_t HASH_NB = 50; // nb max de bloc
+
+symbol_t EMPTY_HASH={"",0,"",""}; // un symbole vide
+symbol_t hachtab[SIZE];
 %}
 
 %token <string> IDENTIFIER // id d'un objet
@@ -30,8 +34,8 @@ size_t HASH_NB = 50; // nb max de bloc
 //%type <function> parameter_list
 //%type <typarg> parameter_declaration
 //%type <expr> primary_expression postfix_expression unary_expression multiplicative_expression additive_expression
-%type <plou_declarator_list> declarator_list
-%type <plou_declarator> declarator
+%type <plou_declarator_list> declarator_list parameter_list
+%type <plou_declarator> declarator parameter_declaration
 %type <plou_type> type_name
 %start program
 %union {
@@ -158,46 +162,34 @@ assignment_operator
 ;
 
 declaration
-: type_name declarator_list ';' { $2 = apply_type($1, $2); print_declarator_list($2);/*$2 = $1;*/}
+: type_name declarator_list ';' { $2 = apply_type($1, $2); print_declarator_list($2);}
 ;
 
 declarator_list
-: declarator { $$ = add_declarator($$, $1); /*$<t>0.symbol = $1.symbol; $1 = $<t>0; printType($1);*/}
-| declarator_list ',' declarator { $$ = $1; $$ = add_declarator($$, $3); /*$<t>0.symbol = $3.symbol; $1 = $<t>0; $3 = $<t>0; printType($3);*/}
+: declarator { $$ = add_declarator($$, $1);}
+| declarator_list ',' declarator { $$ = $1; $$ = add_declarator($$, $3);}
 ;
 
 type_name
-: VOID { $$ = T_VOID;/*$$.id = ID_FUNCTION; $$.a.fonction.ret = RET_VOID; $$.a.fonction.n_arg=0;*/}
-| INT { $$ = T_INT; /*$$.id = ID_INT;*/}
-| DOUBLE { $$ = T_DOUBLE;/*$$.id = ID_DOUBLE;*/}
+: VOID { $$ = T_VOID;}
+| INT { $$ = T_INT;}
+| DOUBLE { $$ = T_DOUBLE;}
 ;
 
 declarator
-: IDENTIFIER { $$.declarator.variable.identifier = $1; $$.decl_type = VARIABLE; /*$<t>0.symbol = $1;*/}
-| '(' declarator ')' { $$ = $2; /*$$.symbol = $2.symbol; $2 = $<t>0;*/}
-| declarator '(' parameter_list ')'
-{ $$.decl_type = FUNCTION;/*char * buff = $1.symbol;
-  if ($<t>0.id != ID_FUNCTION)
-    {$1= constructFunction($<t>0.id,$3.arg,$3.n_arg);
-      $<t>0 = $1;}
-  else
-    {$<t>0.a.fonction.n_arg = $3.n_arg;
-      $<t>0.a.fonction.arg = $3.arg;
-      $1 = $<t>0;}
-  $<t>0.symbol = buff;
-  $$=$<t>0;*/}
-| declarator '(' ')' {/*char * buff = $1.symbol; if ($<t>0.id != ID_FUNCTION) {$1= constructProcess($<t>0.id); $<t>0 = $1;} $<t>0.symbol = buff; $$=$<t>0;*/}
+: IDENTIFIER { $$.declarator.variable.identifier = $1; $$.decl_type = VARIABLE; /*PAR DEFAUT UNE VARIABLE, SINON ON RECUPERE JUSTE LA VALEUR PUIS ON ECRASE (plus haut)*/}
+| '(' declarator ')' { $$ = $2;}
+| declarator '(' parameter_list ')' { $$ = declare_function($3, $1.declarator.variable.identifier); /*MOCHE MAIS SOLUTION LA PLUS SIMPLE*/}
+| declarator '(' ')' { struct DeclaratorList empty; empty.size = 0; $$ = declare_function(empty, $1.declarator.variable.identifier); /*PAREIL*/}
 ;
 
 parameter_list
-: parameter_declaration {/*$<arg>0.arg=addArg($<arg>0.arg,$<arg>0.n_arg,$1);$<arg>0.n_arg++;$$=$<arg>0;*/}
-| parameter_list ',' parameter_declaration {/*$<arg>0.arg=addArg($1.arg,$1.n_arg,$3); $<arg>0.n_arg=$1.n_arg+1; $$=$<arg>0;*/}
+: parameter_declaration { $$ = ADD_PARAMETER($$, $1);}
+| parameter_list ',' parameter_declaration { $$ = $1; $$ = ADD_PARAMETER($$, $3);}
 ;
 
 parameter_declaration
-: type_name declarator {/*$2 = $1; printType($2);
-   if ($1.id == ID_INT) $<typarg>0 = ARG_INT;
-   else if ($1.id == ID_DOUBLE) $<typarg>0 = ARG_DOUBLE;*/}
+: type_name declarator {$$ = apply_decl_type($1, $2);}
 ;
 
 statement

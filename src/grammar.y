@@ -33,6 +33,7 @@ int level = 0; // ne peut pas être négatif
 %type <plou_declarator_list> declarator_list parameter_list
 %type <plou_declarator> declarator parameter_declaration
 %type <plou_type> type_name
+%type <assign_operator> assignment_operator
 %start program
 %union {
     char *string;
@@ -52,6 +53,8 @@ int level = 0; // ne peut pas être négatif
     enum RETTYPE plou_rettype;
     union VALUE plou_value;
 
+    //Operators:
+    enum ASSIGN_OPERATOR assign_operator;
     //struct Function function;
     //struct Variable variable;
     /*
@@ -88,9 +91,9 @@ shift_expression
 ;
 
 primary_expression
-: IDENTIFIER {printf("used %s\n",$1); /*$$.nom_temp = $1; char *c; asprintf(&c, "%%x%i", ++id);*/}
-| CONSTANTI  {printf("TOKEN_CONSTANTI \t: %d\n",$1);}
-| CONSTANTF  {printf("TOKEN_CONSTANTF \t: %f\n",$1);}
+: IDENTIFIER {new_register(); printf("%s = \tload %s\n", CURRENT_REG, $1); /*$$.nom_temp = $1; char *c; asprintf(&c, "%%x%i", ++id);*/}
+| CONSTANTI  {new_register(); printf("%s = \t%d\n", CURRENT_REG, $1);}
+| CONSTANTF  {new_register(); printf("%s =\t%f\n", CURRENT_REG, $1);}
 | '(' expression ')' {printf("expression\n");}
 | IDENTIFIER '(' ')' {printf("appel fonction %s sans argument\n",$1);}
 | IDENTIFIER '(' argument_expression_list ')' {printf("appel fonction %s avec des aguments\n",$1);}
@@ -98,8 +101,8 @@ primary_expression
 
 postfix_expression
 : primary_expression
-| postfix_expression INC_OP
-| postfix_expression DEC_OP
+| postfix_expression INC_OP {printf("add 1\n");}
+| postfix_expression DEC_OP {printf("sub 1\n");}
 ;
 
 argument_expression_list
@@ -109,8 +112,8 @@ argument_expression_list
 
 unary_expression
 : postfix_expression
-| INC_OP unary_expression {}
-| DEC_OP unary_expression  {}
+| INC_OP unary_expression {printf("add 1\n");}
+| DEC_OP unary_expression  {printf("sub 1\n");}
 | unary_operator unary_expression {}
 ;
 
@@ -142,19 +145,19 @@ comparison_expression
 ;
 
 expression
-: unary_expression assignment_operator conditional_expression { printf("Assignement\n");/*printf("%s = load i32, i32* v.addr\n", c, ++id); */}
+: unary_expression assignment_operator conditional_expression { printf("Assignement (%d)\n", $2);/*printf("%s = load i32, i32* v.addr\n", c, ++id); */}
 | conditional_expression
 ;
 
 assignment_operator
-: '='
-| MUL_ASSIGN
-| DIV_ASSIGN
-| REM_ASSIGN
-| SHL_ASSIGN
-| SHR_ASSIGN
-| ADD_ASSIGN
-| SUB_ASSIGN
+: '='           {$$ = OP_SIMPLE_ASSIGN;}
+| MUL_ASSIGN    {$$ = OP_MUL_ASSIGN;}
+| DIV_ASSIGN    {$$ = OP_DIV_ASSIGN;}
+| REM_ASSIGN    {$$ = OP_REM_ASSIGN;}
+| SHL_ASSIGN    {$$ = OP_SHL_ASSIGN;}
+| SHR_ASSIGN    {$$ = OP_SHR_ASSIGN;}
+| ADD_ASSIGN    {$$ = OP_ADD_ASSIGN;}
+| SUB_ASSIGN    {$$ = OP_SUB_ASSIGN;}
 ;
 
 declaration

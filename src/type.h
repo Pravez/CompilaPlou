@@ -20,6 +20,19 @@ union VALUE{
     double value_double;
 };
 
+//////Operator
+enum ASSIGN_OPERATOR{
+    OP_SIMPLE_ASSIGN,  /* = */
+    OP_MUL_ASSIGN,     /* *= */
+    OP_DIV_ASSIGN,     /* /= */
+    OP_REM_ASSIGN,     /* %= */
+    OP_SHL_ASSIGN,     /* <<= */
+    OP_SHR_ASSIGN,     /* >>= */
+    OP_ADD_ASSIGN,     /* += */
+    OP_SUB_ASSIGN      /* -= */
+};
+
+
 //////Variables
 struct Variable{
     enum TYPE type; // Ne peut pas être VOID

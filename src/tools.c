@@ -1,12 +1,10 @@
-//
-// Created by kwetzakwak on 22/12/16.
-//
 #include <stdio.h>
 #include "tools.h"
-int current_regi = 0;
-int current_lbli = 0;
-char current_reg[10] = "x0";
-char current_lbl[10] = "l0";
+
+int CURRENT_REGI =      0;
+int CURRENT_LBLI =      0;
+char CURRENT_REG[10] =  "x0";
+char CURRENT_LBL[10] =  "l0";
 
 void debug(char* s, enum color c){
     switch(c){
@@ -50,13 +48,13 @@ void debugs(char* s, char* m, enum color c){
     }
 }
 
-int increment_register(){
-    int tmp = ++current_regi;
-    sprintf(current_reg, "x%i", tmp);
+int new_register(){
+    int tmp = ++CURRENT_REGI;
+    sprintf(CURRENT_REG, "x%i", tmp);
     return tmp;
 }
-int increment_label(){
-    int tmp = ++current_lbli;
-    sprintf(current_reg, "l%i", ++current_lbli);
+int new_label(){
+    int tmp = ++CURRENT_LBLI;
+    sprintf(CURRENT_LBL, "l%i", tmp);
     return tmp;
 }

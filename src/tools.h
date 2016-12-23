@@ -1,6 +1,11 @@
 #ifndef PROJET_COMPILATION_TOOLS_H
 #define PROJET_COMPILATION_TOOLS_H
 
+extern int CURRENT_REGI;
+extern int CURRENT_LBLI;
+extern char CURRENT_REG[10];
+extern char CURRENT_LBL[10];
+
 enum color{
     RED,
     BLUE,
@@ -28,5 +33,19 @@ void debugi(char* s, int i, enum color c);
  * @param c color Couleur à utiliser
  */
 void debugs(char* s, char* m, enum color c);
+
+/**
+ * Retourne un nouveau numéro de registre et met à jour les variables globales
+ * CURRENT_REGI et CURRENT_REG.
+ * @return la nouvelle valeur de CURRENT_REGI
+ */
+int new_register();
+
+/**
+ * Retourne un nouveau numéro de label et met à jour les variables globales
+ * CURRENT_LBLI et CURRENT_LBL.
+ * @return la nouvelle valeur de CURRENT_LBLI
+ */
+int new_label();
 
 #endif //PROJET_COMPILATION_TOOLS_H

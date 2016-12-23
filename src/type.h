@@ -1,13 +1,14 @@
 #ifndef COMPILAPIOU_TYPE_H
 #define COMPILAPIOU_TYPE_H
 
+#define MAX_ARGUMENTS 10
 
 enum TYPE{
-    T_INT, T_DOUBLE, T_FLOAT, T_VOID
+    T_INT, T_DOUBLE, T_VOID
 };
 
 enum RETTYPE{ //USELESS ?
-    R_INT, R_DOUBLE, R_FLOAT, R_VOID
+    R_INT, R_DOUBLE, R_VOID
 };
 
 enum DECL_TYPE{
@@ -29,7 +30,7 @@ struct Variable{
 //////Fonctions
 struct Function{
     enum TYPE return_type; // Peut être VOID
-    struct Variable var_list[50];
+    struct Variable var_list[MAX_ARGUMENTS];
     int var_list_size;
     char* identifier;
 };
@@ -45,7 +46,7 @@ struct Declarator{
 
 //A AMELIORER
 struct DeclaratorList{
-    struct Declarator declarator_list[50];
+    struct Declarator declarator_list[MAX_ARGUMENTS];
     int size;
 };
 

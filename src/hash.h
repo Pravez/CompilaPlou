@@ -1,37 +1,33 @@
 #ifndef COMPILAPIOU_HASH_H
 #define COMPILAPIOU_HASH_H
 
-#define SIZE 1013
-
 #include "type.h"
 
+#define HASH_SIZE 100 // nb max de IDENTIFIER stockable par level
+#define HASH_NB 50 // nb max de bloc
 
+struct hashmap_item {
+    char *key;
+    struct Declarator value;
+    int next;
+};
 
-typedef struct {
-    char *name;
-    int type;
-    char *code;
-    char *var;
-} symbol_t;
+struct hashmap_item EMPTY_ITEM = {""};
 
 //////Scope
-struct Scope{
-    symbol_t* scope_maps[SIZE];
+struct Scope {
+    struct hashmap_item scope_maps[HASH_NB][HASH_SIZE];
     int current_level; //Pas necessaire
 };
 ////////////
 
-int hachage(char *s);
-symbol_t findtab(char *s);
-void addtab(char *s,int type);
-void init();
+bool hash__key_exists_current(struct Scope *hashmap, char *key);
+bool hash__key_exists_all(struct Scope *hashmap, char *key);
+struct Declarator hash__get_item(struct Scope *hashmap, char *key);
+bool hash__add_item(struct Scope *hashmap, char *key, struct Declarator declarator);
+void hash__upper_level(struct Scope *hashmap);
+void hash__lower_level(struct Scope *hashmap);
+void hash__init(struct Scope *hashmap);
 
-/*
 
-int hachage(symbol_t &table, char *s);
-symbol_t findtab(const symbol_t &table, char *s);
-void addtab(symbol_t &table, char *s,int type);
-void init(symbol_t &table);
-
- */
 #endif //COMPILAPIOU_HASH_H

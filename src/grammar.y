@@ -11,11 +11,7 @@ extern int yylineno;
 int yylex ();
 void yyerror (char const*);
 int level = 0; // ne peut pas être négatif
-size_t HASH_SIZE = 100; // nb max de IDENTIFIER stockable par level
-size_t HASH_NB = 50; // nb max de bloc
 
-symbol_t EMPTY_HASH={"",0,"",""}; // un symbole vide
-symbol_t hachtab[SIZE];
 %}
 
 %token <string> IDENTIFIER // id d'un objet

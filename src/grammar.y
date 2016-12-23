@@ -265,7 +265,7 @@ external_declaration
 ;
 
 function_definition
-: type_name declarator compound_statement {/*printType($2);*/}
+: type_name declarator compound_statement {debug("Declaration de fonction", BLUE);/*printType($2);*/}
 ;
 
 %%

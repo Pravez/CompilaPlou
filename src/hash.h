@@ -6,6 +6,10 @@
 #define HASH_SIZE 100 // nb max de IDENTIFIER stockable par level
 #define HASH_NB 50 // nb max de bloc
 
+#define true 1
+#define false 0
+typedef int bool;
+
 struct hashmap_item {
     char *key;
     struct Declarator value;

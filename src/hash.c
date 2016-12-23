@@ -39,14 +39,19 @@ bool hash__key_exists_all(struct Scope *hashmap, char *key) {
 
 struct Declarator hash__get_item(struct Scope *hashmap, char *key) {
     for (int i = 0; i <= hashmap->current_level; i++) {
-        if (strcmp(hashmap->scope_maps[i][hachage(key)].key, key)) {
-            return hashmap->scope_maps[i][hachage(key)].value;
-        }
+        int position = hachage(key);
+        do{
+            if (strcmp(hashmap->scope_maps[i][position].key, key) == 0) {
+                return hashmap->scope_maps[i][position].value;
+            }
+            position = hashmap->scope_maps[i][position].next;
+        }while(position != -1);
     }
 
     struct Declarator empty_decl;
     return empty_decl;
 }
+
 
 bool hash__add_item(struct Scope *hashmap, char *key, struct Declarator declarator) {
     if (!hash__key_exists_all(hashmap, key)) {

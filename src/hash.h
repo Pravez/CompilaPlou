@@ -41,6 +41,8 @@ void hash__init(struct Scope *hashmap);
 
 /**BONUS**/
 bool hash__add_items(struct Scope *hashmap, struct DeclaratorList list);
+bool is_declared(struct Scope *scope, char* identifier, enum DECL_TYPE type);
+bool is_of_type(struct Scope *scope, char* identifier, enum TYPE type);
 
 /**For debug**/
 void display_scope(struct Scope scope);

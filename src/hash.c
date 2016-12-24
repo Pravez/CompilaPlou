@@ -5,6 +5,7 @@
 #include <string.h>
 #include <stdlib.h>
 
+
 int hachage(char *s) {
     unsigned int hash = 0;
     while (*s != '\0') hash = hash * 31 + *s++;
@@ -89,6 +90,8 @@ int hash__item_find_position(struct Scope* hashmap, char *key, int level){
  * @return
  */
 bool hash__add_item_function(struct Scope *hashmap, struct Declarator declarator){
+    hashmap->higher_level++;
+    hash__clean_level(hashmap, hashmap->higher_level);
 
     for(int i=0;i<declarator.declarator.function.var_list_size;i++){
         //Because the upper level is truly new, the probability to have an error is zero ?
@@ -112,7 +115,6 @@ bool hash__add_item_function(struct Scope *hashmap, struct Declarator declarator
         }
     }
 
-    hashmap->higher_level--;
     return true;
 }
 
@@ -163,13 +165,16 @@ void hash__clean_level(struct Scope *hashmap, int level){
 
 void hash__upper_level(struct Scope *hashmap) {
     hashmap->current_level++;
-    hashmap->higher_level++;
-    hash__clean_level(hashmap, hashmap->current_level);
+    if(hashmap->current_level > hashmap->higher_level) {
+        hashmap->higher_level++;
+        hash__clean_level(hashmap, hashmap->current_level);
+    }
 }
 
 void hash__lower_level(struct Scope *hashmap) {
     if(hashmap->current_level != 0) {
         hashmap->current_level--;
+        hashmap->higher_level--;
     }
 }
 
@@ -225,4 +230,37 @@ void display_scope(struct Scope scope){
             }
         }
     }
+}
+
+bool is_declared(struct Scope *scope, char* identifier, enum DECL_TYPE type){
+    if(!hash__key_exists_all(scope, identifier)){
+        if(type == VARIABLE)
+            last_error = concatenate_strings(3, "Variable \033[31;1m", identifier,
+                                         "\033[0m has not yet been declared");
+        else
+            last_error = concatenate_strings(3, "Function \033[31;1m", identifier,
+                                             "\033[0m does not exist");
+        return false;
+    }
+
+    return true;
+}
+
+bool is_of_type(struct Scope *scope, char* identifier, enum TYPE type){
+    struct Declarator decl = hash__get_item(scope, identifier);
+    if(decl.decl_type == VARIABLE){
+        if(decl.declarator.variable.type != type){
+            char* assigned;
+            char* value;
+            switch(type){
+                case T_INT: assigned = "\033[31;1mdouble\033[0m"; value="\033[31;2mint\033[0m";break;
+                case T_DOUBLE: assigned = "\033[31;2mint\033[0m"; value="\033[31;1mdouble\033[0m";break;
+            }
+            last_error = concatenate_strings(3, "Can't assign a ", value,
+                                             " to a ", assigned);
+            return false;
+        }
+    }
+
+    return true;
 }

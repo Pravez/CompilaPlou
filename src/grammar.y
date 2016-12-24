@@ -97,12 +97,13 @@ shift_expression
 ;
 
 primary_expression
-: IDENTIFIER {new_register(); printf("%s = \tload %s\n", CURRENT_REG, $1); /*$$.nom_temp = $1; char *c; asprintf(&c, "%%x%i", ++id);*/}
+: IDENTIFIER {new_register(); printf("%s = \tload %s\n", CURRENT_REG, $1);
+    if(!is_declared(&scope, $1, VARIABLE)){ YYERR_REPORT(last_error) } /*$$.nom_temp = $1; char *c; asprintf(&c, "%%x%i", ++id);*/}
 | CONSTANTI  {new_register(); printf("%s = \t%d\n", CURRENT_REG, $1);}
 | CONSTANTF  {new_register(); printf("%s =\t%f\n", CURRENT_REG, $1);}
 | '(' expression ')' {printf("expression\n");}
-| IDENTIFIER '(' ')' {printf("appel fonction %s sans argument\n",$1);}
-| IDENTIFIER '(' argument_expression_list ')' {printf("appel fonction %s avec des aguments\n",$1);}
+| IDENTIFIER '(' ')' {printf("appel fonction %s sans argument\n",$1); if(!is_declared(&scope, $1, FUNCTION)){ YYERR_REPORT(last_error) }}
+| IDENTIFIER '(' argument_expression_list ')' {printf("appel fonction %s avec des aguments\n",$1); if(!is_declared(&scope, $1, FUNCTION)){ YYERR_REPORT(last_error) }}
 ;
 
 postfix_expression
@@ -271,7 +272,11 @@ external_declaration
 ;
 
 function_definition
-: type_name declarator compound_statement {$2.declarator.function.return_type = $1;
+: function_declaration compound_statement
+;
+
+function_declaration
+: type_name declarator {$2.declarator.function.return_type = $1;
     if(!hash__add_item(&scope, $2.declarator.function.identifier, $2)){ YYERR_REPORT(last_error) }}
 ;
 

@@ -48,4 +48,12 @@ int new_register();
  */
 int new_label();
 
+/**
+ * Utility function taking a list of char* to create one unique string
+ * @param qty the number of params
+ * @param ... the params
+ * @return an allocated string
+ */
+char* concatenate_strings(int qty, ...);
+
 #endif //PROJET_COMPILATION_TOOLS_H

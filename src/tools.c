@@ -1,4 +1,7 @@
 #include <stdio.h>
+#include <stdarg.h>
+#include <string.h>
+#include <stdlib.h>
 #include "tools.h"
 
 int CURRENT_REGI =      0;
@@ -57,4 +60,19 @@ int new_label(){
     int tmp = ++CURRENT_LBLI;
     sprintf(CURRENT_LBL, "l%i", tmp);
     return tmp;
+}
+
+char* concatenate_strings(int qty, ...){
+    va_list list;
+    va_start(list, qty);
+
+    char* final = (char*) malloc(sizeof(char) * 256);
+    final[0] = '\0';
+
+    for(int i=0;i<qty;i++){
+        char* temp = va_arg(list, char*);
+        strcat(final, temp);
+    }
+
+    return final;
 }

@@ -1,10 +1,15 @@
 #include <stdio.h>
+#include <stdarg.h>
+#include <string.h>
+#include <stdlib.h>
 #include "tools.h"
 
 int CURRENT_REGI =      0;
 int CURRENT_LBLI =      0;
 char CURRENT_REG[10] =  "x0";
 char CURRENT_LBL[10] =  "l0";
+
+int ERR_COUNT = 0;
 
 void debug(char* s, enum color c){
     switch(c){
@@ -57,4 +62,62 @@ int new_label(){
     int tmp = ++CURRENT_LBLI;
     sprintf(CURRENT_LBL, "l%i", tmp);
     return tmp;
+}
+
+char* report_error(enum ERROR_TYPE type, void* data){
+    char* error;
+    char* identifier;
+    switch(type){
+        case UNDEFINED_FUNC:
+            identifier = (char*) data;
+            error = concatenate_strings(3, "Function \033[31;1m", identifier,
+                                             "\033[0m does not exist");
+            break;
+        case UNDEFINED_VAR:
+            identifier = (char*) data;
+            error = concatenate_strings(3, "Variable \033[31;1m", identifier,
+                                             "\033[0m has not yet been declared");
+            break;
+        case DEFINED_FUNC:
+            identifier = (char*) data;
+            error = concatenate_strings(3, "Function \033[31;1m", identifier,
+                                             "\033[0m has already defined variable(s) as parameter(s) in its scope");
+            break;
+        case DEFINED_VAR:
+            identifier = (char*) data;
+            error = concatenate_strings(3, "Variable \033[31;1m", identifier,
+                                             "\033[0m has already been defined in scope");
+            break;
+    }
+
+    ERR_COUNT ++;
+
+    char* errtype = "\033[31;1mERROR\033[0m : ";
+    return concatenate_strings(2, errtype, error);
+}
+
+void verify_no_error(char* file_name){
+    if(ERR_COUNT > 0){
+        printf("%s: \033[31;1m%d\033[0m error(s) occured. \n", file_name, ERR_COUNT);
+        printf("%s: exitting ...\n", file_name);
+        free (file_name);
+        exit(0);
+    }
+
+    free (file_name);
+}
+
+char* concatenate_strings(int qty, ...){
+    va_list list;
+    va_start(list, qty);
+
+    char* final = (char*) malloc(sizeof(char) * 256);
+    final[0] = '\0';
+
+    for(int i=0;i<qty;i++){
+        char* temp = va_arg(list, char*);
+        strcat(final, temp);
+    }
+
+    return final;
 }

@@ -7,10 +7,16 @@
 #include "type.h"
 #include "hash.h"
 #include "tools.h"
+
+
+#define YYERR_REPORT(err) yyerror(err);free(err);err = NULL;
+
 extern int yylineno;
 int yylex ();
 void yyerror (char const*);
 int level = 0; // ne peut pas être négatif
+
+struct Scope scope;
 
 %}
 
@@ -91,12 +97,13 @@ shift_expression
 ;
 
 primary_expression
-: IDENTIFIER {new_register(); printf("%s = \tload %s\n", CURRENT_REG, $1); /*$$.nom_temp = $1; char *c; asprintf(&c, "%%x%i", ++id);*/}
+: IDENTIFIER {new_register(); printf("%s = \tload %s\n", CURRENT_REG, $1);
+    if(!is_declared(&scope, $1, VARIABLE)){ YYERR_REPORT(last_error) } /*$$.nom_temp = $1; char *c; asprintf(&c, "%%x%i", ++id);*/}
 | CONSTANTI  {new_register(); printf("%s = \t%d\n", CURRENT_REG, $1);}
 | CONSTANTF  {new_register(); printf("%s =\t%f\n", CURRENT_REG, $1);}
 | '(' expression ')' {printf("expression\n");}
-| IDENTIFIER '(' ')' {printf("appel fonction %s sans argument\n",$1);}
-| IDENTIFIER '(' argument_expression_list ')' {printf("appel fonction %s avec des aguments\n",$1);}
+| IDENTIFIER '(' ')' {printf("appel fonction %s sans argument\n",$1); if(!is_declared(&scope, $1, FUNCTION)){ YYERR_REPORT(last_error) }}
+| IDENTIFIER '(' argument_expression_list ')' {printf("appel fonction %s avec des aguments\n",$1); if(!is_declared(&scope, $1, FUNCTION)){ YYERR_REPORT(last_error) }}
 ;
 
 postfix_expression
@@ -164,12 +171,12 @@ assignment_operator
 ;
 
 declaration
-: type_name declarator_list ';' { $2 = apply_type($1, $2); print_declarator_list($2);}
+: type_name declarator_list ';' { $2 = apply_type($1, $2); if(!hash__add_items(&scope, $2)){ YYERR_REPORT(last_error) }else debug("Declared variables", BLUE);}
 ;
 
 declarator_list
-: declarator { $$ = add_declarator($$, $1);}
-| declarator_list ',' declarator { $$ = $1; $$ = add_declarator($$, $3);}
+: declarator { $$ = add_declarator($$, $1); }
+| declarator_list ',' declarator { $$ = $1; $$ = add_declarator($$, $3); }
 ;
 
 type_name
@@ -180,7 +187,7 @@ type_name
 
 declarator
 : IDENTIFIER { $$.declarator.variable.identifier = $1; $$.decl_type = VARIABLE; /*PAR DEFAUT UNE VARIABLE, SINON ON RECUPERE JUSTE LA VALEUR PUIS ON ECRASE (plus haut)*/}
-| '(' declarator ')' { $$ = $2;}
+| '(' declarator ')' { $$ = $2; }
 | declarator '(' parameter_list ')' { $$ = declare_function($3, $1.declarator.variable.identifier); /*MOCHE MAIS SOLUTION LA PLUS SIMPLE*/}
 | declarator '(' ')' { struct DeclaratorList empty; empty.size = 0; $$ = declare_function(empty, $1.declarator.variable.identifier); /*PAREIL*/}
 ;
@@ -204,11 +211,11 @@ statement
 ;
 
 LB
-: '{' {level++ ; debugi("level", level, RED);}// pour le hash[i] il faut faire attention si on retourne à un même level, ce n'est pas forcément le même bloc ! il faudra sûrement utiliser deux var, une disant le dernier hash_nb atteint et le hash_nb actuel à utiliser
+: '{' {level++ ; debugi("level", level, RED); hash__upper_level(&scope);}// pour le hash[i] il faut faire attention si on retourne à un même level, ce n'est pas forcément le même bloc ! il faudra sûrement utiliser deux var, une disant le dernier hash_nb atteint et le hash_nb actuel à utiliser
 ;
 
 RB
-: '}' {level--; debugi("level", level, RED); /*hash_nb--;*/} // normalement ici pas de soucis pour le hash_nb
+: '}' {level--; debugi("level", level, RED); hash__lower_level(&scope);} // normalement ici pas de soucis pour le hash_nb
 ;
 
 compound_statement
@@ -268,7 +275,12 @@ external_declaration
 ;
 
 function_definition
-: type_name declarator compound_statement {debug("Declaration de fonction", BLUE);/*printType($2);*/}
+: function_declaration compound_statement
+;
+
+function_declaration
+: type_name declarator {$2.declarator.function.return_type = $1;
+    if(!hash__add_item(&scope, $2.declarator.function.identifier, $2)){ YYERR_REPORT(last_error) }}
 ;
 
 %%
@@ -284,13 +296,14 @@ char *file_name = NULL;
 
 //Voir le error handling de gnu bison et le location-type
 void yyerror (char const *s) {
-    //fflush (stdout);
+    fflush (stdout);
     fprintf (stderr, "%s:%d:%d: %s\n", file_name, yylineno, column, s);
     //return 0;
 }
 
 
 int main (int argc, char *argv[]) {
+    hash__init(&scope);
     FILE *input = NULL;
     if (argc==2) {
         input = fopen (argv[1], "r");
@@ -308,6 +321,12 @@ int main (int argc, char *argv[]) {
         return 1;
     }
     yyparse ();
-    free (file_name);
+
+    //First we verify errors
+    verify_no_error(file_name);
+
+
+    //Then we create code
+
     return 0;
 }

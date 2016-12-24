@@ -3,6 +3,8 @@
 
 #define MAX_ARGUMENTS 10
 
+#include "tools.h"
+
 enum TYPE{
     T_INT, T_DOUBLE, T_VOID
 };
@@ -76,5 +78,6 @@ struct Declarator declare_function(struct DeclaratorList list, char* identifier)
 
 //Fonction affichant (debug) le contenu d'une declaratorList
 void print_declarator_list(struct DeclaratorList list);
+void describe_declarator(struct Declarator decl);
 
 #endif //COMPILAPIOU_TYPE_H

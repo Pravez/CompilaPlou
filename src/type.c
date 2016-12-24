@@ -85,3 +85,30 @@ struct Declarator declare_function(struct DeclaratorList list, char* identifier)
 
     return function;
 }
+
+void describe_declarator(struct Declarator decl){
+    char* type;
+    char* identifier;
+    char* return_type;
+
+    if(decl.decl_type == FUNCTION){
+        type = "FUNCTION";
+        identifier = decl.declarator.function.identifier;
+        switch(decl.declarator.function.return_type){
+            case T_INT: return_type = "INT";break;
+            case T_DOUBLE: return_type = "DOUBLE";break;
+            case T_VOID: return_type = "VOID";break;
+        }
+    }else{
+        type = "VAR";
+        identifier = decl.declarator.variable.identifier;
+        switch(decl.declarator.variable.type){
+            case T_INT: return_type = "INT";break;
+            case T_DOUBLE: return_type = "DOUBLE";break;
+            case T_VOID: return_type = "VOID";break;
+        }
+
+    }
+
+    printf("%s %s %s", type, identifier, return_type);
+}

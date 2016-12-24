@@ -139,8 +139,7 @@ bool hash__add_item(struct Scope *hashmap, char *key, struct Declarator declarat
                     item->key = key;
                     item->value = declarator;
                 }else{
-                    last_error = concatenate_strings(3, "Function \033[31;1m", declarator.declarator.function.identifier,
-                                                     "\033[0m has already defined variable(s) as parameter(s) in its scope");
+                    last_error = report_error( DEFINED_FUNC, declarator.declarator.function.identifier);
                     return false;
                 }
             }else{
@@ -188,14 +187,12 @@ bool hash__add_items(struct Scope *hashmap, struct DeclaratorList list){
     for(int i=0;i<list.size;i++){
         if(list.declarator_list[i].decl_type == FUNCTION){
             if(!hash__add_item(hashmap, list.declarator_list[i].declarator.function.identifier, list.declarator_list[i])){
-                last_error = concatenate_strings(3, "Function \033[31;1m", list.declarator_list[i].declarator.function.identifier,
-                                                 "\033[0m has already defined variable(s) as parameter(s) in its scope");
+                last_error = report_error( DEFINED_FUNC, list.declarator_list[i].declarator.function.identifier);
                 return false;
             }
         }else{
             if(!hash__add_item(hashmap, list.declarator_list[i].declarator.variable.identifier, list.declarator_list[i])){
-                last_error = concatenate_strings(3, "Variable \033[31;1m", list.declarator_list[i].declarator.variable.identifier,
-                        "\033[0m has already been defined in scope");
+                last_error = report_error( DEFINED_VAR, list.declarator_list[i].declarator.variable.identifier);
                 return false;
             }
         }
@@ -235,11 +232,10 @@ void display_scope(struct Scope scope){
 bool is_declared(struct Scope *scope, char* identifier, enum DECL_TYPE type){
     if(!hash__key_exists_all(scope, identifier)){
         if(type == VARIABLE)
-            last_error = concatenate_strings(3, "Variable \033[31;1m", identifier,
-                                         "\033[0m has not yet been declared");
+            last_error = report_error( UNDEFINED_VAR, identifier);
         else
-            last_error = concatenate_strings(3, "Function \033[31;1m", identifier,
-                                             "\033[0m does not exist");
+            last_error = report_error( UNDEFINED_FUNC, identifier);
+
         return false;
     }
 

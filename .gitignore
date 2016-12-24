@@ -1,0 +1,13 @@
+#Ignore jetbrains IDE
+.idea/
+cmake-build-debug/
+CMakeLists.txt
+
+#Ignore tests folders
+tests/
+
+#Ignore generated files
+parse
+scanner.c
+grammar.c
+grammar.tab.h

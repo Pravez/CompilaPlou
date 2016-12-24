@@ -318,6 +318,12 @@ int main (int argc, char *argv[]) {
         return 1;
     }
     yyparse ();
-    free (file_name);
+
+    //First we verify errors
+    verify_no_error(file_name);
+
+
+    //Then we create code
+
     return 0;
 }

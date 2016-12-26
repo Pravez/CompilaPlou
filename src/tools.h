@@ -20,6 +20,11 @@ enum color{
     BLUE,
     GREEN
 };
+#define COLOR_FG_RED    "\033[31m"
+#define COLOR_FG_BLUE   "\033[34m"
+#define COLOR_FG_GREEN  "\033[32m"
+#define COLOR_RESET     "\033[31m"
+
 /**
  * Affiche du texte dans le terminal avec la couleur donnée
  * @param s String Message à afficher

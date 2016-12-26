@@ -172,6 +172,24 @@ assignment_operator
 
 declaration
 : type_name declarator_list ';' { $2 = apply_type($1, $2); if(!hash__add_items(&scope, $2)){ YYERR_REPORT(last_error) }else debug("Declared variables", BLUE);}
+| type_name declarator '=' expression {
+    if($2.decl_type == VARIABLE){
+        printf("%s'%s' declarated + set%s\n",
+                COLOR_FG_BLUE,
+                $2.declarator.variable.identifier,
+                COLOR_RESET);
+        //TODO
+    } else{
+        char* func_name = $2.declarator.function.identifier;
+        char* err = malloc(100 + strlen(func_name));
+        sprintf(err, "%sFonction %s est initialisée comme une variable !%s",
+                COLOR_FG_RED,
+                func_name,
+                COLOR_RESET);
+        yyerror(err);
+        exit(1); //TODO utiliser une gestion plus propre des erreurs bloquantes ?
+    }
+}
 ;
 
 declarator_list

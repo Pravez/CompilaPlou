@@ -111,13 +111,22 @@ char* concatenate_strings(int qty, ...){
     va_list list;
     va_start(list, qty);
 
-    char* final = (char*) malloc(sizeof(char) * 256);
+    int total_length = 1;
+    for(int i=0;i<=qty;i++){
+        total_length += strlen(va_arg(list, char*));
+    }
+    va_end(list);
+
+    va_start(list, qty);
+    char* final = (char*) malloc(sizeof(char) * total_length);
     final[0] = '\0';
 
-    for(int i=0;i<qty;i++){
+    for(int i=0;i<=qty;i++){
         char* temp = va_arg(list, char*);
         strcat(final, temp);
     }
+    final[total_length] = '\0'; // theoretically, no use of that line, but anyway...
 
+    va_end(list);
     return final;
 }

@@ -7,7 +7,7 @@
 #include "type.h"
 #include "hash.h"
 #include "tools.h"
-
+#include "expression.h"
 
 #define YYERR_REPORT(err) yyerror(err);free(err);err = NULL;
 
@@ -17,7 +17,7 @@ void yyerror (char const*);
 int level = 0; // ne peut pas être négatif
 
 struct Scope scope;
-
+struct llvm__program program;
 %}
 
 %token <string> IDENTIFIER // id d'un objet
@@ -211,11 +211,11 @@ statement
 ;
 
 LB
-: '{' {level++ ; debugi("level", level, RED); hash__upper_level(&scope);}// pour le hash[i] il faut faire attention si on retourne à un même level, ce n'est pas forcément le même bloc ! il faudra sûrement utiliser deux var, une disant le dernier hash_nb atteint et le hash_nb actuel à utiliser
+: '{' {level++ ; debugi("level", level, RED); hash__upper_level(&scope); llvm__program_add_line(&program, "{");}// pour le hash[i] il faut faire attention si on retourne à un même level, ce n'est pas forcément le même bloc ! il faudra sûrement utiliser deux var, une disant le dernier hash_nb atteint et le hash_nb actuel à utiliser
 ;
 
 RB
-: '}' {level--; debugi("level", level, RED); hash__lower_level(&scope);} // normalement ici pas de soucis pour le hash_nb
+: '}' {level--; debugi("level", level, RED); hash__lower_level(&scope); llvm__program_add_line(&program, "}");} // normalement ici pas de soucis pour le hash_nb
 ;
 
 compound_statement
@@ -280,7 +280,9 @@ function_definition
 
 function_declaration
 : type_name declarator {$2.declarator.function.return_type = $1;
-    if(!hash__add_item(&scope, $2.declarator.function.identifier, $2)){ YYERR_REPORT(last_error) }}
+    if(!hash__add_item(&scope, $2.declarator.function.identifier, $2)){ YYERR_REPORT(last_error) }else{
+        printf("%s\n", llvm___create_function_def(hash__get_item(&scope, $2.declarator.function.identifier).declarator.function));
+    }}
 ;
 
 %%
@@ -304,6 +306,7 @@ void yyerror (char const *s) {
 
 int main (int argc, char *argv[]) {
     hash__init(&scope);
+    llvm__init_program(&program);
     FILE *input = NULL;
     if (argc==2) {
         input = fopen (argv[1], "r");

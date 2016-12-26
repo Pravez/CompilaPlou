@@ -4,7 +4,7 @@ int main(){
     a = 10;
     do{
         --a;
-    }while(a == 0);
+    }while(a == 0)
 
     return 0;
 }

@@ -5,7 +5,7 @@ CC=gcc
 
 all:clean parse
 
-parse:grammar.c scanner.c type.c tools.c hash.c
+parse:grammar.c scanner.c type.c tools.c hash.c expression.c
 	$(CC) $(CFLAGS) -o $@ $^
 
 grammar.c:grammar.y

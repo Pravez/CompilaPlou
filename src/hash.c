@@ -12,18 +12,31 @@ int hachage(char *s) {
     return hash % HASH_SIZE;
 }
 
+/**
+ * Function to verifiy if the key exists in the current scope of the hashmap
+ * @param hashmap
+ * @param key
+ * @return
+ */
 bool hash__key_exists_current(struct Scope *hashmap, char *key) {
     int position = hachage(key);
     do{
         if (strcmp(hashmap->scope_maps[hashmap->current_level][position].key, key) == 0) {
             return true;
         }
+        //If we hash function returned an already known position, then we try to follow the next values
         position = hashmap->scope_maps[hashmap->current_level][position].next;
     }while(position != -1);
 
     return false;
 }
 
+/**
+ * Function to verify if a key exists in every level of a scope
+ * @param hashmap
+ * @param key
+ * @return
+ */
 bool hash__key_exists_all(struct Scope *hashmap, char *key) {
     for (int i = 0; i <= hashmap->higher_level; i++) {
         int position = hachage(key);
@@ -31,6 +44,7 @@ bool hash__key_exists_all(struct Scope *hashmap, char *key) {
             if (strcmp(hashmap->scope_maps[i][position].key, key) == 0) {
                 return true;
             }
+            //To verify if hash function returned already set value
             position = hashmap->scope_maps[i][position].next;
         }while(position != -1);
     }
@@ -38,6 +52,12 @@ bool hash__key_exists_all(struct Scope *hashmap, char *key) {
     return false;
 }
 
+/**
+ * Function to get an item according to its key (a bit the same as functions to verify presence)
+ * @param hashmap
+ * @param key
+ * @return
+ */
 struct Declarator hash__get_item(struct Scope *hashmap, char *key) {
     for (int i = 0; i <= hashmap->current_level; i++) {
         int position = hachage(key);
@@ -155,6 +175,11 @@ bool hash__add_item(struct Scope *hashmap, char *key, struct Declarator declarat
     return false;
 }
 
+/**
+ * Function to clean a level, setting keys and next values to default ones
+ * @param hashmap
+ * @param level
+ */
 void hash__clean_level(struct Scope *hashmap, int level){
     for (int i = 0; i < HASH_SIZE; i++) {
         hashmap->scope_maps[level][i].key = "";
@@ -162,6 +187,10 @@ void hash__clean_level(struct Scope *hashmap, int level){
     }
 }
 
+/**
+ * Add a level. If higher_level is higher is not bigger, we clean next level (because not already set)
+ * @param hashmap
+ */
 void hash__upper_level(struct Scope *hashmap) {
     hashmap->current_level++;
     if(hashmap->current_level > hashmap->higher_level) {
@@ -170,6 +199,10 @@ void hash__upper_level(struct Scope *hashmap) {
     }
 }
 
+/**
+ * Lower level of a scope
+ * @param hashmap
+ */
 void hash__lower_level(struct Scope *hashmap) {
     if(hashmap->current_level != 0) {
         hashmap->current_level--;
@@ -177,12 +210,22 @@ void hash__lower_level(struct Scope *hashmap) {
     }
 }
 
+/**
+ * Init a scope
+ * @param hashmap
+ */
 void hash__init(struct Scope *hashmap) {
     hashmap->current_level = 0;
     hashmap->higher_level = 0;
     hash__clean_level(hashmap, hashmap->current_level);
 }
 
+/**
+ * Function to call the adding of an item on a list of Declarator
+ * @param hashmap
+ * @param list
+ * @return
+ */
 bool hash__add_items(struct Scope *hashmap, struct DeclaratorList list){
     for(int i=0;i<list.size;i++){
         if(list.declarator_list[i].decl_type == FUNCTION){
@@ -202,7 +245,10 @@ bool hash__add_items(struct Scope *hashmap, struct DeclaratorList list){
     return true;
 }
 
-
+/**
+ * Debug function to display an entire scope
+ * @param scope
+ */
 void display_scope(struct Scope scope){
     for(int i=0;i<=scope.current_level;i++){
         printf("Level %d\n", i);
@@ -229,6 +275,13 @@ void display_scope(struct Scope scope){
     }
 }
 
+/**
+ * Verify if a variable or function has already been declared
+ * @param scope
+ * @param identifier
+ * @param type
+ * @return
+ */
 bool is_declared(struct Scope *scope, char* identifier, enum DECL_TYPE type){
     if(!hash__key_exists_all(scope, identifier)){
         if(type == VARIABLE)

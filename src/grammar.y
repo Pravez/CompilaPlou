@@ -173,15 +173,16 @@ assignment_operator
 declaration
 : type_name declarator_list ';' {
     // check everything is fine (variables not void)
-    for(int i = 0; i < $2.size; ++i){
-        if($2.declarator_list[i].decl_type == VARIABLE){
-            if($1 == T_VOID){
-                char* var_name = $2.declarator_list[i].declarator.variable.identifier;
-                char* err = malloc(100 + strlen(var_name));
-                sprintf(err, "%sVariable %s ne peut pas être déclarée comme VOID !%s",
-                    COLOR_FG_RED,
-                    var_name,
-                    COLOR_RESET);
+    if($1 == T_VOID){
+        for(int i = 0;i<$2.size;++i){
+            if($2.declarator_list[i].decl_type == VARIABLE){
+                char *var_name = $2.declarator_list[i].declarator.variable.identifier;
+                char *err = malloc(100 + strlen(var_name));
+                sprintf(err,
+                "%sVariable %s ne peut pas être déclarée comme VOID !%s",
+                COLOR_FG_RED,
+                var_name,
+                COLOR_RESET);
                 yyerror(err);
                 exit(1);
             }

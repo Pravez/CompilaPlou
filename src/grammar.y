@@ -242,9 +242,44 @@ expression_statement
 ;
 
 selection_statement
-: IF '(' expression ')' statement {printf("if\n");}
-| IF '(' expression ')' statement ELSE statement
-| FOR '(' expression ';' expression ';' expression ')' statement
+: IF '(' expression ')' statement {
+    printf("-- code if --\n");
+    int true_label = new_label();
+    int false_label = new_label();
+    printf("\texpression.code\n");
+    printf("\tbr i1 %%<expression.reg> label %%label%d, label %%label%d\n", true_label, false_label);
+    printf("\tlabel%d:\n", true_label);
+    printf("\tstatement.code\n");
+    printf("\tlabel%d:\n", false_label);
+    printf("-- /if --");
+}
+| IF '(' expression ')' statement ELSE statement {
+    printf("-- code if else --\n");
+    int true_label = new_label();
+    int false_label = new_label();
+    printf("\texpression.code\n");
+    printf("\tbr i1 %%<expression.reg> label %%label%d, label %%label%d\n", true_label, false_label);
+    printf("\tlabel%d:\n", true_label);
+    printf("\ts1.code\n");
+    printf("\tlabel%d:\n", false_label);
+    printf("\ts2.code\n");
+    printf("\t-- /if --\n");
+}
+| FOR '(' expression ';' expression ';' expression ')' statement {
+    printf("-- code for(e1;e2;e3) s --\n");
+    int loop = new_label();
+    int end = new_label();
+    printf("\te1.code\n");
+    printf("\te2.code\n");
+    printf("\tbr i1 %%<e2.reg> label %%label%d, label %%label%d\n", loop, end);
+    printf("\tlabel%d:\n", loop);
+    printf("\tstatement.code\n");
+    printf("\te3.code\n");
+    printf("\te2.code\n");
+    printf("\tbr i1 %%<e2.reg> label %%label%d, label %%label%d\n", loop, end);
+    printf("\tlabel%d:\n", end);
+    printf("-- /for --\n");
+}
 | FOR '(' expression ';' expression ';'            ')' statement
 | FOR '(' expression ';'            ';' expression ')' statement
 | FOR '(' expression ';'            ';'            ')' statement
@@ -255,8 +290,32 @@ selection_statement
 ;
 
 iteration_statement
-: WHILE '(' expression ')' statement
-| DO statement WHILE '(' expression ')' ';'
+: WHILE '(' expression ')' statement {
+    printf("-- code while(e) s --\n");
+    int start = new_label();
+    int loop = new_label();
+    int end = new_label();
+    printf("\tlabel%d:", start);
+    printf("\te.code\n");
+    printf("\tbr i1 %%<e.reg> label %%label%d, label %%label%d\n", loop, end);
+    printf("\tlabel%d:\n", loop);
+    printf("\ts.code\n");
+    printf("\tbr label %%label%d\n", start);
+    printf("\tlabel%d:\n", end);
+    printf("-- /while --\n");
+};
+| DO statement WHILE '(' expression ')' ';' {
+    printf("-- code do s while(e); --\n");
+    int start = new_label();
+    int loop = new_label();
+    int end = new_label();
+    printf("\tlabel%d:\n", loop);
+    printf("\ts.code\n");
+    printf("\te.code\n");
+    printf("\tbr i1 %%<e.reg> label %%label%d, label %%label%d\n", loop, end);
+    printf("\tlabel%d:\n", end);
+    printf("-- /dowhile --\n");
+}
 ;
 
 jump_statement

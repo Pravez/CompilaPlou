@@ -14,5 +14,12 @@ grammar.c:grammar.y
 %.c:%.l
 	$(LEX) -o $@ $^
 
+srcTest: test-source-code/tst-tools.c tools.c
+	$(CC) $(CFLAGS) -o $@ $^
+
+
 clean:
 	rm -f grammar.c scanner.c *~
+	rm -f grammar.tab.h
+	rm -f srcTest
+	rm -f parse

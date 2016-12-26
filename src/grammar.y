@@ -198,7 +198,7 @@ declaration
                 COLOR_FG_RED,
                 var_name,
                 COLOR_RESET);
-                yyerror(err);
+                yyerror(err); //TODO gestion erreur propre
                 exit(1);
             }
         }

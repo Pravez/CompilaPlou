@@ -120,7 +120,6 @@ char* concatenate_strings(int qty, ...){
     va_list list;
     va_start(list, qty);
 
-
     int total_length = 1;
     for(int i=0;i<qty;i++){
         total_length += strlen(va_arg(list, char*));
@@ -132,10 +131,9 @@ char* concatenate_strings(int qty, ...){
     final[0] = '\0';
 
     for(int i=0;i<qty;i++){
-        char* temp = va_arg(list, char*);
-        strcat(final, temp);
+        strcat(final, va_arg(list, char*));
     }
-    final[total_length] = '\0'; // theoretically, no use of that line, but anyway...
+    final[total_length-1] = '\0'; // theoretically, no use of that line, but anyway...
 
     va_end(list);
     return final;

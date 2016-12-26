@@ -46,6 +46,9 @@ struct llvm__program program;
 %type <operand> primary_expression postfix_expression unary_expression
 %type <plou_expression> expression
 %type <conditional> conditional_expression logical_or_expression logical_and_expression
+//ADDED
+%type <conditional> multiplicative_expression additive_expression
+//
 %start program
 %union {
     char *string;
@@ -139,9 +142,9 @@ argument_expression_list
 
 multiplicative_expression
 : unary_expression { $$ = create_cond_expression($1); }
-| multiplicative_expression '*' unary_expression { $$ = create_cond_expression($1, $3, OP_MUL); };
-| multiplicative_expression '/' unary_expression { $$ = create_cond_expression($1, $3, OP_DIV); };
-| multiplicative_expression REM unary_expression { $$ = create_cond_expression($1, $3, OP_REM); };
+| multiplicative_expression '*' unary_expression { $$ = add_expression_to_cond($1, $3, OP_MUL); };
+| multiplicative_expression '/' unary_expression { $$ = add_expression_to_cond($1, $3, OP_DIV); };
+| multiplicative_expression REM unary_expression { $$ = add_expression_to_cond($1, $3, OP_REM); };
 ;
 
 additive_expression
@@ -161,8 +164,8 @@ comparison_expression
 ;
 
 expression
-: unary_expression assignment_operator conditional_expression {  }
-| conditional_expression
+: unary_expression assignment_operator conditional_expression { debug("affectation", GREEN); }
+| conditional_expression { $$ = expression_from_cond(&$1);}
 ;
 
 assignment_operator
@@ -203,11 +206,28 @@ declaration
 }
 | type_name declarator '=' expression {
     if($2.decl_type == VARIABLE){
-        printf("%s'%s' declarated + set%s\n",
+        printf("%s declare: '%s' = %s",
                 COLOR_FG_BLUE,
                 $2.declarator.variable.identifier,
                 COLOR_RESET);
-        //TODO
+        switch($4.type){
+            case E_CONDITIONAL:
+                switch($4.condition.operand.type){
+                    case O_VARIABLE:
+                            printf("%s%s%s\n", COLOR_FG_GREEN, $4.condition.operand.operand.variable, COLOR_RESET);
+                    break;
+                    case O_INT:
+                            printf("%s%d%s\n", COLOR_FG_GREEN, $4.condition.operand.operand.int_value, COLOR_RESET);
+                    break;
+                    case O_DOUBLE:
+                            printf("%s%f%s\n", COLOR_FG_GREEN, $4.condition.operand.operand.double_value, COLOR_RESET);
+                    break;
+                }
+                break;
+            default:
+                printf("pas implémenté. DSL <3\n");
+        }
+        //TODO affecter la valeur du registre de expression à la variable
     } else{
         char* func_name = $2.declarator.function.identifier;
         char* err = malloc(100 + strlen(func_name));
@@ -353,7 +373,6 @@ iteration_statement
 };
 | DO statement WHILE '(' expression ')' ';' {
     printf("-- code do s while(e); --\n");
-    int start = new_label();
     int loop = new_label();
     int end = new_label();
     printf("\tlabel%d:\n", loop);

@@ -34,6 +34,22 @@ enum ASSIGN_OPERATOR{
     OP_SUB_ASSIGN      /* -= */
 };
 
+enum COND_OPERATOR{
+    NONE,
+    OP_MUL,     /* * */
+    OP_DIV,     /* / */
+    OP_REM,     /* % */
+    OP_SHL,     /* < */
+    OP_SHR,     /* > */
+    OP_SHL_EQ,     /* <= */
+    OP_SHR_EQ,     /* >= */
+    OP_EQ,      /* == */
+    OP_ADD,     /* + */
+    OP_SUB,      /* - */
+    OP_OR,
+    OP_AND
+};
+
 
 //////Variables
 struct Variable{

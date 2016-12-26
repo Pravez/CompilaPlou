@@ -46,6 +46,7 @@ struct Expression{
     enum ASSIGN_OPERATOR ass_op;
     struct cond_expression condition;
     struct affect_expression affectation;
+    //char* code; // ?
 };
 
 struct expr_operand init_operand(enum OPERAND_TYPE type);
@@ -59,5 +60,7 @@ struct cond_expression create_cond_expression(struct expr_operand operand);
 struct cond_expression add_expression_to_cond(struct cond_expression expr, struct expr_operand operand, enum COND_OPERATOR operator);
 
 struct Expression create_expression();
+
+struct Expression expression_from_cond(const struct cond_expression* e);
 
 #endif //_EXPRESSION_H

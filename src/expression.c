@@ -1,3 +1,4 @@
+#include <stdlib.h>
 #include "expression.h"
 
 struct expr_operand init_operand(enum OPERAND_TYPE type){
@@ -53,6 +54,19 @@ int operand_add_prefix(struct expr_operand* operand, int value){
 }
 
 struct cond_expression create_cond_expression(struct expr_operand operand){
+    printf("création cond expression: ");
+
+    switch(operand.type){
+        case O_VARIABLE:
+            printf("operand: %s\n", operand.operand.variable);
+            break;
+        case O_INT:
+            printf("operand: %d\n", operand.operand.int_value);
+            break;
+        case O_DOUBLE:
+            printf("operand: %f\n", operand.operand.double_value);
+            break;
+    }
     struct cond_expression cond;
     cond.next = NULL;
     cond.operand = operand;
@@ -71,4 +85,14 @@ struct cond_expression add_expression_to_cond(struct cond_expression expr, struc
     expr.operator = operator;
 
     return expr;
+}
+
+//ADDED
+struct Expression expression_from_cond(const struct cond_expression* e){
+    struct Expression expression;
+
+    expression.condition = *e;
+    expression.type = E_CONDITIONAL;
+
+    return expression;
 }

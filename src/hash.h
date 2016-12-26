@@ -10,8 +10,6 @@
 #define false 0
 typedef int bool;
 
-char* last_error;
-
 struct hashmap_item {
     char *key;
     struct Declarator value;

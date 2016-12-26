@@ -3,13 +3,16 @@
 #include <string.h>
 #define _GNU_SOURCE
 #include <search.h>
+#include <stdlib.h>
 
 #include "type.h"
 #include "hash.h"
 #include "tools.h"
 #include "llvm_code.h"
+#include "expression.h"
 
-#define YYERR_REPORT(err) yyerror(err);free(err);err = NULL;
+#define YYERR_REPORT(err) yyerror(err);free(err);err = NULL;error_flag = 0;
+#define CHK_ERROR(value) if(value){ YYERR_REPORT(last_error) }
 
 extern int yylineno;
 int yylex ();
@@ -40,6 +43,8 @@ struct llvm__program program;
 %type <plou_declarator> declarator parameter_declaration
 %type <plou_type> type_name
 %type <assign_operator> assignment_operator
+%type <operand> primary_expression postfix_expression unary_expression
+%type <plou_expression> expression
 %start program
 %union {
     char *string;
@@ -61,6 +66,10 @@ struct llvm__program program;
 
     //Operators:
     enum ASSIGN_OPERATOR assign_operator;
+
+    //Expressions
+    struct expr_operand operand;
+    struct Expression plou_expression;
     //struct Function function;
     //struct Variable variable;
     /*
@@ -97,39 +106,45 @@ shift_expression
 ;
 
 primary_expression
-: IDENTIFIER {new_register(); printf("%s = \tload %s\n", CURRENT_REG, $1);
-    if(!is_declared(&scope, $1, VARIABLE)){ YYERR_REPORT(last_error) } /*$$.nom_temp = $1; char *c; asprintf(&c, "%%x%i", ++id);*/}
-| CONSTANTI  {new_register(); printf("%s = \t%d\n", CURRENT_REG, $1);}
-| CONSTANTF  {new_register(); printf("%s =\t%f\n", CURRENT_REG, $1);}
-| '(' expression ')' {printf("expression\n");}
-| IDENTIFIER '(' ')' {printf("appel fonction %s sans argument\n",$1); if(!is_declared(&scope, $1, FUNCTION)){ YYERR_REPORT(last_error) }}
-| IDENTIFIER '(' argument_expression_list ')' {printf("appel fonction %s avec des aguments\n",$1); if(!is_declared(&scope, $1, FUNCTION)){ YYERR_REPORT(last_error) }}
+: IDENTIFIER { //new_register();
+    if(!is_declared(&scope, $1, VARIABLE)){ YYERR_REPORT(last_error) }
+    $$ = init_operand_identifier($1);
+    }
+| CONSTANTI  { //new_register();
+    $$ = init_operand_integer($1);
+    }
+| CONSTANTF  {//new_register();
+    $$ = init_operand_double($1);
+    }
+| '(' expression ')' {  }
+| IDENTIFIER '(' ')' {
+    CHK_ERROR(!is_declared(&scope, $1, FUNCTION))
+    $$ = init_operand_identifier($1);
+    }
+| IDENTIFIER '(' argument_expression_list ')' { //A MODIFIER
+    CHK_ERROR(!is_declared(&scope, $1, FUNCTION))
+    $$ = init_operand_identifier($1);
+    }
 ;
 
 postfix_expression
-: primary_expression
-| postfix_expression INC_OP {printf("add 1\n");}
-| postfix_expression DEC_OP {printf("sub 1\n");}
+: primary_expression { $$ = $1; }
+| postfix_expression INC_OP { CHK_ERROR(!operand_add_postfix(&$$, 1)) }
+| postfix_expression DEC_OP { CHK_ERROR(!operand_add_postfix(&$$, -1)) }
+;
+
+unary_expression
+: postfix_expression { $$ = $1; }
+| INC_OP unary_expression { CHK_ERROR(!operand_add_prefix(&$$, 1)) }
+| DEC_OP unary_expression { CHK_ERROR(!operand_add_prefix(&$$, -1)) }
+//| unary_operator unary_expression {printf("negation de l'espace\n");}
+| '-' unary_expression {printf("negation de l'espace\n");}
 ;
 
 argument_expression_list
 : expression
 | argument_expression_list ',' expression
 ;
-
-unary_expression
-: postfix_expression
-| INC_OP unary_expression {printf("add 1\n");}
-| DEC_OP unary_expression  {printf("sub 1\n");}
-//| unary_operator unary_expression {printf("negation de l'espace\n");}
-| '-' unary_expression {printf("negation de l'espace\n");}
-;
-
-/*
-unary_operator
-: '-'
-;
-*/
 
 multiplicative_expression
 : unary_expression
@@ -155,7 +170,7 @@ comparison_expression
 ;
 
 expression
-: unary_expression assignment_operator conditional_expression { printf("Assignement (%d)\n", $2);/*printf("%s = load i32, i32* v.addr\n", c, ++id); */}
+: unary_expression assignment_operator conditional_expression {  }
 | conditional_expression
 ;
 
@@ -407,6 +422,7 @@ void yyerror (char const *s) {
 int main (int argc, char *argv[]) {
     hash__init(&scope);
     llvm__init_program(&program);
+    error_flag = 0;
     FILE *input = NULL;
     if (argc==2) {
         input = fopen (argv[1], "r");

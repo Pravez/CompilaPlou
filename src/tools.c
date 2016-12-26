@@ -81,16 +81,25 @@ char* report_error(enum ERROR_TYPE type, void* data){
         case DEFINED_FUNC:
             identifier = (char*) data;
             error = concatenate_strings(3, "Function \033[31;1m", identifier,
-                                             "\033[0m has already defined variable(s) as parameter(s) in its scope");
+                                             "\033[0m has already been defined in scope as a function");
+            break;
+        case DEFINED_FUNC_VAR:
+            identifier = (char*) data;
+            error = concatenate_strings(3, "Function \033[31;1m", identifier,
+                                        "\033[0m has already defined variable(s) as parameter(s) in its scope");
             break;
         case DEFINED_VAR:
             identifier = (char*) data;
             error = concatenate_strings(3, "Variable \033[31;1m", identifier,
-                                             "\033[0m has already been defined in scope");
+                                             "\033[0m has already been defined in scope as a variable");
+            break;
+        case NOT_ASSIGNABLE_EXPR:
+            error = "Expression is not assignable";
             break;
     }
 
     ERR_COUNT ++;
+    error_flag = 1;
 
     char* errtype = "\033[31;1mERROR\033[0m : ";
     return concatenate_strings(2, errtype, error);
@@ -111,17 +120,18 @@ char* concatenate_strings(int qty, ...){
     va_list list;
     va_start(list, qty);
 
+
     int total_length = 1;
-    for(int i=0;i<=qty;i++){
+    for(int i=0;i<qty;i++){
         total_length += strlen(va_arg(list, char*));
     }
     va_end(list);
-
     va_start(list, qty);
+
     char* final = (char*) malloc(sizeof(char) * total_length);
     final[0] = '\0';
 
-    for(int i=0;i<=qty;i++){
+    for(int i=0;i<qty;i++){
         char* temp = va_arg(list, char*);
         strcat(final, temp);
     }

@@ -1,6 +1,7 @@
 %{
 #include <stdio.h>
 #include "type.h"
+#include "expression.h"
 #include <string.h>
 #include "grammar.tab.h"
 void count();

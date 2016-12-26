@@ -8,11 +8,16 @@ extern char CURRENT_LBL[10];
 
 extern int ERR_COUNT;
 
+char* last_error;
+int error_flag;
+
 enum ERROR_TYPE{
     UNDEFINED_VAR,
     DEFINED_VAR,
     UNDEFINED_FUNC,
-    DEFINED_FUNC
+    DEFINED_FUNC,
+    DEFINED_FUNC_VAR,
+    NOT_ASSIGNABLE_EXPR
 };
 
 enum color{

@@ -131,6 +131,7 @@ bool hash__add_item_function(struct Scope *hashmap, struct Declarator declarator
                 item->value = variable;
             }
         }else{
+            last_error = report_error( DEFINED_FUNC_VAR, declarator.declarator.function.var_list[i].identifier);
             return false;
         }
     }
@@ -159,7 +160,6 @@ bool hash__add_item(struct Scope *hashmap, char *key, struct Declarator declarat
                     item->key = key;
                     item->value = declarator;
                 }else{
-                    last_error = report_error( DEFINED_FUNC, declarator.declarator.function.identifier);
                     return false;
                 }
             }else{
@@ -230,7 +230,9 @@ bool hash__add_items(struct Scope *hashmap, struct DeclaratorList list){
     for(int i=0;i<list.size;i++){
         if(list.declarator_list[i].decl_type == FUNCTION){
             if(!hash__add_item(hashmap, list.declarator_list[i].declarator.function.identifier, list.declarator_list[i])){
-                last_error = report_error( DEFINED_FUNC, list.declarator_list[i].declarator.function.identifier);
+                if(error_flag == 0) {
+                    last_error = report_error(DEFINED_FUNC, list.declarator_list[i].declarator.function.identifier);
+                }
                 return false;
             }
         }else{
@@ -263,6 +265,7 @@ void display_scope(struct Scope scope){
                         switch(scope.scope_maps[i][j].value.declarator.function.var_list[k].type){
                             case T_INT: type = "INT";break;
                             case T_DOUBLE: type = "DOUBLE";break;
+                            case T_VOID: type = "VOID";break;
                         }
                         printf("%s %s", type, scope.scope_maps[i][j].value.declarator.function.var_list[k].identifier);
                     }
@@ -304,6 +307,7 @@ bool is_of_type(struct Scope *scope, char* identifier, enum TYPE type){
             switch(type){
                 case T_INT: assigned = "\033[31;1mdouble\033[0m"; value="\033[31;2mint\033[0m";break;
                 case T_DOUBLE: assigned = "\033[31;2mint\033[0m"; value="\033[31;1mdouble\033[0m";break;
+                case T_VOID: break; //LATER
             }
             last_error = concatenate_strings(3, "Can't assign a ", value,
                                              " to a ", assigned);

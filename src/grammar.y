@@ -206,7 +206,7 @@ declaration
 }
 | type_name declarator '=' expression {
     if($2.decl_type == VARIABLE){
-        printf("%s declare: '%s' = %s",
+        printf("%sdeclare: '%s' = %s",
                 COLOR_FG_BLUE,
                 $2.declarator.variable.identifier,
                 COLOR_RESET);
@@ -227,7 +227,12 @@ declaration
             default:
                 printf("pas implémenté. DSL <3\n");
         }
+
+        if(!hash__add_item(&scope, $2.declarator.variable.identifier, $2)){
+            YYERR_REPORT(last_error)
+        }
         //TODO affecter la valeur du registre de expression à la variable
+
     } else{
         char* func_name = $2.declarator.function.identifier;
         char* err = malloc(100 + strlen(func_name));

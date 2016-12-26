@@ -8,13 +8,7 @@ enum EXPR_COMMAND{
 };
 
 enum OPERAND_TYPE{
-    VARIABLE, INT, DOUBLE
-};
-
-struct Expression{
-    char* register_name;
-    enum TYPE type;
-    union expr_operand operands[2];
+    O_VARIABLE, O_INT, O_DOUBLE
 };
 
 struct expr_operand{
@@ -24,6 +18,12 @@ struct expr_operand{
         int int_value;
         double double_value;
     };
+};
+
+struct Expression{
+    char* register_name;
+    enum TYPE type;
+    struct expr_operand operands[2];
 };
 
 #endif //_EXPRESSION_H

@@ -51,3 +51,24 @@ int operand_add_prefix(struct expr_operand* operand, int value){
     operand->prefix += value;
     return 1;
 }
+
+struct cond_expression create_cond_expression(struct expr_operand operand){
+    struct cond_expression cond;
+    cond.next = NULL;
+    cond.operand = operand;
+    cond.operator = NONE;
+
+    return cond;
+}
+
+struct cond_expression add_expression_to_cond(struct cond_expression expr, struct expr_operand operand, enum COND_OPERATOR operator){
+    struct cond_expression* next = malloc(sizeof(struct cond_expression));
+    next->operator = NONE;
+    next->next = NULL;
+    next->operand = operand;
+
+    expr.next = next;
+    expr.operator = operator;
+
+    return expr;
+}

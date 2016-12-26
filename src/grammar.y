@@ -45,6 +45,7 @@ struct llvm__program program;
 %type <assign_operator> assignment_operator
 %type <operand> primary_expression postfix_expression unary_expression
 %type <plou_expression> expression
+%type <conditional> conditional_expression logical_or_expression logical_and_expression
 %start program
 %union {
     char *string;
@@ -69,18 +70,8 @@ struct llvm__program program;
 
     //Expressions
     struct expr_operand operand;
+    struct cond_expression conditional;
     struct Expression plou_expression;
-    //struct Function function;
-    //struct Variable variable;
-    /*
-  struct variable t;
-  struct FUNCTION arg;
-  enum argtype typarg;
-
-  char* code; // code généré
-  struct expression expr;
-  struct code_expr tce; // type expression contient type type
-    */
 }
 %%
 
@@ -147,10 +138,10 @@ argument_expression_list
 ;
 
 multiplicative_expression
-: unary_expression
-| multiplicative_expression '*' unary_expression
-| multiplicative_expression '/' unary_expression
-| multiplicative_expression REM unary_expression
+: unary_expression { $$ = create_cond_expression($1); }
+| multiplicative_expression '*' unary_expression { $$ = create_cond_expression($1, $3, OP_MUL); };
+| multiplicative_expression '/' unary_expression { $$ = create_cond_expression($1, $3, OP_DIV); };
+| multiplicative_expression REM unary_expression { $$ = create_cond_expression($1, $3, OP_REM); };
 ;
 
 additive_expression

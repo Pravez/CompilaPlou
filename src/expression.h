@@ -30,6 +30,7 @@ struct expr_operand{
 
 struct cond_expression{
     struct expr_operand operand;
+    enum COND_OPERATOR operator;
     struct cond_expression* next;
 };
 
@@ -53,6 +54,9 @@ struct expr_operand init_operand_integer(int int_value);
 struct expr_operand init_operand_double(double double_value);
 int operand_add_postfix(struct expr_operand* operand, int value);
 int operand_add_prefix(struct expr_operand* operand, int value);
+
+struct cond_expression create_cond_expression(struct expr_operand operand);
+struct cond_expression add_expression_to_cond(struct cond_expression expr, struct expr_operand operand, enum COND_OPERATOR operator);
 
 struct Expression create_expression();
 

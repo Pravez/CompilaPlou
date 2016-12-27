@@ -1,5 +1,5 @@
-#ifndef COMPILAPIOU_HASH_H
-#define COMPILAPIOU_HASH_H
+#ifndef COMPILAPIOU_SCOPE_H
+#define COMPILAPIOU_SCOPE_H
 
 #include "type.h"
 

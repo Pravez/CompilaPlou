@@ -1,4 +1,4 @@
-#include "hash.h"
+#include "scope.h"
 #include "tools.h"
 
 #include <stdio.h>

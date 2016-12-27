@@ -68,13 +68,13 @@ void print_operand(struct expr_operand operand){
     }
 }
 
-void print_tree(struct cond_expression* expr){
+void print_tree(struct Expression* expr){
     printf("(");
-    if(expr->type == C_LEAF){
-        print_operand(expr->leaf);
+    if(expr->conditional_expression.type == C_LEAF){
+        print_operand(expr->conditional_expression.leaf);
     }else{
-            print_tree(expr->branch.e_left);
-            switch(expr->branch.operator){
+            print_tree(expr->conditional_expression.branch.e_left);
+            switch(expr->conditional_expression.branch.operator){
                 case OP_ADD:
                     printf ("+"); break;
                 case OP_SUB:
@@ -86,46 +86,52 @@ void print_tree(struct cond_expression* expr){
                 default:
                     printf ("?"); break;
             }
-            print_tree(expr->branch.e_right);
+            print_tree(expr->conditional_expression.branch.e_right);
     }
     printf(")");
 
 }
 
-struct cond_expression create_leaf(struct expr_operand operand){
-    struct cond_expression expression;
-    expression.type = C_LEAF;
-    expression.leaf = operand;
+struct Expression create_leaf(struct expr_operand operand){
+    struct Expression expression;
+    expression.type = E_CONDITIONAL;
+    expression.conditional_expression.type = C_LEAF;
+    expression.conditional_expression.leaf = operand;
 
     printf("CREATED LEAF "); print_operand(operand);printf("\n");
 
     return expression;
 }
 
-struct cond_expression create_branch(enum COND_OPERATOR operator, struct cond_expression* expression_right, struct cond_expression* expression_left){
-    struct cond_expression expression;
+//////////////////////USELESS////////////////////////////
+struct Expression create_branch(enum COND_OPERATOR operator, struct Expression* expression_right, struct Expression* expression_left){
+    struct Expression expression;
 
-    expression.type = C_BRANCH;
-    expression.branch.operator = operator;
-    expression.branch.e_right = expression_left;
-    expression.branch.e_left = expression_right;
+    expression.type = E_CONDITIONAL;
+    expression.conditional_expression.type = C_BRANCH;
+    expression.conditional_expression.branch.operator = operator;
+    expression.conditional_expression.branch.e_right = expression_left;
+    expression.conditional_expression.branch.e_left = expression_right;
 
     print_tree(&expression);
     printf("\n");
 
     return expression;
 }
-struct cond_expression create_branch_cpy(enum COND_OPERATOR operator, struct cond_expression expression_right, struct cond_expression expression_left){
-    struct cond_expression expression;
-    struct cond_expression* left = malloc(sizeof(struct cond_expression));
-    struct cond_expression* right = malloc(sizeof(struct cond_expression));
+///////////////////////////////////////////////////////
+
+struct Expression create_branch_cpy(enum COND_OPERATOR operator, struct Expression expression_right, struct Expression expression_left){
+    struct Expression expression;
+    expression.type = E_CONDITIONAL;
+    struct Expression* left = malloc(sizeof(struct Expression));
+    struct Expression* right = malloc(sizeof(struct Expression));
     *left = expression_left;
     *right = expression_right;
 
-    expression.type = C_BRANCH;
-    expression.branch.operator = operator;
-    expression.branch.e_right = right;
-    expression.branch.e_left = left;
+    expression.conditional_expression.type = C_BRANCH;
+    expression.conditional_expression.branch.operator = operator;
+    expression.conditional_expression.branch.e_right = right;
+    expression.conditional_expression.branch.e_left = left;
 
     print_tree(&expression);
     printf("\n");
@@ -133,41 +139,8 @@ struct cond_expression create_branch_cpy(enum COND_OPERATOR operator, struct con
     return expression;
 }
 
-/*struct cond_expression create_cond_expression(struct expr_operand operand){
-    struct cond_expression cond;
-    cond.next = NULL;
-    cond.operand = operand;
-    cond.operator = NONE;
-
-    return cond;
-}
-
-struct cond_expression add_expression_to_cond(struct cond_expression expr, struct expr_operand operand, enum COND_OPERATOR operator){
-    struct cond_expression* next = malloc(sizeof(struct cond_expression));
-    next->operator = NONE;
-    next->next = NULL;
-    next->operand = operand;
-
-    expr.next = next;
-    expr.operator = operator;
-
-    return expr;
-}
-
-struct cond_expression add_direct_expression_to_cond(struct cond_expression expr, struct cond_expression* next_expr, enum COND_OPERATOR operator){
-    struct cond_expression* next = malloc(sizeof(struct cond_expression));
-    next->operator = next_expr->operator;
-    next->operand = next_expr->operand;
-    next->next = next_expr->next;
-
-    expr.next = next;
-    expr.operator = operator;
-
-    return expr;
-}
-*/
-//ADDED
-struct Expression expression_from_cond(const struct cond_expression* e){
+/////////////////////////USELESS///////////////////////////
+/*struct Expression expression_from_cond(const struct Expression* e){
     struct Expression expression;
 
     expression.cond_expression = *e;
@@ -175,15 +148,17 @@ struct Expression expression_from_cond(const struct cond_expression* e){
     expression.assign_operator = -1;
 
     return expression;
-}
+}*/
+////////////////////////////////////////////////////////////
 
-struct Expression expression_from_unary_cond(struct expr_operand* operand, enum ASSIGN_OPERATOR assign_operator, struct cond_expression* cond){
+struct Expression expression_from_unary_cond(struct expr_operand* operand, enum ASSIGN_OPERATOR assign_operator, struct Expression* cond){
     struct Expression expression;
 
     expression.type = E_AFFECT;
-    expression.assign_operator = assign_operator;
-    expression.cond_expression = *cond;
-    expression.operand = *operand;
+
+    expression.expression.assign_operator = assign_operator;
+    expression.expression.cond_expression = cond;
+    expression.expression.operand = *operand;
 
     /*print_operand(*operand);
     printf(" = ");

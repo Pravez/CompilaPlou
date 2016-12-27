@@ -35,19 +35,17 @@ struct llvm__program program;
 %token TYPE_NAME
 %token INT DOUBLE VOID
 %token IF ELSE DO WHILE RETURN FOR
-//%type <variable> type_name declarator_list declarator
-//%type <function> parameter_list
-//%type <typarg> parameter_declaration
-//%type <expr> primary_expression postfix_expression unary_expression multiplicative_expression additive_expression
+//Declarations
 %type <plou_declarator_list> declarator_list parameter_list
 %type <plou_declarator> declarator parameter_declaration
 %type <plou_type> type_name
 %type <assign_operator> assignment_operator
+
+//Expressions
 %type <plou_expression> expression
+%type <plou_expression> conditional_expression logical_or_expression logical_and_expression multiplicative_expression additive_expression comparison_expression
+%type <plou_expression> primary_expression postfix_expression shift_expression unary_expression
 
-
-%type <conditional> conditional_expression logical_or_expression logical_and_expression multiplicative_expression additive_expression comparison_expression shift_expression unary_expression
-%type <operand> primary_expression postfix_expression 
 %start program
 %union {
     char *string;
@@ -71,8 +69,6 @@ struct llvm__program program;
     enum ASSIGN_OPERATOR assign_operator;
 
     //Expressions
-    struct expr_operand operand;
-    struct cond_expression conditional;
     struct Expression plou_expression;
 }
 %%
@@ -99,37 +95,37 @@ shift_expression
 ;
 
 primary_expression
-: IDENTIFIER { //new_register();
-    if(!is_declared(&scope, $1, VARIABLE)){ YYERR_REPORT(last_error) }
-    $$ = init_operand_identifier($1);
+: IDENTIFIER {
+    CHK_ERROR(!is_declared(&scope, $1, VARIABLE))
+    $$ = create_leaf(init_operand_identifier($1));
     }
-| CONSTANTI  { //new_register();
-    $$ = init_operand_integer($1);
+| CONSTANTI  {
+    $$ = create_leaf(init_operand_integer($1));
     }
-| CONSTANTF  {//new_register();
-    $$ = init_operand_double($1);
+| CONSTANTF  {
+    $$ = create_leaf(init_operand_double($1));
     }
-| '(' expression ')' {  }
+| '(' expression ')' { $$ = $2; }
 | IDENTIFIER '(' ')' {
     CHK_ERROR(!is_declared(&scope, $1, FUNCTION))
-    $$ = init_operand_identifier($1);
+    $$ = create_leaf(init_operand_identifier($1));
     }
-| IDENTIFIER '(' argument_expression_list ')' { //A MODIFIER
+| IDENTIFIER '(' argument_expression_list ')' {
     CHK_ERROR(!is_declared(&scope, $1, FUNCTION))
-    $$ = init_operand_identifier($1);
+    $$ = create_leaf(init_operand_identifier($1));
     }
 ;
 
 postfix_expression
 : primary_expression { $$ = $1; }
-| postfix_expression INC_OP { CHK_ERROR(!operand_add_postfix(&$$, 1)) }
-| postfix_expression DEC_OP { CHK_ERROR(!operand_add_postfix(&$$, -1)) }
+| postfix_expression INC_OP { CHK_ERROR(!operand_add_postfix(&($$.conditional_expression.leaf), 1)) }
+| postfix_expression DEC_OP { CHK_ERROR(!operand_add_postfix(&($$.conditional_expression.leaf), -1)) }
 ;
 
 unary_expression
-: postfix_expression { $$ = create_leaf($1); }
-| INC_OP unary_expression { CHK_ERROR(!operand_add_prefix(&($$.leaf), 1)) }
-| DEC_OP unary_expression { CHK_ERROR(!operand_add_prefix(&($$.leaf), -1)) }
+: postfix_expression { $$ = $1; }
+| INC_OP unary_expression { CHK_ERROR(!operand_add_prefix(&($$.conditional_expression.leaf), 1)) }
+| DEC_OP unary_expression { CHK_ERROR(!operand_add_prefix(&($$.conditional_expression.leaf), -1)) }
 //| unary_operator unary_expression {printf("negation de l'espace\n");}
 | '-' unary_expression {printf("negation de l'espace\n");}
 ;
@@ -163,8 +159,8 @@ comparison_expression
 ;
 
 expression
-: unary_expression assignment_operator conditional_expression { $$ = expression_from_unary_cond(&($1.leaf), $2, &$3); }
-| conditional_expression { $$ = expression_from_cond(&$1);}
+: unary_expression assignment_operator conditional_expression { $$ = expression_from_unary_cond(&($1.conditional_expression.leaf), $2, &$3); }
+| conditional_expression { $$ = $1; }
 ;
 
 assignment_operator

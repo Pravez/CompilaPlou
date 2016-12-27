@@ -90,67 +90,53 @@ enum LLVM_TYPE llvm__convert(enum TYPE type){
 
     return -1;
 }
-/*
-(int, int, char*) generateCode(conditional_expression e, hashmap<char*, int>* loaded){
-    if(e.type == OPERAND){
-        operand o = e.union.operand;
-        int reg;
-        char* code;
-        switch(o.type){
-            case INT:
-                reg = new_register();
-                code = load_int(reg, o.operand.int_value);
-                return(reg, o.type, code);
-            case DOUBLE:
-                //mm chose avec load_double
-            case VARIABLE:
-                if(is_var_loaded(h, o.operand.variable))
-                    return(reg_loaded(h, o.operand.variable), type?, "");
 
-reg = new_register();
-ccode = load_var(reg, o.operand.variable);
-loaded.add(o.operand.variable, reg);
-return (reg, ?type?, code);
-}
-}else{
-conditional_expression left = generateCode(e.union.composed.left, loaded);
-conditional_expression right = generateCode(e.union.composed.right, loaded);
-operator = e.union.composed.operator;
-if(left.type != right.type){
-AHAHAHHAHAHAHAH
-}else{
-int reg = new_register();
-type = left.type;
-code = left.code + right.code + "<reg> =  <op> <left.reg>, <right.reg>";
-return (reg, type, code);
-}
-}
-}
-
-char* load_int(int reg, int value){
-    return "%<reg> = add i32 0, <value>";
-}
-
-char* load_double(int reg, double value){
-    return "%<reg> = fadd 0x0000000000000000, <value en je sais pas quoi>";
-}
-
-char* load_var(int reg, char* id){
-    type = // récupérer le type je sais pas comment
-    return "%<reg> = load <type>, <type>* %<id>";
-}
- */
 char* load_int(int reg, int value){
     char* type_name = type_of(llvm__convert(T_INT));
     char* code = malloc(strlen(type_name) + 12 + 20);
     //"%<reg> = add i32 0, <value>";
-    sprintf(code, "%%x%d = add %s 0 %d", reg, type_name, value);
+    sprintf(code, "%%x%d = add %s 0, %d", reg, type_name, value);
     return code;
 }
 
 char* load_double(int reg, double value){
     return ""; //TODO
     //return "%<reg> = fadd 0x0000000000000000, <value en je sais pas quoi>";
+}
+char* add_regs(int reg_dest, int reg1, int reg2, enum TYPE type){
+    char* type_name = type_of(llvm__convert(type));
+    char* code = malloc(strlen(type_name) + 16 + 20);
+    switch (type) {
+        case T_INT:
+            sprintf(code, "%%x%d = add %s %%x%d, %%x%d", reg_dest, type_name, reg1, reg2);
+            break;
+        case T_DOUBLE:
+            sprintf(code, "%%x%d = addf %s %%x%d, %%x%d", reg_dest, type_name, reg1, reg2);
+    }
+    return code;
+}
+char* mul_regs(int reg_dest, int reg1, int reg2, enum TYPE type){
+    char* type_name = type_of(llvm__convert(type));
+    char* code = malloc(strlen(type_name) + 16 + 20);
+    switch (type) {
+        case T_INT:
+            sprintf(code, "%%x%d = mul %s %%x%d, %%x%d", reg_dest, type_name, reg1, reg2);
+            break;
+        case T_DOUBLE:
+            sprintf(code, "%%x%d = mulf %s %%x%d, %%x%d", reg_dest, type_name, reg1, reg2);
+    }
+    return code;
+}
+
+char* operate_on_regs(enum COND_OPERATOR op, int reg_dest, int reg1, int reg2, enum TYPE type){
+    switch (op){
+        case OP_ADD:
+            return add_regs(reg_dest, reg1, reg2, type);
+        case OP_MUL:
+            return mul_regs(reg_dest, reg1, reg2, type);
+        default:
+            return "TODO operation on regs :-)";
+    }
 }
 
 char* load_var(int reg, char* id){
@@ -170,7 +156,7 @@ struct computed_expression* generate_code(struct Expression* e, hash_t* loaded){
         switch(o->type){
             case O_INT:
                 ret->reg = new_register();
-                ret->type = o->type;
+                ret->type = T_INT;
                 llvm__program_add_line(&ret->code,load_int(ret->reg, o->operand.int_value));
             case O_DOUBLE:
                 //mm chose avec load_double
@@ -188,19 +174,16 @@ struct computed_expression* generate_code(struct Expression* e, hash_t* loaded){
         struct computed_expression* left = generate_code(e->conditional_expression.branch.e_left, loaded);
         struct computed_expression* right = generate_code(e->conditional_expression.branch.e_right, loaded);
         enum COND_OPERATOR operator = e->conditional_expression.branch.operator;
+        llvm__fusion_programs(&ret->code, &left->code);
+        llvm__fusion_programs(&ret->code, &right->code);
+
         if(left->type != right->type){
-            printf("ahahahah. mdr.\n");
+            printf("ahahahah. mdr. la conversion de type, t'es un rigolo toi.\n");
         }else{
             ret->reg = new_register();
             ret->type = left->type;
-            //TODO check les types (sauf si c'est fait plus tôt ?)
-            switch(operator){
-                case OP_ADD:
-                    break;
-                default:
-                    break;
-            }
-            llvm__program_add_line(&ret->code, "<reg> =  <op> <left.reg>, <right.reg>");
+
+            llvm__program_add_line(&ret->code, operate_on_regs(operator, ret->reg, left->reg, right->reg, ret->type));
         }
     }else{
         printf("démerde toi :-)\n");

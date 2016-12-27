@@ -68,24 +68,25 @@ void print_operand(struct expr_operand operand){
     }
 }
 
-void print_tree(struct cond_expression* expr, int i){
+void print_tree(struct cond_expression* expr){
     printf("(");
     if(expr->type == C_LEAF){
         print_operand(expr->leaf);
     }else{
-        if(i != 5){
-            print_tree(expr->branch.e_left, i+1);
+            print_tree(expr->branch.e_left);
             switch(expr->branch.operator){
                 case OP_ADD:
                     printf ("+"); break;
+                case OP_SUB:
+                    printf ("-"); break;
                 case OP_MUL:
                     printf ("*"); break;
                 case OP_DIV:
                     printf ("/"); break;
-                default:break;
+                default:
+                    printf ("?"); break;
             }
-            print_tree(expr->branch.e_right, i+1);
-        }
+            print_tree(expr->branch.e_right);
     }
     printf(")");
 
@@ -109,7 +110,7 @@ struct cond_expression create_branch(enum COND_OPERATOR operator, struct cond_ex
     expression.branch.e_right = expression_left;
     expression.branch.e_left = expression_right;
 
-    print_tree(&expression, 1);
+    print_tree(&expression);
     printf("\n");
 
     return expression;
@@ -126,7 +127,7 @@ struct cond_expression create_branch_cpy(enum COND_OPERATOR operator, struct con
     expression.branch.e_right = right;
     expression.branch.e_left = left;
 
-    print_tree(&expression, 1);
+    print_tree(&expression);
     printf("\n");
 
     return expression;

@@ -185,6 +185,8 @@ struct computed_expression* generate_code(struct Expression* e, hash_t* loaded){
 
             llvm__program_add_line(&ret->code, operate_on_regs(operator, ret->reg, left->reg, right->reg, ret->type));
         }
+        free(left);
+        free(right);
     }else{
         printf("démerde toi :-)\n");
         llvm__program_add_line(&ret->code, "démerde toi :-)");

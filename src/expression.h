@@ -67,6 +67,7 @@ int operand_add_prefix(struct expr_operand* operand, int value);
 
 struct cond_expression create_leaf(struct expr_operand operand);
 struct cond_expression create_branch(enum COND_OPERATOR operator, struct cond_expression* expression_right, struct cond_expression* expression_left);
+struct cond_expression create_branch_cpy(enum COND_OPERATOR operator, struct cond_expression expression_right, struct cond_expression expression_left);
 
 struct cond_expression create_cond_expression(struct expr_operand operand);
 struct cond_expression add_expression_to_cond(struct cond_expression expr, struct expr_operand operand, enum COND_OPERATOR operator);

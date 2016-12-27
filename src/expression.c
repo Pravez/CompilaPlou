@@ -103,10 +103,28 @@ struct cond_expression create_leaf(struct expr_operand operand){
 
 struct cond_expression create_branch(enum COND_OPERATOR operator, struct cond_expression* expression_right, struct cond_expression* expression_left){
     struct cond_expression expression;
+
     expression.type = C_BRANCH;
     expression.branch.operator = operator;
-    expression.branch.e_right = expression_right;
-    expression.branch.e_left = expression_left;
+    expression.branch.e_right = expression_left;
+    expression.branch.e_left = expression_right;
+
+    print_tree(&expression, 1);
+    printf("\n");
+
+    return expression;
+}
+struct cond_expression create_branch_cpy(enum COND_OPERATOR operator, struct cond_expression expression_right, struct cond_expression expression_left){
+    struct cond_expression expression;
+    struct cond_expression* left = malloc(sizeof(struct cond_expression));
+    struct cond_expression* right = malloc(sizeof(struct cond_expression));
+    *left = expression_left;
+    *right = expression_right;
+
+    expression.type = C_BRANCH;
+    expression.branch.operator = operator;
+    expression.branch.e_right = right;
+    expression.branch.e_left = left;
 
     print_tree(&expression, 1);
     printf("\n");

@@ -83,19 +83,19 @@ conditional_expression
 
 logical_or_expression
 : logical_and_expression { $$ = $1; }
-| logical_or_expression OR logical_and_expression { $$ = create_branch(OP_OR, &$3, &$1); }
+| logical_or_expression OR logical_and_expression { $$ = create_branch_cpy(OP_OR, $3, $1); }
 ;
 
 logical_and_expression
 : comparison_expression { $$ = $1; }
-| logical_and_expression AND comparison_expression { $$ = create_branch(OP_AND, &$3, &$1); }
+| logical_and_expression AND comparison_expression { $$ = create_branch_cpy(OP_AND, $3, $1); }
 ;
 
 
 shift_expression
 : additive_expression { $$ = $1; }
-| shift_expression SHL additive_expression { $$ = create_branch(OP_SSHL, &$3, &$1); }
-| shift_expression SHR additive_expression { $$ = create_branch(OP_SSHR, &$3, &$1); }
+| shift_expression SHL additive_expression { $$ = create_branch_cpy(OP_SSHL, $3, $1); }
+| shift_expression SHR additive_expression { $$ = create_branch_cpy(OP_SSHR, $3, $1); }
 ;
 
 primary_expression
@@ -141,25 +141,25 @@ argument_expression_list
 
 multiplicative_expression
 : unary_expression { $$ = $1; }
-| multiplicative_expression '*' unary_expression { $$ = create_branch(OP_MUL, &$3, &$1); }
-| multiplicative_expression '/' unary_expression { $$ = create_branch(OP_DIV, &$3, &$1); }
-| multiplicative_expression REM unary_expression { $$ = create_branch(OP_REM, &$3, &$1); }
+| multiplicative_expression '*' unary_expression { $$ = create_branch_cpy(OP_MUL, $3, $1); }
+| multiplicative_expression '/' unary_expression { $$ = create_branch_cpy(OP_DIV, $3, $1); }
+| multiplicative_expression REM unary_expression { $$ = create_branch_cpy(OP_REM, $3, $1); }
 ;
 
 additive_expression
 : multiplicative_expression { $$ = $1; }
-| additive_expression '+' multiplicative_expression { $$ = create_branch(OP_ADD, &$3, &$1); }
-| additive_expression '-' multiplicative_expression { $$ = create_branch(OP_SUB, &$3, &$1); }
+| additive_expression '+' multiplicative_expression { $$ = create_branch_cpy(OP_ADD, $3, $1); }
+| additive_expression '-' multiplicative_expression { $$ = create_branch_cpy(OP_SUB, $3, $1); }
 ;
 
 comparison_expression
 : shift_expression { $$ = $1; }
-| comparison_expression '<' shift_expression { $$ = create_branch(OP_SHL, &$3, &$1); }
-| comparison_expression '>' shift_expression { $$ = create_branch(OP_SHR, &$3, &$1); }
-| comparison_expression LE_OP shift_expression { $$ = create_branch(OP_LE, &$3, &$1); }
-| comparison_expression GE_OP shift_expression { $$ = create_branch(OP_GE, &$3, &$1); }
-| comparison_expression EQ_OP shift_expression { $$ = create_branch(OP_EQ, &$3, &$1); }
-| comparison_expression NE_OP shift_expression { $$ = create_branch(OP_NE, &$3, &$1); }
+| comparison_expression '<' shift_expression { $$ = create_branch_cpy(OP_SHL, $3, $1); }
+| comparison_expression '>' shift_expression { $$ = create_branch_cpy(OP_SHR, $3, $1); }
+| comparison_expression LE_OP shift_expression { $$ = create_branch_cpy(OP_LE, $3, $1); }
+| comparison_expression GE_OP shift_expression { $$ = create_branch_cpy(OP_GE, $3, $1); }
+| comparison_expression EQ_OP shift_expression { $$ = create_branch_cpy(OP_EQ, $3, $1); }
+| comparison_expression NE_OP shift_expression { $$ = create_branch_cpy(OP_NE, $3, $1); }
 ;
 
 expression

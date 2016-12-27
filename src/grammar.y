@@ -46,8 +46,8 @@ struct llvm__program program;
 %type <plou_expression> expression
 
 
-%type <conditional> conditional_expression logical_or_expression logical_and_expression multiplicative_expression additive_expression comparison_expression shift_expression
-%type <operand> primary_expression postfix_expression unary_expression
+%type <conditional> conditional_expression logical_or_expression logical_and_expression multiplicative_expression additive_expression comparison_expression shift_expression unary_expression
+%type <operand> primary_expression postfix_expression 
 %start program
 %union {
     char *string;
@@ -83,19 +83,19 @@ conditional_expression
 
 logical_or_expression
 : logical_and_expression { $$ = $1; }
-| logical_or_expression OR logical_and_expression { $$ = add_direct_expression_to_cond($1, &$3, OP_OR); }
+| logical_or_expression OR logical_and_expression { $$ = create_branch(OP_OR, &$3, &$1); }
 ;
 
 logical_and_expression
 : comparison_expression { $$ = $1; }
-| logical_and_expression AND comparison_expression { $$ = add_direct_expression_to_cond($1, &$3, OP_AND); }
+| logical_and_expression AND comparison_expression { $$ = create_branch(OP_AND, &$3, &$1); }
 ;
 
 
 shift_expression
 : additive_expression { $$ = $1; }
-| shift_expression SHL additive_expression { $$ = add_direct_expression_to_cond($1, &$3, OP_SSHL); }
-| shift_expression SHR additive_expression { $$ = add_direct_expression_to_cond($1, &$3, OP_SSHR); }
+| shift_expression SHL additive_expression { $$ = create_branch(OP_SSHL, &$3, &$1); }
+| shift_expression SHR additive_expression { $$ = create_branch(OP_SSHR, &$3, &$1); }
 ;
 
 primary_expression
@@ -127,9 +127,9 @@ postfix_expression
 ;
 
 unary_expression
-: postfix_expression { $$ = $1; }
-| INC_OP unary_expression { CHK_ERROR(!operand_add_prefix(&$$, 1)) }
-| DEC_OP unary_expression { CHK_ERROR(!operand_add_prefix(&$$, -1)) }
+: postfix_expression { $$ = create_leaf($1); }
+| INC_OP unary_expression { CHK_ERROR(!operand_add_prefix(&($$.leaf), 1)) }
+| DEC_OP unary_expression { CHK_ERROR(!operand_add_prefix(&($$.leaf), -1)) }
 //| unary_operator unary_expression {printf("negation de l'espace\n");}
 | '-' unary_expression {printf("negation de l'espace\n");}
 ;
@@ -140,30 +140,30 @@ argument_expression_list
 ;
 
 multiplicative_expression
-: unary_expression { $$ = create_cond_expression($1); }
-| multiplicative_expression '*' unary_expression { $$ = add_expression_to_cond($1, $3, OP_MUL); }
-| multiplicative_expression '/' unary_expression { $$ = add_expression_to_cond($1, $3, OP_DIV); }
-| multiplicative_expression REM unary_expression { $$ = add_expression_to_cond($1, $3, OP_REM); }
+: unary_expression { $$ = $1; }
+| multiplicative_expression '*' unary_expression { $$ = create_branch(OP_MUL, &$3, &$1); }
+| multiplicative_expression '/' unary_expression { $$ = create_branch(OP_DIV, &$3, &$1); }
+| multiplicative_expression REM unary_expression { $$ = create_branch(OP_REM, &$3, &$1); }
 ;
 
 additive_expression
 : multiplicative_expression { $$ = $1; }
-| additive_expression '+' multiplicative_expression { $$ = add_direct_expression_to_cond($1, &$3, OP_ADD); }
-| additive_expression '-' multiplicative_expression { $$ = add_direct_expression_to_cond($1, &$3, OP_SUB); }
+| additive_expression '+' multiplicative_expression { $$ = create_branch(OP_ADD, &$3, &$1); }
+| additive_expression '-' multiplicative_expression { $$ = create_branch(OP_SUB, &$3, &$1); }
 ;
 
 comparison_expression
 : shift_expression { $$ = $1; }
-| comparison_expression '<' shift_expression { $$ = add_direct_expression_to_cond($1, &$3, OP_SHL); }
-| comparison_expression '>' shift_expression { $$ = add_direct_expression_to_cond($1, &$3, OP_SHR); }
-| comparison_expression LE_OP shift_expression { $$ = add_direct_expression_to_cond($1, &$3, OP_LE); }
-| comparison_expression GE_OP shift_expression { $$ = add_direct_expression_to_cond($1, &$3, OP_GE); }
-| comparison_expression EQ_OP shift_expression { $$ = add_direct_expression_to_cond($1, &$3, OP_EQ); }
-| comparison_expression NE_OP shift_expression { $$ = add_direct_expression_to_cond($1, &$3, OP_NE); }
+| comparison_expression '<' shift_expression { $$ = create_branch(OP_SHL, &$3, &$1); }
+| comparison_expression '>' shift_expression { $$ = create_branch(OP_SHR, &$3, &$1); }
+| comparison_expression LE_OP shift_expression { $$ = create_branch(OP_LE, &$3, &$1); }
+| comparison_expression GE_OP shift_expression { $$ = create_branch(OP_GE, &$3, &$1); }
+| comparison_expression EQ_OP shift_expression { $$ = create_branch(OP_EQ, &$3, &$1); }
+| comparison_expression NE_OP shift_expression { $$ = create_branch(OP_NE, &$3, &$1); }
 ;
 
 expression
-: unary_expression assignment_operator conditional_expression { $$ = expression_from_unary_cond(&$1, $2, &$3); }
+: unary_expression assignment_operator conditional_expression { $$ = expression_from_unary_cond(&($1.leaf), $2, &$3); }
 | conditional_expression { $$ = expression_from_cond(&$1);}
 ;
 
@@ -202,7 +202,7 @@ declaration
 }
 | type_name declarator '=' expression {
     if($2.decl_type == VARIABLE){
-        printf("%sdeclare: '%s' = %s",
+        /*printf("%sdeclare: '%s' = %s",
                 COLOR_FG_BLUE,
                 $2.declarator.variable.identifier,
                 COLOR_RESET);
@@ -222,7 +222,7 @@ declaration
                 break;
             default:
                 printf("pas implémenté. DSL <3\n");
-        }
+        }*/
 
         CHK_ERROR(!hash__add_item(&scope, $2.declarator.variable.identifier, $2))
         //TODO affecter la valeur du registre de expression à la variable

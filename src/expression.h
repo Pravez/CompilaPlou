@@ -16,6 +16,10 @@ enum EXPR_TYPE{
     E_CONDITIONAL, E_AFFECT
 };
 
+enum COND_EXPR_TYPE{
+    C_BRANCH, C_LEAF
+};
+
 struct expr_operand{
     enum OPERAND_TYPE type;
     union{
@@ -28,10 +32,22 @@ struct expr_operand{
     int prefix;
 };
 
-struct cond_expression{
+/*struct cond_expression{
     struct expr_operand operand;
     enum COND_OPERATOR operator;
     struct cond_expression* next;
+};*/
+
+struct cond_expression{
+    enum COND_EXPR_TYPE type;
+    union{
+        struct expr_operand leaf;
+        struct{
+            enum COND_OPERATOR operator;
+            struct cond_expression* e_left;
+            struct cond_expression* e_right;
+        }branch;
+    };
 };
 
 struct Expression{
@@ -48,11 +64,15 @@ struct expr_operand init_operand_double(double double_value);
 int operand_add_postfix(struct expr_operand* operand, int value);
 int operand_add_prefix(struct expr_operand* operand, int value);
 
+
+struct cond_expression create_leaf(struct expr_operand operand);
+struct cond_expression create_branch(enum COND_OPERATOR operator, struct cond_expression* expression_right, struct cond_expression* expression_left);
+
 struct cond_expression create_cond_expression(struct expr_operand operand);
 struct cond_expression add_expression_to_cond(struct cond_expression expr, struct expr_operand operand, enum COND_OPERATOR operator);
 struct cond_expression add_direct_expression_to_cond(struct cond_expression expr, struct cond_expression* next_expr, enum COND_OPERATOR operator);
 
 struct Expression expression_from_cond(const struct cond_expression* e);
-struct Expression expression_from_unary_cond(const struct expr_operand* operand, enum ASSIGN_OPERATOR assign_operator, const struct cond_expression* cond);
+struct Expression expression_from_unary_cond(struct expr_operand* operand, enum ASSIGN_OPERATOR assign_operator, struct cond_expression* cond);
 
 #endif //_EXPRESSION_H

@@ -6,7 +6,7 @@
 #include <stdlib.h>
 
 #include "type.h"
-#include "hash.h"
+#include "scope.h"
 #include "tools.h"
 #include "llvm_code.h"
 #include "expression.h"
@@ -110,7 +110,7 @@ primary_expression
     CHK_ERROR(!is_declared(&scope, $1, FUNCTION))
     $$ = create_leaf(init_operand_identifier($1));
     }
-| IDENTIFIER '(' argument_expression_list ')' {
+| IDENTIFIER '(' argument_expression_list ')' { // A MODIFIER
     CHK_ERROR(!is_declared(&scope, $1, FUNCTION))
     $$ = create_leaf(init_operand_identifier($1));
     }

@@ -26,7 +26,7 @@ struct llvm__program{
 
 void llvm__init_program(struct llvm__program* program);
 int llvm__program_add_line(struct llvm__program* program, char* line);
-void llvm__fusion_programs(const struct llvm__program* main, const struct llvm__program* toappend);
+void llvm__fusion_programs(struct llvm__program* main, const struct llvm__program* toappend);
 char* llvm__create_constant(char* name, enum TYPE type, int size, void* value);
 char* llvm___create_function_def(struct Function function);
 char* type_of(enum LLVM_TYPE type);

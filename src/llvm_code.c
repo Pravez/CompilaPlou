@@ -33,7 +33,7 @@ char* llvm__create_constant(char* name, enum TYPE type, int size, void* value){
     return constant;
 }
 
-void llvm__fusion_programs(const struct llvm__program* main, const struct llvm__program* toappend){
+void llvm__fusion_programs(struct llvm__program* main, const struct llvm__program* toappend){
     for(int i=0;i<toappend->line_number;i++){
         llvm__program_add_line(main, toappend->code[i]);
     }

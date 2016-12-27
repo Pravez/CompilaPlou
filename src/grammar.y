@@ -43,12 +43,11 @@ struct llvm__program program;
 %type <plou_declarator> declarator parameter_declaration
 %type <plou_type> type_name
 %type <assign_operator> assignment_operator
-%type <operand> primary_expression postfix_expression unary_expression
 %type <plou_expression> expression
-%type <conditional> conditional_expression logical_or_expression logical_and_expression
-//ADDED
-%type <conditional> multiplicative_expression additive_expression
-//
+
+
+%type <conditional> conditional_expression logical_or_expression logical_and_expression multiplicative_expression additive_expression comparison_expression shift_expression
+%type <operand> primary_expression postfix_expression unary_expression
 %start program
 %union {
     char *string;
@@ -79,24 +78,24 @@ struct llvm__program program;
 %%
 
 conditional_expression
-: logical_or_expression
+: logical_or_expression { $$ = $1; }
 ;
 
 logical_or_expression
-: logical_and_expression
-| logical_or_expression OR logical_and_expression
+: logical_and_expression { $$ = $1; }
+| logical_or_expression OR logical_and_expression { $$ = add_direct_expression_to_cond($1, &$3, OP_OR); }
 ;
 
 logical_and_expression
-: comparison_expression
-| logical_and_expression AND comparison_expression
+: comparison_expression { $$ = $1; }
+| logical_and_expression AND comparison_expression { $$ = add_direct_expression_to_cond($1, &$3, OP_AND); }
 ;
 
 
 shift_expression
-: additive_expression
-| shift_expression SHL additive_expression
-| shift_expression SHR additive_expression
+: additive_expression { $$ = $1; }
+| shift_expression SHL additive_expression { $$ = add_direct_expression_to_cond($1, &$3, OP_SSHL); }
+| shift_expression SHR additive_expression { $$ = add_direct_expression_to_cond($1, &$3, OP_SSHR); }
 ;
 
 primary_expression
@@ -142,29 +141,29 @@ argument_expression_list
 
 multiplicative_expression
 : unary_expression { $$ = create_cond_expression($1); }
-| multiplicative_expression '*' unary_expression { $$ = add_expression_to_cond($1, $3, OP_MUL); };
-| multiplicative_expression '/' unary_expression { $$ = add_expression_to_cond($1, $3, OP_DIV); };
-| multiplicative_expression REM unary_expression { $$ = add_expression_to_cond($1, $3, OP_REM); };
+| multiplicative_expression '*' unary_expression { $$ = add_expression_to_cond($1, $3, OP_MUL); }
+| multiplicative_expression '/' unary_expression { $$ = add_expression_to_cond($1, $3, OP_DIV); }
+| multiplicative_expression REM unary_expression { $$ = add_expression_to_cond($1, $3, OP_REM); }
 ;
 
 additive_expression
-: multiplicative_expression
-| additive_expression '+' multiplicative_expression
-| additive_expression '-' multiplicative_expression
+: multiplicative_expression { $$ = $1; }
+| additive_expression '+' multiplicative_expression { $$ = add_direct_expression_to_cond($1, &$3, OP_ADD); }
+| additive_expression '-' multiplicative_expression { $$ = add_direct_expression_to_cond($1, &$3, OP_SUB); }
 ;
 
 comparison_expression
-: shift_expression
-| comparison_expression '<' shift_expression
-| comparison_expression '>' shift_expression
-| comparison_expression LE_OP shift_expression
-| comparison_expression GE_OP shift_expression
-| comparison_expression EQ_OP shift_expression
-| comparison_expression NE_OP shift_expression
+: shift_expression { $$ = $1; }
+| comparison_expression '<' shift_expression { $$ = add_direct_expression_to_cond($1, &$3, OP_SHL); }
+| comparison_expression '>' shift_expression { $$ = add_direct_expression_to_cond($1, &$3, OP_SHR); }
+| comparison_expression LE_OP shift_expression { $$ = add_direct_expression_to_cond($1, &$3, OP_LE); }
+| comparison_expression GE_OP shift_expression { $$ = add_direct_expression_to_cond($1, &$3, OP_GE); }
+| comparison_expression EQ_OP shift_expression { $$ = add_direct_expression_to_cond($1, &$3, OP_EQ); }
+| comparison_expression NE_OP shift_expression { $$ = add_direct_expression_to_cond($1, &$3, OP_NE); }
 ;
 
 expression
-: unary_expression assignment_operator conditional_expression { debug("affectation", GREEN); }
+: unary_expression assignment_operator conditional_expression { $$ = expression_from_unary_cond(&$1, $2, &$3); }
 | conditional_expression { $$ = expression_from_cond(&$1);}
 ;
 
@@ -199,10 +198,7 @@ declaration
     }
 
     $2 = apply_type($1, $2);
-    if(!hash__add_items(&scope, $2)){
-        YYERR_REPORT(last_error)
-    }else
-        debug("Declared variables", BLUE);
+    CHK_ERROR(!hash__add_items(&scope, $2))
 }
 | type_name declarator '=' expression {
     if($2.decl_type == VARIABLE){
@@ -212,15 +208,15 @@ declaration
                 COLOR_RESET);
         switch($4.type){
             case E_CONDITIONAL:
-                switch($4.condition.operand.type){
+                switch($4.cond_expression.operand.type){
                     case O_VARIABLE:
-                            printf("%s%s%s\n", COLOR_FG_GREEN, $4.condition.operand.operand.variable, COLOR_RESET);
+                            printf("%s%s%s\n", COLOR_FG_GREEN, $4.cond_expression.operand.operand.variable, COLOR_RESET);
                     break;
                     case O_INT:
-                            printf("%s%d%s\n", COLOR_FG_GREEN, $4.condition.operand.operand.int_value, COLOR_RESET);
+                            printf("%s%d%s\n", COLOR_FG_GREEN, $4.cond_expression.operand.operand.int_value, COLOR_RESET);
                     break;
                     case O_DOUBLE:
-                            printf("%s%f%s\n", COLOR_FG_GREEN, $4.condition.operand.operand.double_value, COLOR_RESET);
+                            printf("%s%f%s\n", COLOR_FG_GREEN, $4.cond_expression.operand.operand.double_value, COLOR_RESET);
                     break;
                 }
                 break;
@@ -228,9 +224,7 @@ declaration
                 printf("pas implémenté. DSL <3\n");
         }
 
-        if(!hash__add_item(&scope, $2.declarator.variable.identifier, $2)){
-            YYERR_REPORT(last_error)
-        }
+        CHK_ERROR(!hash__add_item(&scope, $2.declarator.variable.identifier, $2))
         //TODO affecter la valeur du registre de expression à la variable
 
     } else{

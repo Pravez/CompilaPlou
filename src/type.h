@@ -40,10 +40,13 @@ enum COND_OPERATOR{
     OP_DIV,     /* / */
     OP_REM,     /* % */
     OP_SHL,     /* < */
+    OP_SSHL,     /* << */
     OP_SHR,     /* > */
-    OP_SHL_EQ,     /* <= */
-    OP_SHR_EQ,     /* >= */
+    OP_SSHR,     /* >> */
+    OP_LE,     /* <= */
+    OP_GE,     /* >= */
     OP_EQ,      /* == */
+    OP_NE,      /* != */
     OP_ADD,     /* + */
     OP_SUB,      /* - */
     OP_OR,

@@ -34,19 +34,11 @@ struct cond_expression{
     struct cond_expression* next;
 };
 
-struct affect_expression{
-    char* register_name;
-    enum TYPE type;
-    struct expr_operand operands[2];
-};
-
-
 struct Expression{
     enum EXPR_TYPE type;
-    enum ASSIGN_OPERATOR ass_op;
-    struct cond_expression condition;
-    struct affect_expression affectation;
-    //char* code; // ?
+    enum ASSIGN_OPERATOR assign_operator;
+    struct expr_operand operand;
+    struct cond_expression cond_expression;
 };
 
 struct expr_operand init_operand(enum OPERAND_TYPE type);
@@ -58,9 +50,9 @@ int operand_add_prefix(struct expr_operand* operand, int value);
 
 struct cond_expression create_cond_expression(struct expr_operand operand);
 struct cond_expression add_expression_to_cond(struct cond_expression expr, struct expr_operand operand, enum COND_OPERATOR operator);
-
-struct Expression create_expression();
+struct cond_expression add_direct_expression_to_cond(struct cond_expression expr, struct cond_expression* next_expr, enum COND_OPERATOR operator);
 
 struct Expression expression_from_cond(const struct cond_expression* e);
+struct Expression expression_from_unary_cond(const struct expr_operand* operand, enum ASSIGN_OPERATOR assign_operator, const struct cond_expression* cond);
 
 #endif //_EXPRESSION_H

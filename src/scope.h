@@ -23,6 +23,8 @@ struct Scope {
     int higher_level;
 };
 ////////////
+struct Scope scope;
+////////////
 
 /**HASH FUNCTIONS**/
 bool hash__key_exists_current(struct Scope *hashmap, char *key);

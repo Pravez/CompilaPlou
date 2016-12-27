@@ -9,6 +9,7 @@
 #include "scope.h"
 #include "tools.h"
 #include "llvm_code.h"
+#include "hash.h"
 #include "expression.h"
 
 #define YYERR_REPORT(err) yyerror(err);free(err);err = NULL;error_flag = 0;
@@ -19,7 +20,6 @@ int yylex ();
 void yyerror (char const*);
 int level = 0; // ne peut pas être négatif
 
-struct Scope scope;
 struct llvm__program program;
 %}
 
@@ -159,7 +159,19 @@ comparison_expression
 ;
 
 expression
-: unary_expression assignment_operator conditional_expression { $$ = expression_from_unary_cond(&($1.conditional_expression.leaf), $2, &$3); }
+: unary_expression assignment_operator conditional_expression {
+        hash_t loaded;
+        hash_init(&loaded, 32);
+        //TODO clean le magnifique débug <3
+        struct computed_expression* e = generate_code(&$3, &loaded);
+        printf("\ttree:\n");
+        print_tree(&$3);
+        printf("\n\tcode:\n");
+        llvm__print(&e->code);
+        printf("reg: %%x%d\n", e->reg);
+
+        $$ = expression_from_unary_cond(&($1.conditional_expression.leaf), $2, &$3);
+}
 | conditional_expression { $$ = $1; }
 ;
 

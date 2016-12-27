@@ -90,4 +90,6 @@ struct Expression create_branch_cpy(enum COND_OPERATOR operator, struct Expressi
 struct Expression expression_from_cond(const struct Expression* e);
 struct Expression expression_from_unary_cond(struct expr_operand* operand, enum ASSIGN_OPERATOR assign_operator, struct Expression* cond);
 
+
+void print_tree(struct Expression* expr);
 #endif //_EXPRESSION_H

@@ -236,6 +236,10 @@ bool hash__add_items(struct Scope *hashmap, struct DeclaratorList list){
                 return false;
             }
         }else{
+            if(list.declarator_list[i].declarator.variable.type == T_VOID){
+                last_error = report_error(VOID_UNAUTHORIZED, list.declarator_list[i].declarator.variable.identifier);
+                return false;
+            }
             if(!hash__add_item(hashmap, list.declarator_list[i].declarator.variable.identifier, list.declarator_list[i])){
                 last_error = report_error( DEFINED_VAR, list.declarator_list[i].declarator.variable.identifier);
                 return false;

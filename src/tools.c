@@ -96,6 +96,21 @@ char* report_error(enum ERROR_TYPE type, void* data){
         case NOT_ASSIGNABLE_EXPR:
             error = "Expression is not assignable";
             break;
+        case POSTF_OPERATOR_NOT_USABLE:
+            identifier = (char*) data;
+            error = concatenate_strings(3, "Cannot use postfix operator \033[31;1m", identifier, 
+                                            "\033[0m on other thing than variable");
+            break;
+        case PREF_OPERATOR_NOT_USABLE:
+            identifier = (char*) data;
+            error = concatenate_strings(3, "Cannot use prefix operator \033[31;1m", identifier, 
+                                            "\033[0m on other thing than variable");
+            break;
+        case VOID_UNAUTHORIZED:
+            identifier = (char*) data;
+            error = concatenate_strings(3, "Variable \033[31;1m", identifier, 
+                                            "\033[0m can't be declared : \033[34;1mvoid\033[0m type is forbidden for variables");
+            break;
     }
 
     ERR_COUNT ++;

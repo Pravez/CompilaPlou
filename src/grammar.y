@@ -118,14 +118,14 @@ primary_expression
 
 postfix_expression
 : primary_expression { $$ = $1; }
-| postfix_expression INC_OP { CHK_ERROR(!operand_add_postfix(&($$.conditional_expression.leaf), 1)) }
-| postfix_expression DEC_OP { CHK_ERROR(!operand_add_postfix(&($$.conditional_expression.leaf), -1)) }
+| postfix_expression INC_OP { CHK_ERROR(!operand_add_postfix(&($1.conditional_expression.leaf), 1)) }
+| postfix_expression DEC_OP { CHK_ERROR(!operand_add_postfix(&($1.conditional_expression.leaf), -1)) }
 ;
 
 unary_expression
 : postfix_expression { $$ = $1; }
-| INC_OP unary_expression { CHK_ERROR(!operand_add_prefix(&($$.conditional_expression.leaf), 1)) }
-| DEC_OP unary_expression { CHK_ERROR(!operand_add_prefix(&($$.conditional_expression.leaf), -1)) }
+| INC_OP unary_expression { CHK_ERROR(!operand_add_prefix(&($2.conditional_expression.leaf), 1)) }
+| DEC_OP unary_expression { CHK_ERROR(!operand_add_prefix(&($2.conditional_expression.leaf), -1)) }
 //| unary_operator unary_expression {printf("negation de l'espace\n");}
 | '-' unary_expression {printf("negation de l'espace\n");}
 ;
@@ -187,27 +187,7 @@ assignment_operator
 ;
 
 declaration
-: type_name declarator_list ';' {
-    // check everything is fine (variables not void)
-    if($1 == T_VOID){
-        for(int i = 0;i<$2.size;++i){
-            if($2.declarator_list[i].decl_type == VARIABLE){
-                char *var_name = $2.declarator_list[i].declarator.variable.identifier;
-                char *err = malloc(100 + strlen(var_name));
-                sprintf(err,
-                "%sVariable %s ne peut pas être déclarée comme VOID !%s",
-                COLOR_FG_RED,
-                var_name,
-                COLOR_RESET);
-                yyerror(err); //TODO gestion erreur propre
-                exit(1);
-            }
-        }
-    }
-
-    $2 = apply_type($1, $2);
-    CHK_ERROR(!hash__add_items(&scope, $2))
-}
+: type_name declarator_list ';' { $2 = apply_type($1, $2); CHK_ERROR(!hash__add_items(&scope, $2)) }
 | type_name declarator '=' expression {
     if($2.decl_type == VARIABLE){
         /*printf("%sdeclare: '%s' = %s",

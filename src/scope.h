@@ -2,6 +2,8 @@
 #define COMPILAPIOU_SCOPE_H
 
 #include "type.h"
+#include "errors.h"
+#include "tools.h"
 #include "hash.h"
 
 #define HASH_SIZE 100 // nb max de IDENTIFIER stockable par level

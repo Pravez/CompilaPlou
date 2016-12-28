@@ -3,6 +3,7 @@
 
 #include "type.h"
 #include "tools.h"
+#include "errors.h"
 
 enum EXPR_COMMAND{
     ADD, SUB, DIV, CONV_2DOUBLE, CONV_2INT, MUL, FMUL

@@ -11,9 +11,7 @@
 #include "llvm_code.h"
 #include "hash.h"
 #include "expression.h"
-
-#define YYERR_REPORT(err) yyerror(err);free(err);err = NULL;error_flag = 0;
-#define CHK_ERROR(value) if(value){ YYERR_REPORT(last_error) }
+#include "errors.h"
 
 extern int yylineno;
 int yylex ();
@@ -96,7 +94,7 @@ shift_expression
 
 primary_expression
 : IDENTIFIER {
-    CHK_ERROR(!is_declared(&scope, $1, VARIABLE))
+    is_declared(&scope, $1, VARIABLE);
     $$ = create_leaf(init_operand_identifier($1));
     }
 | CONSTANTI  {
@@ -107,25 +105,25 @@ primary_expression
     }
 | '(' expression ')' { $$ = $2; }
 | IDENTIFIER '(' ')' {
-    CHK_ERROR(!is_declared(&scope, $1, FUNCTION))
+    is_declared(&scope, $1, FUNCTION);
     $$ = create_leaf(init_operand_identifier($1));
     }
 | IDENTIFIER '(' argument_expression_list ')' { // A MODIFIER
-    CHK_ERROR(!is_declared(&scope, $1, FUNCTION))
+    is_declared(&scope, $1, FUNCTION);
     $$ = create_leaf(init_operand_identifier($1));
     }
 ;
 
 postfix_expression
 : primary_expression { $$ = $1; }
-| postfix_expression INC_OP { CHK_ERROR(!operand_add_postfix(&($1.conditional_expression.leaf), 1)) }
-| postfix_expression DEC_OP { CHK_ERROR(!operand_add_postfix(&($1.conditional_expression.leaf), -1)) }
+| postfix_expression INC_OP { operand_add_postfix(&($1.conditional_expression.leaf), 1); }
+| postfix_expression DEC_OP { operand_add_postfix(&($1.conditional_expression.leaf), -1); }
 ;
 
 unary_expression
 : postfix_expression { $$ = $1; }
-| INC_OP unary_expression { CHK_ERROR(!operand_add_prefix(&($2.conditional_expression.leaf), 1)) }
-| DEC_OP unary_expression { CHK_ERROR(!operand_add_prefix(&($2.conditional_expression.leaf), -1)) }
+| INC_OP unary_expression { operand_add_prefix(&($2.conditional_expression.leaf), 1); }
+| DEC_OP unary_expression { operand_add_prefix(&($2.conditional_expression.leaf), -1); }
 //| unary_operator unary_expression {printf("negation de l'espace\n");}
 | '-' unary_expression {printf("negation de l'espace\n");}
 ;
@@ -184,50 +182,21 @@ assignment_operator
 ;
 
 declaration
-: type_name declarator_list ';' { $2 = apply_type($1, $2); CHK_ERROR(!hash__add_items(&scope, $2)) }
+: type_name declarator_list ';' { $2 = apply_type($1, $2); hash__add_items(&scope, $2); }
 | type_name declarator '=' expression ';' {
     if($2.decl_type == VARIABLE){
-        /*printf("%sdeclare: '%s' = %s",
-                COLOR_FG_BLUE,
-                $2.declarator.variable.identifier,
-                COLOR_RESET);
-        switch($4.type){
-            case E_CONDITIONAL:
-                switch($4.cond_expression.operand.type){
-                    case O_VARIABLE:
-                            printf("%s%s%s\n", COLOR_FG_GREEN, $4.cond_expression.operand.operand.variable, COLOR_RESET);
-                    break;
-                    case O_INT:
-                            printf("%s%d%s\n", COLOR_FG_GREEN, $4.cond_expression.operand.operand.int_value, COLOR_RESET);
-                    break;
-                    case O_DOUBLE:
-                            printf("%s%f%s\n", COLOR_FG_GREEN, $4.cond_expression.operand.operand.double_value, COLOR_RESET);
-                    break;
-                }
-                break;
-            default:
-                printf("pas implémenté. DSL <3\n");
-        }*/
-
         struct computed_expression* e = generate_code(&$4);
         printf("\n\tcode:\n");
         llvm__print(&e->code);
         printf("reg: %%x%d\n", e->reg);
 
         $2.declarator.variable.type = $1;
-        CHK_ERROR(!hash__add_item(&scope, $2.declarator.variable.identifier, $2))
+        hash__add_item(&scope, $2.declarator.variable.identifier, $2);
 
         //TODO affecter la valeur du registre de expression à la variable
 
     } else{
-        char* func_name = $2.declarator.function.identifier;
-        char* err = malloc(100 + strlen(func_name));
-        sprintf(err, "%sFonction %s est initialisée comme une variable !%s",
-                COLOR_FG_RED,
-                func_name,
-                COLOR_RESET);
-        yyerror(err);
-        exit(1); //TODO utiliser une gestion plus propre des erreurs bloquantes ?
+        report_error(FUNCTION_AS_VARIABLE, $2.declarator.function.identifier);
     }
 }
 ;
@@ -245,7 +214,7 @@ type_name
 
 declarator
 : IDENTIFIER { $$.declarator.variable.identifier = $1; $$.decl_type = VARIABLE; /*PAR DEFAUT UNE VARIABLE, SINON ON RECUPERE JUSTE LA VALEUR PUIS ON ECRASE (plus haut)*/}
-| '(' declarator ')' { $$ = $2; }
+| '(' declarator ')' { $$ = $2; } //TODO SUREMENT PAS CA
 | declarator '(' parameter_list ')' { $$ = declare_function($3, $1.declarator.variable.identifier); /*MOCHE MAIS SOLUTION LA PLUS SIMPLE*/}
 | declarator '(' ')' { struct DeclaratorList empty; empty.size = 0; $$ = declare_function(empty, $1.declarator.variable.identifier); /*PAREIL*/}
 ;
@@ -396,7 +365,7 @@ function_definition
 
 function_declaration
 : type_name declarator {$2.declarator.function.return_type = $1;
-    if(!hash__add_item(&scope, $2.declarator.function.identifier, $2)){ YYERR_REPORT(last_error) }else{
+    if(hash__add_item(&scope, $2.declarator.function.identifier, $2)){
         printf("%s\n", llvm___create_function_def(hash__get_item(&scope, $2.declarator.function.identifier).declarator.function));
     }}
 ;
@@ -416,6 +385,7 @@ char *file_name = NULL;
 void yyerror (char const *s) {
     fflush (stdout);
     fprintf (stderr, "%s:%d:%d: %s\n", file_name, yylineno, column, s);
+
     //return 0;
 }
 

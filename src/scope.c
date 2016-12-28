@@ -1,5 +1,4 @@
 #include "scope.h"
-#include "tools.h"
 
 #include <stdio.h>
 #include <string.h>
@@ -132,7 +131,7 @@ bool hash__add_item_function(struct Scope *hashmap, struct Declarator declarator
                 item->value = variable;
             }
         }else{
-            last_error = report_error( DEFINED_FUNC_VAR, declarator.declarator.function.var_list[i].identifier);
+            report_error( DEFINED_FUNC_VAR, declarator.declarator.function.var_list[i].identifier);
             return false;
         }
     }
@@ -236,22 +235,22 @@ bool hash__add_items(struct Scope *hashmap, struct DeclaratorList list){
             if(!hash__add_item(hashmap, list.declarator_list[i].declarator.function.identifier, list.declarator_list[i])){
                 if(error_flag == 0) {
                     if(hash__get_item(hashmap, list.declarator_list[i].declarator.function.identifier).decl_type == FUNCTION)
-                        last_error = report_error(DEFINED_FUNC, list.declarator_list[i].declarator.function.identifier);
+                        report_error(DEFINED_FUNC, list.declarator_list[i].declarator.function.identifier);
                     else
-                        last_error = report_error(DEFINED_VAR, list.declarator_list[i].declarator.function.identifier);
+                        report_error(DEFINED_VAR, list.declarator_list[i].declarator.function.identifier);
                 }
                 return false;
             }
         }else{
             if(list.declarator_list[i].declarator.variable.type == T_VOID){
-                last_error = report_error(VOID_UNAUTHORIZED, list.declarator_list[i].declarator.variable.identifier);
+                report_error(VOID_UNAUTHORIZED, list.declarator_list[i].declarator.variable.identifier);
                 return false;
             }
             if(!hash__add_item(hashmap, list.declarator_list[i].declarator.variable.identifier, list.declarator_list[i])){
                 if(hash__get_item(hashmap, list.declarator_list[i].declarator.variable.identifier).decl_type == FUNCTION)
-                    last_error = report_error(DEFINED_FUNC, list.declarator_list[i].declarator.variable.identifier);
+                    report_error(DEFINED_FUNC, list.declarator_list[i].declarator.variable.identifier);
                 else
-                    last_error = report_error(DEFINED_VAR, list.declarator_list[i].declarator.variable.identifier);
+                    report_error(DEFINED_VAR, list.declarator_list[i].declarator.variable.identifier);
                 return false;
             }
         }
@@ -302,9 +301,9 @@ void display_scope(struct Scope scope){
 bool is_declared(struct Scope *scope, char* identifier, enum DECL_TYPE type){
     if(!hash__key_exists_all(scope, identifier)){
         if(type == VARIABLE)
-            last_error = report_error( UNDEFINED_VAR, identifier);
+            report_error( UNDEFINED_VAR, identifier);
         else
-            last_error = report_error( UNDEFINED_FUNC, identifier);
+            report_error( UNDEFINED_FUNC, identifier);
 
         return false;
     }
@@ -323,7 +322,7 @@ bool is_of_type(struct Scope *scope, char* identifier, enum TYPE type){
                 case T_DOUBLE: assigned = "\033[31;2mint\033[0m"; value="\033[31;1mdouble\033[0m";break;
                 case T_VOID: break; //LATER
             }
-            last_error = concatenate_strings(3, "Can't assign a ", value,
+            concatenate_strings(3, "Can't assign a ", value,
                                              " to a ", assigned);
             return false;
         }

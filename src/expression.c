@@ -36,10 +36,10 @@ struct expr_operand init_operand_double(double double_value){
 
 int operand_add_postfix(struct expr_operand* operand, int value){
     if(operand->prefix != 0){
-        last_error = report_error(NOT_ASSIGNABLE_EXPR, 0);
+        report_error(NOT_ASSIGNABLE_EXPR, 0);
         return 0;
     }else if(operand->type != O_VARIABLE){
-        last_error = report_error(POSTF_OPERATOR_NOT_USABLE, value > 0 ? "++" : "--");
+        report_error(POSTF_OPERATOR_NOT_USABLE, value > 0 ? "++" : "--");
         return 0;
     }
 
@@ -49,10 +49,10 @@ int operand_add_postfix(struct expr_operand* operand, int value){
 
 int operand_add_prefix(struct expr_operand* operand, int value){
     if(operand->postfix != 0){
-        last_error = report_error(NOT_ASSIGNABLE_EXPR, 0);
+        report_error(NOT_ASSIGNABLE_EXPR, 0);
         return 0;
     }else if(operand->type != O_VARIABLE){
-        last_error = report_error(PREF_OPERATOR_NOT_USABLE, value > 0 ? "++" : "--");
+        report_error(PREF_OPERATOR_NOT_USABLE, value > 0 ? "++" : "--");
         return 0;
     }
 

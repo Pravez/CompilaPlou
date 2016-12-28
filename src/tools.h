@@ -6,23 +6,6 @@ extern int CURRENT_LBLI;
 extern char CURRENT_REG[10];
 extern char CURRENT_LBL[10];
 
-extern int ERR_COUNT;
-
-char* last_error;
-int error_flag;
-
-enum ERROR_TYPE{
-    UNDEFINED_VAR,
-    DEFINED_VAR,
-    UNDEFINED_FUNC,
-    DEFINED_FUNC,
-    DEFINED_FUNC_VAR,
-    NOT_ASSIGNABLE_EXPR,
-    POSTF_OPERATOR_NOT_USABLE,
-    PREF_OPERATOR_NOT_USABLE,
-    VOID_UNAUTHORIZED
-};
-
 enum color{
     RED,
     BLUE,
@@ -77,8 +60,5 @@ int new_label();
  * @return an allocated string
  */
 char* concatenate_strings(int qty, ...);
-
-char* report_error(enum ERROR_TYPE type, void* data);
-void verify_no_error(char* file_name);
 
 #endif //PROJET_COMPILATION_TOOLS_H

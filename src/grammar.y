@@ -187,45 +187,7 @@ assignment_operator
 
 declaration
 : type_name declarator_list ';' { $2 = apply_type($1, $2); CHK_ERROR(!hash__add_items(&scope, $2)) }
-| type_name declarator '=' expression {
-    if($2.decl_type == VARIABLE){
-        /*printf("%sdeclare: '%s' = %s",
-                COLOR_FG_BLUE,
-                $2.declarator.variable.identifier,
-                COLOR_RESET);
-        switch($4.type){
-            case E_CONDITIONAL:
-                switch($4.cond_expression.operand.type){
-                    case O_VARIABLE:
-                            printf("%s%s%s\n", COLOR_FG_GREEN, $4.cond_expression.operand.operand.variable, COLOR_RESET);
-                    break;
-                    case O_INT:
-                            printf("%s%d%s\n", COLOR_FG_GREEN, $4.cond_expression.operand.operand.int_value, COLOR_RESET);
-                    break;
-                    case O_DOUBLE:
-                            printf("%s%f%s\n", COLOR_FG_GREEN, $4.cond_expression.operand.operand.double_value, COLOR_RESET);
-                    break;
-                }
-                break;
-            default:
-                printf("pas implémenté. DSL <3\n");
-        }*/
-
-        $2.declarator.variable.type = $1;
-        CHK_ERROR(!hash__add_item(&scope, $2.declarator.variable.identifier, $2))
-        //TODO affecter la valeur du registre de expression à la variable
-
-    } else{
-        char* func_name = $2.declarator.function.identifier;
-        char* err = malloc(100 + strlen(func_name));
-        sprintf(err, "%sFonction %s est initialisée comme une variable !%s",
-                COLOR_FG_RED,
-                func_name,
-                COLOR_RESET);
-        yyerror(err);
-        exit(1); //TODO utiliser une gestion plus propre des erreurs bloquantes ?
-    }
-}
+| type_name declarator '=' expression { $2.declarator.variable.type = $1; CHK_ERROR(!hash__add_item(&scope, $2.declarator.variable.identifier, $2)) }
 ;
 
 declarator_list
@@ -241,7 +203,7 @@ type_name
 
 declarator
 : IDENTIFIER { $$.declarator.variable.identifier = $1; $$.decl_type = VARIABLE; /*PAR DEFAUT UNE VARIABLE, SINON ON RECUPERE JUSTE LA VALEUR PUIS ON ECRASE (plus haut)*/}
-| '(' declarator ')' { $$ = $2; } //TODO SUREMENT PAS CA
+| '(' declarator ')' { $$ = $2; }
 | declarator '(' parameter_list ')' { $$ = declare_function($3, $1.declarator.variable.identifier); /*MOCHE MAIS SOLUTION LA PLUS SIMPLE*/}
 | declarator '(' ')' { struct DeclaratorList empty; empty.size = 0; $$ = declare_function(empty, $1.declarator.variable.identifier); /*PAREIL*/}
 ;

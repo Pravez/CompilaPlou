@@ -265,11 +265,11 @@ statement
 ;
 
 LB
-: '{' {level++ ; debugi("level", level, RED); hash__upper_level(&scope); llvm__program_add_line(&program, "{");}// pour le hash[i] il faut faire attention si on retourne à un même level, ce n'est pas forcément le même bloc ! il faudra sûrement utiliser deux var, une disant le dernier hash_nb atteint et le hash_nb actuel à utiliser
+: '{' {level++ ; hash__upper_level(&scope); llvm__program_add_line(&program, "{");}// pour le hash[i] il faut faire attention si on retourne à un même level, ce n'est pas forcément le même bloc ! il faudra sûrement utiliser deux var, une disant le dernier hash_nb atteint et le hash_nb actuel à utiliser
 ;
 
 RB
-: '}' {level--; debugi("level", level, RED); hash__lower_level(&scope); llvm__program_add_line(&program, "}");} // normalement ici pas de soucis pour le hash_nb
+: '}' {level--; hash__lower_level(&scope); llvm__program_add_line(&program, "}");} // normalement ici pas de soucis pour le hash_nb
 ;
 
 compound_statement
@@ -286,8 +286,8 @@ declaration_list
 */
 
 statement_list
-: statement                 {debug("Statement", GREEN);}
-| statement_list statement  {debug("Statement list", GREEN);}
+: statement                 {}
+| statement_list statement  {}
 ;
 
 expression_statement

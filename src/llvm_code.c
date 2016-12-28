@@ -73,7 +73,7 @@ struct computed_expression* generate_code(struct Expression* e, hash_t* loaded){
             case O_DOUBLE:
                 ret->reg = new_register();
                 ret->type = T_DOUBLE;
-                llvm__program_add_line(&ret->code,load_double(ret->reg, o->operand.int_value));
+                llvm__program_add_line(&ret->code,load_double(ret->reg, o->operand.double_value));
                 break;
             case O_VARIABLE:
                 ret->reg = hash_lookup(loaded, o->operand.variable);

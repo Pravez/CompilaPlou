@@ -160,17 +160,15 @@ comparison_expression
 
 expression
 : unary_expression assignment_operator conditional_expression {
+        $$ = expression_from_unary_cond(&($1.conditional_expression.leaf), $2, &$3);
         hash_t loaded;
         hash_init(&loaded, 32);
         //TODO clean le magnifique débug <3
-        struct computed_expression* e = generate_code(&$3, &loaded);
-        printf("\ttree:\n");
-        print_tree(&$3);
+        struct computed_expression* e = generate_code(&$$, &loaded);
         printf("\n\tcode:\n");
         llvm__print(&e->code);
         printf("reg: %%x%d\n", e->reg);
 
-        $$ = expression_from_unary_cond(&($1.conditional_expression.leaf), $2, &$3);
 }
 | conditional_expression { $$ = $1; }
 ;

@@ -146,6 +146,12 @@ char* load_var(int reg, char* id){
     sprintf(code, "%%x%d = load %s, %s* %%%s", reg, type_name, type_name, id);
     return code;
 }
+char* store_var(char* id, int reg, enum TYPE type){
+    char* type_name = type_of(llvm__convert(type));
+    char* code = malloc(sizeof(type_name)*2 + 15 + 10);
+    sprintf(code, "store %s %%x%d, %s*, %%%s", type_name, reg, type_name, id);
+    return code;
+}
 
 struct computed_expression* generate_code(struct Expression* e, hash_t* loaded){
     struct computed_expression* ret = malloc(sizeof(struct computed_expression));
@@ -187,9 +193,33 @@ struct computed_expression* generate_code(struct Expression* e, hash_t* loaded){
         }
         free(left);
         free(right);
+    }else if(e->type == E_AFFECT){
+        struct computed_expression* affected_value = generate_code(e->expression.cond_expression, loaded);
+        ret->reg = affected_value->reg;
+        ret->type = hash__get_item(&scope, e->expression.operand.operand.variable).declarator.variable.type;
+        //check même type ?
+        llvm__fusion_programs(&ret->code, &affected_value->code);
+        switch (e->expression.assign_operator)
+        {
+            case OP_SIMPLE_ASSIGN:
+                llvm__program_add_line(&ret->code, store_var(e->expression.operand.operand.variable, ret->reg, ret->type));
+                break;
+            case OP_MUL_ASSIGN:
+            case OP_DIV_ASSIGN:
+            case OP_REM_ASSIGN:
+            case OP_SHL_ASSIGN:
+            case OP_SHR_ASSIGN:
+            case OP_ADD_ASSIGN:
+            case OP_SUB_ASSIGN:
+                printf("TODO\n");
+                llvm__program_add_line(&ret->code, "TODO ASSIGN");
+            default:
+                printf("erreur. Enfin, je crois\n");
+        }
+        hash_delete(loaded, e->expression.operand.operand.variable);
+        free(affected_value);
     }else{
-        printf("démerde toi :-)\n");
-        llvm__program_add_line(&ret->code, "démerde toi :-)");
+        printf("erreur. Je suppose.\n");
     }
     return ret;
 }

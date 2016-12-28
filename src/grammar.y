@@ -241,7 +241,7 @@ type_name
 
 declarator
 : IDENTIFIER { $$.declarator.variable.identifier = $1; $$.decl_type = VARIABLE; /*PAR DEFAUT UNE VARIABLE, SINON ON RECUPERE JUSTE LA VALEUR PUIS ON ECRASE (plus haut)*/}
-| '(' declarator ')' { $$ = $2; }
+| '(' declarator ')' { $$ = $2; } //TODO SUREMENT PAS CA
 | declarator '(' parameter_list ')' { $$ = declare_function($3, $1.declarator.variable.identifier); /*MOCHE MAIS SOLUTION LA PLUS SIMPLE*/}
 | declarator '(' ')' { struct DeclaratorList empty; empty.size = 0; $$ = declare_function(empty, $1.declarator.variable.identifier); /*PAREIL*/}
 ;
@@ -252,7 +252,7 @@ parameter_list
 ;
 
 parameter_declaration
-: type_name declarator {$$ = apply_decl_type($1, $2);}
+: type_name declarator { $$ = apply_decl_type($1, $2); }
 ;
 
 statement

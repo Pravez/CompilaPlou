@@ -80,7 +80,7 @@ char* report_error(enum ERROR_TYPE type, void* data){
             break;
         case DEFINED_FUNC:
             identifier = (char*) data;
-            error = concatenate_strings(3, "Function \033[31;1m", identifier,
+            error = concatenate_strings(3, "Identifier \033[31;1m", identifier,
                                              "\033[0m has already been defined in scope as a function");
             break;
         case DEFINED_FUNC_VAR:
@@ -90,7 +90,7 @@ char* report_error(enum ERROR_TYPE type, void* data){
             break;
         case DEFINED_VAR:
             identifier = (char*) data;
-            error = concatenate_strings(3, "Variable \033[31;1m", identifier,
+            error = concatenate_strings(3, "Identifier \033[31;1m", identifier,
                                              "\033[0m has already been defined in scope as a variable");
             break;
         case NOT_ASSIGNABLE_EXPR:

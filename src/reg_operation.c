@@ -10,10 +10,8 @@ char* load_int(int reg, int value){
 
 char* load_double(int reg, double value){
     char* type_name = type_of(llvm__convert(T_DOUBLE));
-    double val = value;
     char* code;
-    printf("value %f\n", value);
-    asprintf(&code, "%%x%d = fadd %s 0x0000000000000000, 0x%llx", reg, type_name, *(unsigned long long *)&val);
+    asprintf(&code, "%%x%d = fadd %s 0x0000000000000000, 0x%llx", reg, type_name, *(unsigned long long *)&value);
     return code;
 }
 

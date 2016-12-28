@@ -113,3 +113,31 @@ void describe_declarator(struct Declarator decl){
 
     printf("%s %s %s", type, identifier, return_type);
 }
+
+char* type_of(enum LLVM_TYPE type){
+    switch(type){
+        case LLVM_I32:
+            return "i32";
+        case LLVM_DOUBLE:
+            return "double";
+        case LLVM_I8:
+            return "i8";
+        default:
+            break;
+    }
+
+    return NULL;
+}
+
+enum LLVM_TYPE llvm__convert(enum TYPE type){
+    switch(type){
+        case T_INT:
+            return LLVM_I32;
+        case T_DOUBLE:
+            return LLVM_DOUBLE;
+        case T_VOID:
+            break;
+    }
+
+    return -1;
+}

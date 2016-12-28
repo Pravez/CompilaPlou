@@ -1,19 +1,7 @@
-double kldfj(int a){
-    int b;
-}
-
 int main(){
-    int a;
-
-    int lol, prout;
-
-    int d(){
-        int c = 5;
-    }
-
     double b;
 
-    
+    b = 2.0;
 }
 
 /*int c(int b){

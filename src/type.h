@@ -53,6 +53,14 @@ enum COND_OPERATOR{
     OP_AND
 };
 
+enum LLVM_TYPE{
+    LLVM_I32, //Integer
+    LLVM_DOUBLE, //Float
+    LLVM_I8, //Character
+    LLVM_I32_PTR,
+    LLVM_DOUBLE_PTR,
+    LLVM_I8_PTR
+};
 
 //////Variables
 struct Variable{
@@ -98,5 +106,9 @@ struct Declarator declare_function(struct DeclaratorList list, char* identifier)
 //Fonction affichant (debug) le contenu d'une declaratorList
 void print_declarator_list(struct DeclaratorList list);
 void describe_declarator(struct Declarator decl);
+
+char* type_of(enum LLVM_TYPE type);
+enum LLVM_TYPE llvm__convert(enum TYPE type);
+
 
 #endif //COMPILAPIOU_TYPE_H

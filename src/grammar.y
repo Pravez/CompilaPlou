@@ -159,7 +159,8 @@ comparison_expression
 ;
 
 expression
-: unary_expression assignment_operator conditional_expression {
+: unary_expression assignment_operator expression {
+        printf("DEBUG assigment de %s\n", $1.conditional_expression.leaf.operand.variable);
         $$ = expression_from_unary_cond(&($1.conditional_expression.leaf), $2, &$3);
         hash_t loaded;
         hash_init(&loaded, 32);
@@ -210,6 +211,7 @@ declaration
                 printf("pas implémenté. DSL <3\n");
         }*/
 
+        $2.declarator.variable.type = $1;
         CHK_ERROR(!hash__add_item(&scope, $2.declarator.variable.identifier, $2))
         //TODO affecter la valeur du registre de expression à la variable
 

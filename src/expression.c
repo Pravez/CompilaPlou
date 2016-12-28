@@ -104,7 +104,7 @@ struct Expression create_leaf(struct expr_operand operand){
     expression.conditional_expression.type = C_LEAF;
     expression.conditional_expression.leaf = operand;
 
-    printf("CREATED LEAF "); print_operand(operand);printf("\n");
+    printf("CREATED LEAF "); print_operand(operand); printf(", type= %d\n", operand.type);
 
     return expression;
 }

@@ -31,7 +31,7 @@ char* llvm__create_constant(char* name, enum TYPE type, int size, void* value);
 char* llvm___create_function_def(struct Function function);
 
 void llvm__print(struct llvm__program* program);
-struct computed_expression* generate_code(struct Expression* e, hash_t* loaded);
+struct computed_expression* generate_code(struct Expression* e);
 
 
 #endif //TESTS_LLVM_CODE_H

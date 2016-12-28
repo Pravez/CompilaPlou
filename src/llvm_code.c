@@ -58,7 +58,7 @@ char* llvm___create_function_def(struct Function function){
     return definition;
 }
 
-struct computed_expression* generate_code(struct Expression* e, hash_t* loaded){
+struct computed_expression* generate_code(struct Expression* e){
     struct computed_expression* ret = malloc(sizeof(struct computed_expression));
     llvm__init_program(&ret->code);
 
@@ -76,17 +76,17 @@ struct computed_expression* generate_code(struct Expression* e, hash_t* loaded){
                 llvm__program_add_line(&ret->code,load_double(ret->reg, o->operand.double_value));
                 break;
             case O_VARIABLE:
-                ret->reg = hash_lookup(loaded, o->operand.variable);
+                ret->reg = hash_lookup(&CURRENT_LOADED_REGS, o->operand.variable);
                 ret->type = hash__get_item(&scope, o->operand.variable).declarator.variable.type;
                 if(ret->reg == HASH_FAIL) {
                     ret->reg = new_register();
                     llvm__program_add_line(&ret->code,load_var(ret->reg, o->operand.variable));
-                    hash_insert(loaded,o->operand.variable, ret->reg); // new register of variable
+                    hash_insert(&CURRENT_LOADED_REGS,o->operand.variable, ret->reg); // new register of variable
                 }
         }
     }else if(e->type == E_CONDITIONAL){
-        struct computed_expression* left = generate_code(e->conditional_expression.branch.e_left, loaded);
-        struct computed_expression* right = generate_code(e->conditional_expression.branch.e_right, loaded);
+        struct computed_expression* left = generate_code(e->conditional_expression.branch.e_left);
+        struct computed_expression* right = generate_code(e->conditional_expression.branch.e_right);
         enum COND_OPERATOR operator = e->conditional_expression.branch.operator;
         llvm__fusion_programs(&ret->code, &left->code);
         llvm__fusion_programs(&ret->code, &right->code);
@@ -102,7 +102,9 @@ struct computed_expression* generate_code(struct Expression* e, hash_t* loaded){
         free(left);
         free(right);
     }else if(e->type == E_AFFECT){
-        struct computed_expression* affected_value = generate_code(e->expression.cond_expression, loaded);
+        //register is no longer up to date.
+        hash_delete(&CURRENT_LOADED_REGS, e->expression.operand.operand.variable);
+        struct computed_expression* affected_value = generate_code(e->expression.cond_expression);
         ret->reg = affected_value->reg;
         ret->type = hash__get_item(&scope, e->expression.operand.operand.variable).declarator.variable.type;
         //check même type ?
@@ -124,7 +126,6 @@ struct computed_expression* generate_code(struct Expression* e, hash_t* loaded){
             default:
                 printf("erreur. Enfin, je crois\n");
         }
-        hash_delete(loaded, e->expression.operand.operand.variable);
         free(affected_value);
     }else{
         printf("erreur. Je suppose.\n");

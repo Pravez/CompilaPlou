@@ -60,6 +60,7 @@ struct DeclaratorList apply_type(enum TYPE type, struct DeclaratorList list){
     return list;
 }
 
+//TODO Causes segfault if type == void
 struct Declarator apply_decl_type(enum TYPE type, struct Declarator declarator){
     if(declarator.decl_type == VARIABLE){
         declarator.declarator.variable.type = type;

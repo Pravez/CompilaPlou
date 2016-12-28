@@ -80,7 +80,7 @@ char* report_error(enum ERROR_TYPE type, void* data){
             break;
         case DEFINED_FUNC:
             identifier = (char*) data;
-            error = concatenate_strings(3, "Function \033[31;1m", identifier,
+            error = concatenate_strings(3, "Identifier \033[31;1m", identifier,
                                              "\033[0m has already been defined in scope as a function");
             break;
         case DEFINED_FUNC_VAR:
@@ -90,11 +90,26 @@ char* report_error(enum ERROR_TYPE type, void* data){
             break;
         case DEFINED_VAR:
             identifier = (char*) data;
-            error = concatenate_strings(3, "Variable \033[31;1m", identifier,
+            error = concatenate_strings(3, "Identifier \033[31;1m", identifier,
                                              "\033[0m has already been defined in scope as a variable");
             break;
         case NOT_ASSIGNABLE_EXPR:
             error = "Expression is not assignable";
+            break;
+        case POSTF_OPERATOR_NOT_USABLE:
+            identifier = (char*) data;
+            error = concatenate_strings(3, "Cannot use postfix operator \033[31;1m", identifier, 
+                                            "\033[0m on other thing than variable");
+            break;
+        case PREF_OPERATOR_NOT_USABLE:
+            identifier = (char*) data;
+            error = concatenate_strings(3, "Cannot use prefix operator \033[31;1m", identifier, 
+                                            "\033[0m on other thing than variable");
+            break;
+        case VOID_UNAUTHORIZED:
+            identifier = (char*) data;
+            error = concatenate_strings(3, "Variable \033[31;1m", identifier, 
+                                            "\033[0m can't be declared : \033[34;1mvoid\033[0m type is forbidden for variables");
             break;
     }
 

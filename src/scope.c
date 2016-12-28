@@ -231,13 +231,23 @@ bool hash__add_items(struct Scope *hashmap, struct DeclaratorList list){
         if(list.declarator_list[i].decl_type == FUNCTION){
             if(!hash__add_item(hashmap, list.declarator_list[i].declarator.function.identifier, list.declarator_list[i])){
                 if(error_flag == 0) {
-                    last_error = report_error(DEFINED_FUNC, list.declarator_list[i].declarator.function.identifier);
+                    if(hash__get_item(hashmap, list.declarator_list[i].declarator.function.identifier).decl_type == FUNCTION)
+                        last_error = report_error(DEFINED_FUNC, list.declarator_list[i].declarator.function.identifier);
+                    else
+                        last_error = report_error(DEFINED_VAR, list.declarator_list[i].declarator.function.identifier);
                 }
                 return false;
             }
         }else{
+            if(list.declarator_list[i].declarator.variable.type == T_VOID){
+                last_error = report_error(VOID_UNAUTHORIZED, list.declarator_list[i].declarator.variable.identifier);
+                return false;
+            }
             if(!hash__add_item(hashmap, list.declarator_list[i].declarator.variable.identifier, list.declarator_list[i])){
-                last_error = report_error( DEFINED_VAR, list.declarator_list[i].declarator.variable.identifier);
+                if(hash__get_item(hashmap, list.declarator_list[i].declarator.variable.identifier).decl_type == FUNCTION)
+                    last_error = report_error(DEFINED_FUNC, list.declarator_list[i].declarator.variable.identifier);
+                else
+                    last_error = report_error(DEFINED_VAR, list.declarator_list[i].declarator.variable.identifier);
                 return false;
             }
         }

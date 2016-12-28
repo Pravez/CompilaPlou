@@ -118,14 +118,14 @@ primary_expression
 
 postfix_expression
 : primary_expression { $$ = $1; }
-| postfix_expression INC_OP { CHK_ERROR(!operand_add_postfix(&($$.conditional_expression.leaf), 1)) }
-| postfix_expression DEC_OP { CHK_ERROR(!operand_add_postfix(&($$.conditional_expression.leaf), -1)) }
+| postfix_expression INC_OP { CHK_ERROR(!operand_add_postfix(&($1.conditional_expression.leaf), 1)) }
+| postfix_expression DEC_OP { CHK_ERROR(!operand_add_postfix(&($1.conditional_expression.leaf), -1)) }
 ;
 
 unary_expression
 : postfix_expression { $$ = $1; }
-| INC_OP unary_expression { CHK_ERROR(!operand_add_prefix(&($$.conditional_expression.leaf), 1)) }
-| DEC_OP unary_expression { CHK_ERROR(!operand_add_prefix(&($$.conditional_expression.leaf), -1)) }
+| INC_OP unary_expression { CHK_ERROR(!operand_add_prefix(&($2.conditional_expression.leaf), 1)) }
+| DEC_OP unary_expression { CHK_ERROR(!operand_add_prefix(&($2.conditional_expression.leaf), -1)) }
 //| unary_operator unary_expression {printf("negation de l'espace\n");}
 | '-' unary_expression {printf("negation de l'espace\n");}
 ;
@@ -185,27 +185,7 @@ assignment_operator
 ;
 
 declaration
-: type_name declarator_list ';' {
-    // check everything is fine (variables not void)
-    if($1 == T_VOID){
-        for(int i = 0;i<$2.size;++i){
-            if($2.declarator_list[i].decl_type == VARIABLE){
-                char *var_name = $2.declarator_list[i].declarator.variable.identifier;
-                char *err = malloc(100 + strlen(var_name));
-                sprintf(err,
-                "%sVariable %s ne peut pas être déclarée comme VOID !%s",
-                COLOR_FG_RED,
-                var_name,
-                COLOR_RESET);
-                yyerror(err); //TODO gestion erreur propre
-                exit(1);
-            }
-        }
-    }
-
-    $2 = apply_type($1, $2);
-    CHK_ERROR(!hash__add_items(&scope, $2))
-}
+: type_name declarator_list ';' { $2 = apply_type($1, $2); CHK_ERROR(!hash__add_items(&scope, $2)) }
 | type_name declarator '=' expression {
     if($2.decl_type == VARIABLE){
         /*printf("%sdeclare: '%s' = %s",
@@ -259,7 +239,7 @@ type_name
 
 declarator
 : IDENTIFIER { $$.declarator.variable.identifier = $1; $$.decl_type = VARIABLE; /*PAR DEFAUT UNE VARIABLE, SINON ON RECUPERE JUSTE LA VALEUR PUIS ON ECRASE (plus haut)*/}
-| '(' declarator ')' { $$ = $2; }
+| '(' declarator ')' { $$ = $2; } //TODO SUREMENT PAS CA
 | declarator '(' parameter_list ')' { $$ = declare_function($3, $1.declarator.variable.identifier); /*MOCHE MAIS SOLUTION LA PLUS SIMPLE*/}
 | declarator '(' ')' { struct DeclaratorList empty; empty.size = 0; $$ = declare_function(empty, $1.declarator.variable.identifier); /*PAREIL*/}
 ;
@@ -270,7 +250,7 @@ parameter_list
 ;
 
 parameter_declaration
-: type_name declarator {$$ = apply_decl_type($1, $2);}
+: type_name declarator { $$ = apply_decl_type($1, $2); }
 ;
 
 statement
@@ -283,11 +263,11 @@ statement
 ;
 
 LB
-: '{' {level++ ; debugi("level", level, RED); hash__upper_level(&scope); llvm__program_add_line(&program, "{");}// pour le hash[i] il faut faire attention si on retourne à un même level, ce n'est pas forcément le même bloc ! il faudra sûrement utiliser deux var, une disant le dernier hash_nb atteint et le hash_nb actuel à utiliser
+: '{' {level++ ; hash__upper_level(&scope); llvm__program_add_line(&program, "{");}// pour le hash[i] il faut faire attention si on retourne à un même level, ce n'est pas forcément le même bloc ! il faudra sûrement utiliser deux var, une disant le dernier hash_nb atteint et le hash_nb actuel à utiliser
 ;
 
 RB
-: '}' {level--; debugi("level", level, RED); hash__lower_level(&scope); llvm__program_add_line(&program, "}");} // normalement ici pas de soucis pour le hash_nb
+: '}' {level--; hash__lower_level(&scope); llvm__program_add_line(&program, "}");} // normalement ici pas de soucis pour le hash_nb
 ;
 
 compound_statement
@@ -304,8 +284,8 @@ declaration_list
 */
 
 statement_list
-: statement                 {debug("Statement", GREEN);}
-| statement_list statement  {debug("Statement list", GREEN);}
+: statement                 {}
+| statement_list statement  {}
 ;
 
 expression_statement

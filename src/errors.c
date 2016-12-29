@@ -53,6 +53,10 @@ void report_error(enum ERROR_TYPE type, void* data){
             error = concatenate_strings(3, "Variable \033[31;1m", identifier, 
                                             "\033[0m can't be declared : \033[34;1mvoid\033[0m type is forbidden for variables");
             break;
+        case VOID_ASSIGN:
+            allocated = 0;
+            error = concatenate_strings(3, "Impossible to assign void value to an expression");
+            break;
         case FUNCTION_AS_VARIABLE:
             identifier = (char*) data;
             error = concatenate_strings(3, "Function \033[31;1m", identifier, 
@@ -84,9 +88,15 @@ void report_warning(enum WARNING_TYPE type, void* data){
     int allocated = 1;
     char* identifier;
     switch(type){
-        case CAST_INT_TO_DOUBLE:
+        case ASSIGN_DOUBLE_TO_INT:
+            identifier = (char*) data;
+            warning = concatenate_strings(3, "Assigning double to int variable \033[35;1m", identifier, 
+                                            "\033[0m will require a cast");
             break;
-        case CAST_DOUBLE_TO_INT:
+        case ASSIGN_INT_TO_DOUBLE:
+            identifier = (char*) data;
+            warning = concatenate_strings(3, "Assigning int to double variable \033[35;1m", identifier, 
+                                            "\033[0m will require a cast");
             break;
         case UNARY_ON_UNINIT:
             identifier = (char*) data;

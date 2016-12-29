@@ -165,6 +165,9 @@ expression
 : unary_expression assignment_operator expression {
         printf("DEBUG assigment de %s\n", $1.conditional_expression.leaf.operand.variable);
         if(expression_from_unary_cond(&($1.conditional_expression.leaf), $2, &$3, &$$)){
+            //TODO clean le magnifique débug <3
+            set_initialized(&scope, $1.conditional_expression.leaf.operand.variable);
+
             struct computed_expression* e = generate_code(&$$);
             //printf("\n\tcode:\n");
             //llvm__print(e->code);
@@ -200,26 +203,24 @@ declaration
 | type_name declarator '=' expression ';' {
     if($2.decl_type == VARIABLE){
 
-        struct llvm__program* decl = generate_var_declaration(&$2.declarator.variable, false); //TODO gérer le cas où c'est global
-        struct computed_expression* e = generate_code(&$4);
-
-        //printf("\tcode declaration:\n");
-        //llvm__print(decl);
-        //printf("\n\tcode expr:\n");
-        //llvm__print(e->code);
-        //printf("reg: %%x%d\n", e->reg);
-
         $2.declarator.variable.type = $1;
-        $2.declarator.variable.initialized = 1;
-        hash__add_item(&scope, $2.declarator.variable.identifier, $2);
+        if(verify_expression_type($2, &$4)){
+            struct llvm__program* decl = generate_var_declaration(&$2.declarator.variable, false); //TODO gérer le cas où c'est global
+            struct computed_expression* e = generate_code(&$4);
+            //printf("\n\tcode:\n");
+            //llvm__print(&e->code);
+            //printf("reg: %%x%d\n", e->reg);
 
-        llvm__fusion_programs(decl, e->code);
-        llvm__program_add_line(decl, store_var($2.declarator.variable.identifier, e->reg, $1));
+            $2.declarator.variable.initialized = 1;
+            hash__add_item(&scope, $2.declarator.variable.identifier, $2);
+            llvm__fusion_programs(decl, e->code);
+            llvm__program_add_line(decl, store_var($2.declarator.variable.identifier, e->reg, $1));
 
-        $$ = *decl;
-        free(e->code);
-        free(e);
-
+            $$ = *decl;
+            free(e->code);
+            free(e);
+        }
+        // TODO ?
     } else{
         report_error(FUNCTION_AS_VARIABLE, $2.declarator.function.identifier);
     }

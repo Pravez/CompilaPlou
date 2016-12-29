@@ -4,22 +4,9 @@ int prout(int a){
 
 int main(){
     int a;
-    int c = 5;
-    a++;
+    int c;
+    c=5;
+    c++;
 
-    int lol, prout;
-
-
-    double b;
-
-    
+    int d = a;
 }
-
-/*int c(int b){
-    int d;
-    int a;
-
-    d = a = 5;
-
-    a = 5;
-}*/

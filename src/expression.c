@@ -188,6 +188,19 @@ int expression_from_unary_cond(struct expr_operand* operand, enum ASSIGN_OPERATO
         return 0;
     }
 
+    //We verify if the assigned type is good
+    enum TYPE operand_type = item.declarator.variable.type;
+    if(operand_type != T_VOID){
+        enum TYPE final_type = establish_expression_final_type(cond);
+        if(operand_type == T_INT && final_type == T_DOUBLE)
+            report_warning(ASSIGN_DOUBLE_TO_INT, operand->operand.variable);
+        else if(operand_type == T_DOUBLE && final_type == T_INT)
+            report_warning(ASSIGN_INT_TO_DOUBLE, operand->operand.variable);
+    }else{
+        report_error(VOID_ASSIGN, 0);
+        return 0;
+    }
+
     final_expression->type = E_AFFECT;
 
     final_expression->expression.assign_operator = assign_operator;
@@ -199,3 +212,126 @@ int expression_from_unary_cond(struct expr_operand* operand, enum ASSIGN_OPERATO
 
     return 1;
 }
+
+enum TYPE establish_expression_final_type(struct Expression* expression){
+    if(expression->type == E_CONDITIONAL){
+        if(expression->conditional_expression.type == C_LEAF){
+            return get_operand_type(expression->conditional_expression.leaf);
+        }else{
+            enum TYPE left = establish_expression_final_type(expression->conditional_expression.branch.e_left);
+            enum TYPE right = establish_expression_final_type(expression->conditional_expression.branch.e_right);
+
+            //So if they are different (int or double), double always wins
+            if(left != right){
+                return T_DOUBLE;
+            }else{
+                //Else they are exactly the same so we return just one
+                return left;
+            }
+        }
+
+    }
+}
+
+enum TYPE get_operand_type(struct expr_operand operand){
+    struct Declarator variable;
+    switch(operand.type){
+        case O_INT:
+            return T_INT;
+        case O_DOUBLE:
+            return T_DOUBLE;
+        case O_VARIABLE:
+            variable = hash__get_item(&scope, operand.operand.variable);
+            if(variable.decl_type == FUNCTION)
+                return variable.declarator.function.return_type;
+            else 
+                return variable.declarator.variable.type;
+    }
+}
+
+/*
+enum WARNING_TYPE verify_leaf_type(struct expr_operand operand, enum OPERAND_TYPE main_type){
+    enum OPERAND_TYPE temp_type = operand.type;
+    
+    
+    if(temp_type != main_type){
+        if(main_type == O_INT){
+            return ASSIGN_DOUBLE_TO_INT;
+        }else if(main_type == O_DOUBLE){
+            return ASSIGN_INT_TO_DOUBLE; // On s'en fout normalement non ?
+        }
+    }
+
+    return -1;
+}
+
+enum OPERAND_TYPE type_to_optype(enum TYPE type){
+    switch(type){
+        case T_INT:
+            return O_INT;
+        case T_DOUBLE:
+            return O_DOUBLE;
+        default:
+            return -1;
+    }
+}
+*/
+
+/*
+int is_conditional_expr_leaf(struct Expression* expression){
+    if(expression->type == E_CONDITIONAL){
+        if(expression->conditional_expression.type == C_LEAF)
+            return 1;
+    }
+
+    return 0;
+}*/
+
+/*
+enum WARNING_TYPE verify_expression_type(enum OPERAND_TYPE main_type, struct Expression* expression){
+    //No cast needed first (ehehe, we didn't analyze anything)
+    expression->needed_cast = NO_CAST;
+    printf("EXPRESSION TYPE = %d", expression->conditional_expression.type);
+    //If the expression is just conditional and is a leaf
+    if(is_conditional_expr_leaf(expression)){
+            //Then we verify the type of the leaf accord to the main assignation type.
+            printf("VERIFYING LEAF leaf");
+            return verify_leaf_type(expression->conditional_expression.leaf, main_type);
+    }else if(expression->type == E_CONDITIONAL){
+        //Recursive, we call it until we have a leaf
+        enum WARNING_TYPE returned = -1;
+        if(is_conditional_expr_leaf(expression->conditional_expression.branch.e_left)){
+            printf("NEXT IS LEAF");
+            returned = verify_expression_type(main_type, expression->conditional_expression.branch.e_left);
+            //If after verification types are different
+            if(returned != -1){
+                //We do the cast accordingly to what warning error the verification returned
+                modify_expression_cast_type(expression, returned);
+            }
+        }else{
+            //If it's not a leaf we do not care of the returned value, and we simply just go on
+            //(but we return the value to know what error it was)
+            returned = verify_expression_type(main_type, expression->conditional_expression.branch.e_left);
+        }
+
+        //We do the same for right branch
+        if(is_conditional_expr_leaf(expression->conditional_expression.branch.e_right)){
+            returned = verify_expression_type(main_type, expression->conditional_expression.branch.e_right);
+            //If after verification types are different
+            if(returned != -1){
+                //We do the cast accordingly to what warning error the verification returned
+                modify_expression_cast_type(expression, returned);
+            }
+        }else{
+            returned = verify_expression_type(main_type, expression->conditional_expression.branch.e_right);
+        }
+
+        //If one of the returned values is not -1, or if the two are not -1 it doesn't change anything
+        //because there is only one main type for this expresison so only one type cannot be the good 
+        //one (because we have only 2 main types) , so if there's at least one cast needed it's ok.
+
+        return returned;
+    }else if(expression->type == E_AFFECT){
+
+    }
+}*/

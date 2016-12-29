@@ -160,6 +160,7 @@ expression
         printf("DEBUG assigment de %s\n", $1.conditional_expression.leaf.operand.variable);
         if(expression_from_unary_cond(&($1.conditional_expression.leaf), $2, &$3, &$$)){
             //TODO clean le magnifique débug <3
+            set_initialized(&scope, $1.conditional_expression.leaf.operand.variable);
             struct computed_expression* e = generate_code(&$$);
             printf("\n\tcode:\n");
             llvm__print(&e->code);

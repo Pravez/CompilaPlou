@@ -74,6 +74,26 @@ struct Declarator hash__get_item(struct Scope *hashmap, char *key) {
 }
 
 /**
+ * Exactly the same as hash__get_item but returns a pointer
+ * @param hashmap
+ * @param key
+ * @return
+ */
+struct Declarator* hash__get_item_reference(struct Scope* hashmap, char*key){
+    for (int i = hashmap->current_level; i >= 0; i--) {
+        int position = hachage(key);
+        do{
+            if (strcmp(hashmap->scope_maps[i][position].key, key) == 0) {
+                return &hashmap->scope_maps[i][position].value;
+            }
+            position = hashmap->scope_maps[i][position].next;
+        }while(position != -1);
+    }
+
+    return NULL;
+}
+
+/**
  * Function to find an item position in a scope and level
  * @param hashmap
  * @param key
@@ -329,4 +349,14 @@ bool is_of_type(struct Scope *scope, char* identifier, enum TYPE type){
     }
 
     return true;
+}
+
+bool set_initialized(struct Scope* scope, char* identifier){
+    struct Declarator* declarator = hash__get_item_reference(scope, identifier);
+    if(declarator != NULL){
+        declarator->declarator.variable.initialized = 1;
+        return true;
+    }
+
+    return false;
 }

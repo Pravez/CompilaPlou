@@ -44,6 +44,9 @@ struct llvm__program program;
 %type <plou_expression> conditional_expression logical_or_expression logical_and_expression multiplicative_expression additive_expression comparison_expression
 %type <plou_expression> primary_expression postfix_expression shift_expression unary_expression
 
+//Statement
+%type <code> expression_statement declaration
+
 %start program
 %union {
     char *string;
@@ -67,6 +70,9 @@ struct llvm__program program;
 
     //Expressions
     struct Expression plou_expression;
+
+    //Code
+    struct llvm__program code;
 }
 %%
 
@@ -159,11 +165,12 @@ expression
 : unary_expression assignment_operator expression {
         printf("DEBUG assigment de %s\n", $1.conditional_expression.leaf.operand.variable);
         if(expression_from_unary_cond(&($1.conditional_expression.leaf), $2, &$3, &$$)){
-            //TODO clean le magnifique débug <3
             struct computed_expression* e = generate_code(&$$);
-            printf("\n\tcode:\n");
-            llvm__print(&e->code);
-            printf("reg: %%x%d\n", e->reg);
+            //printf("\n\tcode:\n");
+            //llvm__print(e->code);
+            //printf("reg: %%x%d\n", e->reg);
+
+            $$.code = e->code;
 
             free(e);
         }else{
@@ -185,19 +192,33 @@ assignment_operator
 ;
 
 declaration
-: type_name declarator_list ';' { $2 = apply_type($1, $2); hash__add_items(&scope, $2); }
+: type_name declarator_list ';' {
+    $2 = apply_type($1, $2);
+    hash__add_items(&scope, $2);
+    $$ = *generate_multiple_var_declarations(&$2, 0); //TODO gérer le cas où c'est global
+}
 | type_name declarator '=' expression ';' {
     if($2.decl_type == VARIABLE){
+
+        struct llvm__program* decl = generate_var_declaration(&$2.declarator.variable, false); //TODO gérer le cas où c'est global
         struct computed_expression* e = generate_code(&$4);
-        printf("\n\tcode:\n");
-        llvm__print(&e->code);
-        printf("reg: %%x%d\n", e->reg);
+
+        //printf("\tcode declaration:\n");
+        //llvm__print(decl);
+        //printf("\n\tcode expr:\n");
+        //llvm__print(e->code);
+        //printf("reg: %%x%d\n", e->reg);
 
         $2.declarator.variable.type = $1;
         $2.declarator.variable.initialized = 1;
         hash__add_item(&scope, $2.declarator.variable.identifier, $2);
 
-        //TODO affecter la valeur du registre de expression à la variable
+        llvm__fusion_programs(decl, e->code);
+        llvm__program_add_line(decl, store_var($2.declarator.variable.identifier, e->reg, $1));
+
+        $$ = *decl;
+        free(e->code);
+        free(e);
 
     } else{
         report_error(FUNCTION_AS_VARIABLE, $2.declarator.function.identifier);
@@ -233,9 +254,9 @@ parameter_declaration
 ;
 
 statement
-: declaration
+: declaration               {printf("--- statement DECL ---\n"); llvm__print(&$1); printf("--- END  statement ---\n");}
 | compound_statement
-| expression_statement
+| expression_statement      {printf("--- statement CODE ---\n"); llvm__print(&$1); printf("--- END  statement ---\n");}
 | selection_statement
 | iteration_statement
 | jump_statement
@@ -268,8 +289,8 @@ statement_list
 ;
 
 expression_statement
-: ';'
-| expression ';'
+: ';'            {struct llvm__program empty; llvm__init_program(&empty); $$ = empty;};
+| expression ';' {$$ = *$1.code;}
 ;
 
 selection_statement

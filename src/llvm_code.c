@@ -60,7 +60,8 @@ char* llvm___create_function_def(struct Function function){
 
 struct computed_expression* generate_code(struct Expression* e){
     struct computed_expression* ret = malloc(sizeof(struct computed_expression));
-    llvm__init_program(&ret->code);
+    ret->code = malloc(sizeof(struct llvm__program));
+    llvm__init_program(ret->code);
 
     if(e->type == E_CONDITIONAL && e->conditional_expression.type == C_LEAF){
         struct expr_operand* o = &e->conditional_expression.leaf;
@@ -68,19 +69,19 @@ struct computed_expression* generate_code(struct Expression* e){
             case O_INT:
                 ret->reg = new_register();
                 ret->type = T_INT;
-                llvm__program_add_line(&ret->code,load_int(ret->reg, o->operand.int_value));
+                llvm__program_add_line(ret->code,load_int(ret->reg, o->operand.int_value));
                 break;
             case O_DOUBLE:
                 ret->reg = new_register();
                 ret->type = T_DOUBLE;
-                llvm__program_add_line(&ret->code,load_double(ret->reg, o->operand.double_value));
+                llvm__program_add_line(ret->code,load_double(ret->reg, o->operand.double_value));
                 break;
             case O_VARIABLE:
                 ret->reg = hash_lookup(&CURRENT_LOADED_REGS, o->operand.variable);
                 ret->type = hash__get_item(&scope, o->operand.variable).declarator.variable.type;
                 if(ret->reg == HASH_FAIL) {
                     ret->reg = new_register();
-                    llvm__program_add_line(&ret->code,load_var(ret->reg, o->operand.variable));
+                    llvm__program_add_line(ret->code,load_var(ret->reg, o->operand.variable));
                     hash_insert(&CURRENT_LOADED_REGS,o->operand.variable, ret->reg); // new register of variable
                 }
         }
@@ -88,8 +89,8 @@ struct computed_expression* generate_code(struct Expression* e){
         struct computed_expression* left = generate_code(e->conditional_expression.branch.e_left);
         struct computed_expression* right = generate_code(e->conditional_expression.branch.e_right);
         enum COND_OPERATOR operator = e->conditional_expression.branch.operator;
-        llvm__fusion_programs(&ret->code, &left->code);
-        llvm__fusion_programs(&ret->code, &right->code);
+        llvm__fusion_programs(ret->code, left->code);
+        llvm__fusion_programs(ret->code, right->code);
 
         if(left->type != right->type){
             printf("ahahahah. mdr. la conversion de type, t'es un rigolo toi.\n");
@@ -97,10 +98,13 @@ struct computed_expression* generate_code(struct Expression* e){
             ret->reg = new_register();
             ret->type = left->type;
 
-            llvm__program_add_line(&ret->code, operate_on_regs(operator, ret->reg, left->reg, right->reg, ret->type));
+            llvm__program_add_line(ret->code, operate_on_regs(operator, ret->reg, left->reg, right->reg, ret->type));
         }
+        free(left->code);
         free(left);
+        free(right->code);
         free(right);
+
     }else if(e->type == E_AFFECT){
         //register is no longer up to date.
         hash_delete(&CURRENT_LOADED_REGS, e->expression.operand.operand.variable);
@@ -108,11 +112,11 @@ struct computed_expression* generate_code(struct Expression* e){
         ret->reg = affected_value->reg;
         ret->type = hash__get_item(&scope, e->expression.operand.operand.variable).declarator.variable.type;
         //check même type ?
-        llvm__fusion_programs(&ret->code, &affected_value->code);
+        llvm__fusion_programs(ret->code, affected_value->code);
         switch (e->expression.assign_operator)
         {
             case OP_SIMPLE_ASSIGN:
-                llvm__program_add_line(&ret->code, store_var(e->expression.operand.operand.variable, ret->reg, ret->type));
+                llvm__program_add_line(ret->code, store_var(e->expression.operand.operand.variable, ret->reg, ret->type));
                 break;
             case OP_MUL_ASSIGN:
             case OP_DIV_ASSIGN:
@@ -122,7 +126,7 @@ struct computed_expression* generate_code(struct Expression* e){
             case OP_ADD_ASSIGN:
             case OP_SUB_ASSIGN:
                 printf("TODO\n");
-                llvm__program_add_line(&ret->code, "TODO ASSIGN");
+                llvm__program_add_line(ret->code, "TODO ASSIGN");
             default:
                 printf("erreur. Enfin, je crois\n");
         }
@@ -130,6 +134,24 @@ struct computed_expression* generate_code(struct Expression* e){
     }else{
         printf("erreur. Je suppose.\n");
     }
+    return ret;
+}
+
+struct llvm__program* generate_multiple_var_declarations(struct DeclaratorList* list, short int are_globals){
+    struct llvm__program* ret = malloc(sizeof(struct llvm__program));
+    llvm__init_program(ret);
+    for(int i = 0; i < list->size; ++i){
+        llvm__program_add_line(ret, declare_var(
+                list->declarator_list[i].declarator.variable.identifier,
+                list->declarator_list[i].declarator.variable.type,
+                are_globals));
+    }
+    return ret;
+}
+struct llvm__program* generate_var_declaration(struct Variable* v, short int is_global){
+    struct llvm__program* ret = malloc(sizeof(struct llvm__program));
+    llvm__init_program(ret);
+    llvm__program_add_line(ret, declare_var(v->identifier, v->type, is_global));
     return ret;
 }
 

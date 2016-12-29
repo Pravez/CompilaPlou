@@ -21,8 +21,10 @@ struct llvm__program{
 struct computed_expression{
     int reg;
     enum TYPE type;
-    struct llvm__program code;
+    struct llvm__program* code;
 };
+
+struct Expression;
 
 void llvm__init_program(struct llvm__program* program);
 int llvm__program_add_line(struct llvm__program* program, char* line);
@@ -34,4 +36,6 @@ void llvm__print(struct llvm__program* program);
 struct computed_expression* generate_code(struct Expression* e);
 
 
+struct llvm__program* generate_var_declaration(struct Variable* v, short int is_global);
+struct llvm__program* generate_multiple_var_declarations(struct DeclaratorList* list, short int are_globals);
 #endif //TESTS_LLVM_CODE_H

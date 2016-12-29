@@ -68,11 +68,6 @@ void report_error(enum ERROR_TYPE type, void* data){
             error = concatenate_strings(3, "Using unary operator on \033[31;1m", identifier, 
                                             "\033[0m which is a function");
             break;
-        case UNARY_ON_UNINIT:
-            identifier = (char*) data;
-            error = concatenate_strings(3, "Using unary operator on \033[31;1m", identifier, 
-                                            "\033[0m which has never been initialized");
-            break;
     }
 
     ERR_COUNT ++;
@@ -84,8 +79,26 @@ void report_error(enum ERROR_TYPE type, void* data){
         free(error);
 }
 
-void report_warning(){
+void report_warning(enum WARNING_TYPE type, void* data){
+    char* warning;
+    int allocated = 1;
+    char* identifier;
+    switch(type){
+        case CAST_INT_TO_DOUBLE:
+            break;
+        case CAST_DOUBLE_TO_INT:
+            break;
+        case UNARY_ON_UNINIT:
+            identifier = (char*) data;
+            warning = concatenate_strings(3, "Using unary operator on \033[35;1m", identifier, 
+                                            "\033[0m which has never been initialized");
+            break;
+    }
 
+    char* result = concatenate_strings(2, "\033[35;1mWARNING\033[0m : ", warning);
+    yyerror(result);
+    if(allocated)
+        free(warning);
 }
 
 void verify_no_error(char* file_name){

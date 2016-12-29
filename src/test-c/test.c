@@ -5,7 +5,7 @@ int prout(int a){
 int main(){
     int a;
     int c = 5;
-    5++;
+    a++;
 
     int lol, prout;
 

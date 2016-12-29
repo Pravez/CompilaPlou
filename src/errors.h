@@ -17,18 +17,19 @@ enum ERROR_TYPE{
     VOID_UNAUTHORIZED,
     FUNCTION_AS_VARIABLE,
     FUNCTION_AS_PARAMETER,
-    UNARY_ON_FUNCTION,
-    UNARY_ON_UNINIT
+    UNARY_ON_FUNCTION
 };
 
 enum WARNING_TYPE{
     CAST_INT_TO_DOUBLE,
-    CAST_DOUBLE_TO_INT
+    CAST_DOUBLE_TO_INT,
+    UNARY_ON_UNINIT
 };
 
 extern void yyerror (char const*);
 
 void report_error(enum ERROR_TYPE type, void* data);
+void report_warning(enum WARNING_TYPE type, void* data);
 void verify_no_error(char* file_name);
 
 #endif

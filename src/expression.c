@@ -50,7 +50,7 @@ int operand_add_postfix(struct expr_operand* operand, int value){
             return 0;
         }else{
             if(!declarator.declarator.variable.initialized){
-                report_error(UNARY_ON_UNINIT, operand->operand.variable);
+                report_warning(UNARY_ON_UNINIT, operand->operand.variable);
                 return 0;
             }
         }
@@ -74,7 +74,7 @@ int operand_add_prefix(struct expr_operand* operand, int value){
             return 0;
         }else{
             if(!declarator.declarator.variable.initialized){
-                report_error(UNARY_ON_UNINIT, operand->operand.variable);
+                report_warning(UNARY_ON_UNINIT, operand->operand.variable);
                 return 0;
             }
         }

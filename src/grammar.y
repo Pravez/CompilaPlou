@@ -291,7 +291,7 @@ RB
 ;
 
 compound_statement
-: LB RB
+: LB RB {}
 | LB statement_list RB { $$ = $2; }
 /*| LB declaration_list statement_list RB
 | LB declaration_list RB*/
@@ -352,13 +352,13 @@ selection_statement
     printf("\tlabel%d:\n", end);
     printf("-- /for --\n");*/
 }
-| FOR '(' expression ';' expression ';'            ')' statement
-| FOR '(' expression ';'            ';' expression ')' statement
-| FOR '(' expression ';'            ';'            ')' statement
-| FOR '('            ';' expression ';' expression ')' statement
-| FOR '('            ';' expression ';'            ')' statement
-| FOR '('            ';'            ';' expression ')' statement
-| FOR '('            ';'            ';'            ')' statement
+| FOR '(' expression ';' expression ';'            ')' statement {}
+| FOR '(' expression ';'            ';' expression ')' statement {}
+| FOR '(' expression ';'            ';'            ')' statement {}
+| FOR '('            ';' expression ';' expression ')' statement {}
+| FOR '('            ';' expression ';'            ')' statement {}
+| FOR '('            ';'            ';' expression ')' statement {}
+| FOR '('            ';'            ';'            ')' statement {}
 ;
 
 iteration_statement
@@ -377,8 +377,8 @@ iteration_statement
 ;
 
 jump_statement
-: RETURN ';'
-| RETURN expression ';'
+: RETURN ';' {}
+| RETURN expression ';' {}
 ;
 
 program

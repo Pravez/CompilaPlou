@@ -9,10 +9,6 @@ enum TYPE{
     T_INT, T_DOUBLE, T_VOID
 };
 
-enum RETTYPE{ //USELESS ?
-    R_INT, R_DOUBLE, R_VOID
-};
-
 enum DECL_TYPE{
     VARIABLE, FUNCTION
 };

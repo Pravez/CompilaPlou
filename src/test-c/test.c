@@ -5,9 +5,9 @@ int prout(int a){
 int main(){
     int a;
     a++;
-    /*int c;
+    int c;
     c=5;
-    c++;*/
+    c++;
 
     int d;
     d = a;

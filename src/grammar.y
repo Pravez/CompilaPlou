@@ -236,6 +236,8 @@ declaration
                 $$ = *decl;
                 free(e->code);
                 free(e);
+            }else{
+                report_error(DEFINED_VAR, $2.declarator.variable.identifier);
             }
         }
         // TODO ?

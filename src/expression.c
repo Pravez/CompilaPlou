@@ -239,7 +239,8 @@ enum TYPE establish_expression_final_type(struct Expression* expression){
                 return left;
             }
         }
-
+    }else if(expression->type == E_AFFECT){
+        return get_operand_type(expression->expression.operand);
     }
 }
 

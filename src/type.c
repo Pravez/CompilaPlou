@@ -4,12 +4,18 @@
 #include "tools.h"
 #include "errors.h"
 
-struct DeclaratorList add_declarator(struct DeclaratorList list, struct Declarator declarator){
-    if(declarator.decl_type == VARIABLE)
-        declarator.declarator.variable.initialized = 0;
-        
+struct DeclaratorList add_declarator(struct DeclaratorList list, struct Declarator declarator){      
     list.declarator_list[list.size++] = declarator;
     return list;
+}
+
+struct Declarator init_declarator_as_variable(char* identifier){
+    struct Declarator var;
+    var.decl_type = VARIABLE;
+    var.declarator.variable.identifier = identifier;
+    var.declarator.variable.initialized = 0;
+
+    return var;
 }
 
 struct DeclaratorList add_parameter(struct DeclaratorList list, struct Declarator declarator){
@@ -18,6 +24,7 @@ struct DeclaratorList add_parameter(struct DeclaratorList list, struct Declarato
         return add_declarator(list, declarator);
     }else{
         report_error(FUNCTION_AS_PARAMETER, declarator.declarator.function.identifier);
+        return list;
     }
 }
 

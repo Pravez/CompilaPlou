@@ -1,11 +1,11 @@
 int prout(int a){
-
+    a++;
 }
 
 int main(){
     int a;
     int c = 5;
-    --main++;
+    5++;
 
     int lol, prout;
 

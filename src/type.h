@@ -91,6 +91,7 @@ struct DeclaratorList{
 struct DeclaratorList add_declarator(struct DeclaratorList list, struct Declarator declarator);
 struct DeclaratorList add_parameter(struct DeclaratorList list, struct Declarator declarator);
 
+struct Declarator init_declarator_as_variable(char* identifier);
 //Fonction appliquant un type sur un declarator
 struct Declarator apply_decl_type(enum TYPE type, struct Declarator declarator);
 //Fonction appliquant un type à tous les éléments d'une DeclaratorList

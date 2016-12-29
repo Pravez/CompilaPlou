@@ -107,20 +107,25 @@ void print_tree(struct Expression* expr){
     if(expr->conditional_expression.type == C_LEAF){
         print_operand(expr->conditional_expression.leaf);
     }else{
-            print_tree(expr->conditional_expression.branch.e_left);
-            switch(expr->conditional_expression.branch.operator){
-                case OP_ADD:
-                    printf ("+"); break;
-                case OP_SUB:
-                    printf ("-"); break;
-                case OP_MUL:
-                    printf ("*"); break;
-                case OP_DIV:
-                    printf ("/"); break;
-                default:
-                    printf ("?"); break;
-            }
-            print_tree(expr->conditional_expression.branch.e_right);
+        print_tree(expr->conditional_expression.branch.e_left);
+        switch(expr->conditional_expression.branch.operator){
+            case OP_ADD:
+                printf ("+"); break;
+            case OP_SUB:
+                printf ("-"); break;
+            case OP_MUL:
+                printf ("*"); break;
+            case OP_DIV:
+                printf ("/"); break;
+            case OP_SSHR:
+                printf(">>"); break;
+            case OP_SSHL:
+                printf("<<"); break;
+            default:
+                printf ("?"); break;
+        }
+        printf("[%d]", expr->conditional_expression.branch.operator);
+        print_tree(expr->conditional_expression.branch.e_right);
     }
     printf(")");
 

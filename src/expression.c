@@ -188,16 +188,7 @@ int expression_from_unary_cond(struct expr_operand* operand, enum ASSIGN_OPERATO
         return 0;
     }
 
-    //We verify if the assigned type is good
-    enum TYPE operand_type = item.declarator.variable.type;
-    if(operand_type != T_VOID){
-        enum TYPE final_type = establish_expression_final_type(cond);
-        if(operand_type == T_INT && final_type == T_DOUBLE)
-            report_warning(ASSIGN_DOUBLE_TO_INT, operand->operand.variable);
-        else if(operand_type == T_DOUBLE && final_type == T_INT)
-            report_warning(ASSIGN_INT_TO_DOUBLE, operand->operand.variable);
-    }else{
-        report_error(VOID_ASSIGN, 0);
+    if(!verify_expression_type(item, cond)){
         return 0;
     }
 
@@ -211,6 +202,22 @@ int expression_from_unary_cond(struct expr_operand* operand, enum ASSIGN_OPERATO
     item.declarator.variable.initialized = 1;
 
     return 1;
+}
+
+int verify_expression_type(struct Declarator item, struct Expression* expression){
+    //We verify if the assigned type is good
+    enum TYPE operand_type = item.declarator.variable.type;
+    if(operand_type != T_VOID){
+        enum TYPE final_type = establish_expression_final_type(expression);
+        if(operand_type == T_INT && final_type == T_DOUBLE)
+            report_warning(ASSIGN_DOUBLE_TO_INT, item.declarator.variable.identifier);
+        else if(operand_type == T_DOUBLE && final_type == T_INT)
+            report_warning(ASSIGN_INT_TO_DOUBLE, item.declarator.variable.identifier);
+        return 1;
+    }else{
+        report_error(VOID_ASSIGN, 0);
+        return 0;
+    }
 }
 
 enum TYPE establish_expression_final_type(struct Expression* expression){
@@ -246,7 +253,10 @@ enum TYPE get_operand_type(struct expr_operand operand){
                 return variable.declarator.function.return_type;
             else 
                 return variable.declarator.variable.type;
+
     }
+
+    return -1;
 }
 
 /*

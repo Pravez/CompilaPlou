@@ -189,14 +189,16 @@ declaration
 : type_name declarator_list ';' { $2 = apply_type($1, $2); hash__add_items(&scope, $2); }
 | type_name declarator '=' expression ';' {
     if($2.decl_type == VARIABLE){
-        struct computed_expression* e = generate_code(&$4);
-        printf("\n\tcode:\n");
-        llvm__print(&e->code);
-        printf("reg: %%x%d\n", e->reg);
-
         $2.declarator.variable.type = $1;
-        $2.declarator.variable.initialized = 1;
-        hash__add_item(&scope, $2.declarator.variable.identifier, $2);
+        if(verify_expression_type($2, &$4)){
+            struct computed_expression* e = generate_code(&$4);
+            printf("\n\tcode:\n");
+            llvm__print(&e->code);
+            printf("reg: %%x%d\n", e->reg);
+
+            $2.declarator.variable.initialized = 1;
+            hash__add_item(&scope, $2.declarator.variable.identifier, $2);
+        }
 
         //TODO affecter la valeur du registre de expression à la variable
 

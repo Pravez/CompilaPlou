@@ -9,4 +9,6 @@ int main(){
     c++;
 
     int d = a;
+
+    int d = 5.0;
 }

@@ -10,7 +10,7 @@ enum EXPR_COMMAND{
 };
 
 enum OPERAND_TYPE{
-    O_VARIABLE, O_INT, O_DOUBLE, O_UNARY_SUB
+    O_VARIABLE, O_INT, O_DOUBLE
 };
 
 enum EXPR_TYPE{
@@ -71,6 +71,7 @@ struct Expression create_branch_cpy(enum COND_OPERATOR operator, struct Expressi
 struct Expression expression_from_cond(const struct Expression* e);
 int expression_from_unary_cond(struct expr_operand* operand, enum ASSIGN_OPERATOR assign_operator, struct Expression* cond, struct Expression* final_expression);
 
+int verify_expression_type(struct Declarator item, struct Expression* expression);
 enum TYPE establish_expression_final_type(struct Expression* expression);
 enum TYPE get_operand_type(struct expr_operand operand);
 

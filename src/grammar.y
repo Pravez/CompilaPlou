@@ -45,7 +45,7 @@ struct llvm__program program;
 %type <plou_expression> primary_expression postfix_expression shift_expression unary_expression
 
 //Statement
-%type <code> expression_statement declaration
+%type <code> expression_statement declaration statement compound_statement iteration_statement jump_statement selection_statement statement_list
 
 %start program
 %union {
@@ -63,7 +63,6 @@ struct llvm__program program;
 
     //Basics : values and types
     enum TYPE plou_type;
-    enum RETTYPE plou_rettype;
 
     //Operators:
     enum ASSIGN_OPERATOR assign_operator;
@@ -169,7 +168,7 @@ comparison_expression
 
 expression
 : unary_expression assignment_operator expression {
-        printf("DEBUG assigment de %s\n", $1.conditional_expression.leaf.operand.variable);
+        //printf("DEBUG assigment de %s\n", $1.conditional_expression.leaf.operand.variable);
         if($1.type != -1){
             if(expression_from_unary_cond(&($1.conditional_expression.leaf), $2, &$3, &$$)){
                 //TODO clean le magnifique débug <3
@@ -275,11 +274,11 @@ parameter_declaration
 ;
 
 statement
-: declaration               {printf("--- statement DECL ---\n"); llvm__print(&$1); printf("--- END  statement ---\n");}
-| compound_statement        {printf("\n\t\t\tbloc de code {} ou {...}\n\n");}
-| expression_statement      {printf("--- statement CODE ---\n"); llvm__print(&$1); printf("--- END  statement ---\n");}
+: declaration               {printf("--- statement DECL ---\n"); $$ = $1; llvm__print(&$1); printf("--- END  statement ---\n");}
+| compound_statement        { $$ = $1; }
+| expression_statement      {printf("--- statement CODE ---\n"); $$ = $1; llvm__print(&$1); printf("--- END  statement ---\n");}
 | selection_statement       {printf("\n\t\t\tif ou for\n\n");}
-| iteration_statement       {printf("\n\t\t\twhile ou dowhile\n\n");}
+| iteration_statement       {printf("--- statement WHILE ---\n"); $$ = $1; llvm__print(&$1);printf("--- END  statement ---\n");}
 | jump_statement            {printf("\n\t\t\treturn. FAUT SORTIR !\n\n");}
 ;
 
@@ -293,7 +292,7 @@ RB
 
 compound_statement
 : LB RB
-| LB statement_list RB
+| LB statement_list RB { $$ = $2; }
 /*| LB declaration_list statement_list RB
 | LB declaration_list RB*/
 ;
@@ -305,8 +304,8 @@ declaration_list
 */
 
 statement_list
-: statement                 {}
-| statement_list statement  {}
+: statement                 { $$ = $1; }
+| statement_list statement  { llvm__fusion_programs(&$1, &$2); $$ = $1; }
 ;
 
 expression_statement
@@ -316,7 +315,7 @@ expression_statement
 
 selection_statement
 : IF '(' expression ')' statement {
-    printf("-- code if --\n");
+    /*printf("-- code if --\n");
     int true_label = new_label();
     int false_label = new_label();
     printf("\texpression.code\n");
@@ -324,10 +323,10 @@ selection_statement
     printf("\tlabel%d:\n", true_label);
     printf("\tstatement.code\n");
     printf("\tlabel%d:\n", false_label);
-    printf("-- /if --");
+    printf("-- /if --");*/
 }
 | IF '(' expression ')' statement ELSE statement {
-    printf("-- code if else --\n");
+    /*printf("-- code if else --\n");
     int true_label = new_label();
     int false_label = new_label();
     printf("\texpression.code\n");
@@ -336,10 +335,10 @@ selection_statement
     printf("\ts1.code\n");
     printf("\tlabel%d:\n", false_label);
     printf("\ts2.code\n");
-    printf("\t-- /if --\n");
+    printf("\t-- /if --\n");*/
 }
 | FOR '(' expression ';' expression ';' expression ')' statement {
-    printf("-- code for(e1;e2;e3) s --\n");
+    /*printf("-- code for(e1;e2;e3) s --\n");
     int loop = new_label();
     int end = new_label();
     printf("\te1.code\n");
@@ -351,7 +350,7 @@ selection_statement
     printf("\te2.code\n");
     printf("\tbr i1 %%<e2.reg> label %%label%d, label %%label%d\n", loop, end);
     printf("\tlabel%d:\n", end);
-    printf("-- /for --\n");
+    printf("-- /for --\n");*/
 }
 | FOR '(' expression ';' expression ';'            ')' statement
 | FOR '(' expression ';'            ';' expression ')' statement
@@ -363,20 +362,7 @@ selection_statement
 ;
 
 iteration_statement
-: WHILE '(' expression ')' statement {
-    printf("-- code while(e) s --\n");
-    int start = new_label();
-    int loop = new_label();
-    int end = new_label();
-    printf("\tlabel%d:", start);
-    printf("\te.code\n");
-    printf("\tbr i1 %%<e.reg> label %%label%d, label %%label%d\n", loop, end);
-    printf("\tlabel%d:\n", loop);
-    printf("\ts.code\n");
-    printf("\tbr label %%label%d\n", start);
-    printf("\tlabel%d:\n", end);
-    printf("-- /while --\n");
-};
+: WHILE '(' expression ')' statement { $$ = *generate_while_do_code(&$3, &$5); }
 | DO statement WHILE '(' expression ')' ';' {
     printf("-- code do s while(e); --\n");
     int loop = new_label();

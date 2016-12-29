@@ -170,3 +170,50 @@ void llvm__print(struct llvm__program* program){
     }
 }
 
+struct llvm__program* generate_while_do_code(struct Expression* condition, struct llvm__program* statement_code){
+    int start = new_label();
+    int loop = new_label();
+    int end = new_label();
+    union COMPARATOR comparator;
+    comparator.icmp = ICOMP_NE;
+
+    struct computed_expression* computed_condition = generate_code(condition);
+
+    struct llvm__program* while_program = malloc(sizeof(struct llvm__program));
+    struct llvm__program do_while_jump = do_jump(computed_condition->type == T_INT ? 0 : 1, computed_condition->reg,
+                                                 comparator, loop, end);
+    llvm__init_program(while_program);
+
+    llvm__program_add_line(while_program, label_to_string(start));
+
+    llvm__fusion_programs(while_program, computed_condition->code);
+    llvm__fusion_programs(while_program, &do_while_jump);
+
+    llvm__program_add_line(while_program, label_to_string(loop));
+
+    llvm__fusion_programs(while_program, statement_code);
+
+    llvm__program_add_line(while_program, jump_to(start));
+    llvm__program_add_line(while_program, label_to_string(end));
+
+    return while_program;
+}
+
+struct llvm__program do_jump(int float_or_int, int condition, union COMPARATOR comparator, int labeltrue, int labelfalse){
+    struct llvm__program jump;
+    char* cmp_line;
+    char* br_line;
+    int cmp_register = new_register();
+
+
+    llvm__init_program(&jump);
+
+    //float = 1, int = 0
+    asprintf(&cmp_line, "%%x%d = %s %s i32 %%x%d, 0", cmp_register, float_or_int ? "fcmp" : "icmp",
+             comparator_to_string(comparator, float_or_int), condition);
+    asprintf(&br_line, "br i1 %%x%d, label %%label%d, label %%label%d", cmp_register, labeltrue, labelfalse);
+    llvm__program_add_line(&jump, cmp_line);
+    llvm__program_add_line(&jump, br_line);
+
+    return jump;
+}

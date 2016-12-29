@@ -1,4 +1,5 @@
 #include "reg_operation.h"
+
 #include <stdio.h>
 
 #define TO_LLVM_STRING(type) type_of(llvm__convert(type))
@@ -83,6 +84,7 @@ char* declare_var(char* id, enum TYPE type, short int is_global){
         asprintf(&ret,"%%%s = alloca %s", id, TO_LLVM_STRING(type));
     return ret;
 }
+
 char* load_var(int reg, char* id){
     enum TYPE type = hash__get_item(&scope, id).declarator.variable.type;
     char* type_name = type_of(llvm__convert(type));
@@ -96,4 +98,81 @@ char* store_var(char* id, int reg, enum TYPE type){
     char* code = malloc(sizeof(type_name)*2 + 15 + 10);
     sprintf(code, "store %s %%x%d, %s* %%%s", type_name, reg, type_name, id);
     return code;
+}
+
+char* comparator_to_string(union COMPARATOR comparator, int float_or_int){
+    //float 1 int 0
+    if(float_or_int) {
+        switch (comparator.fcmp) {
+            case FCOMP_FALSE:
+                return "false";
+            case FCOMP_OEQ:
+                return "oeq";
+            case FCOMP_OGT:
+                return "ogt";
+            case FCOMP_OGE:
+                return "oge";
+            case FCOMP_OLT:
+                return "olt";
+            case FCOMP_OLE:
+                return "ole";
+            case FCOMP_ONE:
+                return "one";
+            case FCOMP_ORD:
+                return "ord";
+            case FCOMP_UEQ:
+                return "ueq";
+            case FCOMP_ULT:
+                return "ult";
+            case FCOMP_ULE:
+                return "ule";
+            case FCOMP_UNE:
+                return "une";
+            case FCOMP_UNO:
+                return "uno";
+            case FCOMP_TRUE:
+                return "true";
+        }
+    }else{
+        switch (comparator.icmp){
+            case ICOMP_EQ:
+                return "eq";
+            case ICOMP_NE:
+                return "ne";
+            case ICOMP_UGT:
+                return "ugt";
+            case ICOMP_UGE:
+                return "uge";
+            case ICOMP_ULT:
+                return "ult";
+            case ICOMP_ULE:
+                return "ule";
+            case ICOMP_SGT:
+                return "sgt";
+            case ICOMP_SGE:
+                return "sge";
+            case ICOMP_SLT:
+                return "slt";
+            case ICOMP_SLE:
+                return "sle";
+        }
+    }
+}
+
+char* label_to_string(int label){
+    char* code;
+    asprintf(&code, "label%d:", label);
+    return code;
+}
+
+char* true_comp(int reg){
+    char* cmp;
+    asprintf(&cmp, "%%x%d = fcmp true double 0.0, 0.0");
+    return cmp;
+}
+
+char* jump_to(int label){
+    char* jump;
+    asprintf(&jump, "br label %%label%d", label);
+    return jump;
 }

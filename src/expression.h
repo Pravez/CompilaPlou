@@ -6,10 +6,6 @@
 #include "errors.h"
 #include "llvm_code.h"
 
-enum EXPR_COMMAND{
-    ADD, SUB, DIV, CONV_2DOUBLE, CONV_2INT, MUL, FMUL
-};
-
 enum OPERAND_TYPE{
     O_VARIABLE, O_INT, O_DOUBLE
 };

@@ -45,13 +45,15 @@ int operand_add_postfix(struct expr_operand* operand, int value){
         return 0;
     }else{
         struct Declarator declarator = hash__get_item(&scope, operand->operand.variable);
-        if(declarator.decl_type == FUNCTION){ //really ?
-            report_error(UNARY_ON_FUNCTION, operand->operand.variable);
-            return 0;
-        }else{
-            if(!declarator.declarator.variable.initialized){
-                report_warning(UNARY_ON_UNINIT, operand->operand.variable);
+        if(declarator.decl_type != -1) {
+            if (declarator.decl_type == FUNCTION) { //really ?
+                report_error(UNARY_ON_FUNCTION, operand->operand.variable);
                 return 0;
+            } else {
+                if (!declarator.declarator.variable.initialized) {
+                    report_warning(UNARY_ON_UNINIT, operand->operand.variable);
+                    return 0;
+                }
             }
         }
 
@@ -69,13 +71,15 @@ int operand_add_prefix(struct expr_operand* operand, int value){
         return 0;
     }else{
         struct Declarator declarator = hash__get_item(&scope, operand->operand.variable);
-        if(declarator.decl_type == FUNCTION){ //really ?
-            report_error(UNARY_ON_FUNCTION, operand->operand.variable);
-            return 0;
-        }else{
-            if(!declarator.declarator.variable.initialized){
-                report_warning(UNARY_ON_UNINIT, operand->operand.variable);
+        if(declarator.decl_type != -1) {
+            if (declarator.decl_type == FUNCTION) { //really ?
+                report_error(UNARY_ON_FUNCTION, operand->operand.variable);
                 return 0;
+            } else {
+                if (!declarator.declarator.variable.initialized) {
+                    report_warning(UNARY_ON_UNINIT, operand->operand.variable);
+                    return 0;
+                }
             }
         }
 
@@ -184,7 +188,7 @@ struct Expression create_branch_cpy(enum COND_OPERATOR operator, struct Expressi
 ////////////////////////////////////////////////////////////
 
 int expression_from_unary_cond(struct expr_operand* operand, enum ASSIGN_OPERATOR assign_operator, struct Expression* cond, struct Expression* final_expression){
-    
+
     struct Declarator item = hash__get_item(&scope, operand->operand.variable);
     if(item.decl_type == FUNCTION){
         return 0;
@@ -224,6 +228,7 @@ int verify_expression_type(struct Declarator item, struct Expression* expression
 }
 
 enum TYPE establish_expression_final_type(struct Expression* expression){
+
     if(expression->type == E_CONDITIONAL){
         if(expression->conditional_expression.type == C_LEAF){
             return get_operand_type(expression->conditional_expression.leaf);
@@ -253,10 +258,15 @@ enum TYPE get_operand_type(struct expr_operand operand){
             return T_DOUBLE;
         case O_VARIABLE:
             variable = hash__get_item(&scope, operand.operand.variable);
-            if(variable.decl_type == FUNCTION)
-                return variable.declarator.function.return_type;
-            else 
-                return variable.declarator.variable.type;
+            if(variable.decl_type != -1) {
+                if (variable.decl_type == FUNCTION) {
+                    return variable.declarator.function.return_type;
+                }else {
+                    if(!variable.declarator.variable.initialized)
+                        report_warning(UNINTIALIZED_VAR, variable.declarator.variable.identifier);
+                    return variable.declarator.variable.type;
+                }
+            }
 
     }
 

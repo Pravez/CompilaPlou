@@ -24,7 +24,8 @@ enum ERROR_TYPE{
 enum WARNING_TYPE{
     ASSIGN_DOUBLE_TO_INT,
     ASSIGN_INT_TO_DOUBLE,
-    UNARY_ON_UNINIT
+    UNARY_ON_UNINIT,
+    UNINTIALIZED_VAR
 };
 
 extern void yyerror (char const*);

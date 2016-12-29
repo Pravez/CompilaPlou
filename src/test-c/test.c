@@ -1,14 +1,15 @@
 int prout(int a){
-    a++;
+    //a++;
 }
 
 int main(){
     int a;
-    int c;
+    /*int c;
     c=5;
-    c++;
+    c++;*/
 
-    int d = a;
+    int d;
+    d = a;
 
     int d = 5.0;
 }

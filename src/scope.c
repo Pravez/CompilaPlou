@@ -70,6 +70,7 @@ struct Declarator hash__get_item(struct Scope *hashmap, char *key) {
     }
 
     struct Declarator empty_decl;
+    empty_decl.decl_type = -1;
     return empty_decl;
 }
 

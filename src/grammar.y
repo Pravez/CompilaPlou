@@ -188,7 +188,16 @@ expression
             }
     }
     }
-| conditional_expression { $$ = $1; }
+| conditional_expression { 
+    //TODO implementer les operateurs unaires ici
+    if($1.type != -1){
+        //To avoid segfault, waiting for implementation
+        struct llvm__program empty; 
+        llvm__init_program(&empty); 
+        $$.code = &empty;
+        //$$ = $1;
+     }
+     }
 ;
 
 assignment_operator

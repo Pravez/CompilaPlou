@@ -18,42 +18,62 @@ char* load_double(int reg, double value){
     return code;
 }
 
-char* add_regs(int reg_dest, int reg1, int reg2, enum TYPE type){
-    char* type_name = type_of(llvm__convert(type));
-    char* code = malloc(strlen(type_name) + 16 + 20);
-    switch (type) {
-        case T_INT:
-            sprintf(code, "%%x%d = add %s %%x%d, %%x%d", reg_dest, type_name, reg1, reg2);
-            break;
-        case T_DOUBLE:
-            sprintf(code, "%%x%d = addf %s %%x%d, %%x%d", reg_dest, type_name, reg1, reg2);
-    }
-    return code;
+short int is_binary_op(enum COND_OPERATOR o){
+    return (o == OP_ADD  ||
+            o == OP_SUB  ||
+            o == OP_MUL  ||
+            o == OP_DIV  ||
+            o == OP_SSHL ||
+            o == OP_SSHR );
 }
 
-char* mul_regs(int reg_dest, int reg1, int reg2, enum TYPE type){
-    char* type_name = type_of(llvm__convert(type));
-    char* code = malloc(strlen(type_name) + 16 + 20);
-    switch (type) {
-        case T_INT:
-            sprintf(code, "%%x%d = mul %s %%x%d, %%x%d", reg_dest, type_name, reg1, reg2);
-            break;
-        case T_DOUBLE:
-            sprintf(code, "%%x%d = mulf %s %%x%d, %%x%d", reg_dest, type_name, reg1, reg2);
-    }
-    return code;
-}
-
-char* operate_on_regs(enum COND_OPERATOR op, int reg_dest, int reg1, int reg2, enum TYPE type){
-    switch (op){
+//PRIVATE FUNCTION
+enum REG_BINARY_OP cond_op_to_binary_op(enum COND_OPERATOR o){
+    switch (o){
         case OP_ADD:
-            return add_regs(reg_dest, reg1, reg2, type);
+            return REG_ADD;
+        case OP_SUB:
+            return REG_SUB;
         case OP_MUL:
-            return mul_regs(reg_dest, reg1, reg2, type);
+            return REG_MUL;
+        case OP_DIV:
+            return REG_DIV;
+        case OP_SSHL:
+            return REG_SHL;
+        case OP_SSHR:
+            return REG_SHR;
         default:
-            return "TODO operation on regs :-)";
+            return -1; // Error. Should have call is_binary_op first.
     }
 }
+
+char* binary_op_to_llvm_op(enum REG_BINARY_OP op, enum TYPE type){
+    char* llvm_op;
+    switch (op){
+        case REG_ADD:
+            asprintf(&llvm_op, "%s", (type==T_INT)?  "add" : "fadd"); break;
+        case REG_SUB:
+            asprintf(&llvm_op, "%s", (type==T_INT)?  "sub" : "fsub"); break;
+        case REG_MUL:
+            asprintf(&llvm_op, "%s", (type==T_INT)?  "mul" : "fmul"); break;
+        case REG_DIV:
+            asprintf(&llvm_op, "%s", (type==T_INT)? "sdiv" : "fdiv"); break;
+        case REG_REM:
+            asprintf(&llvm_op, "%s", (type==T_INT)? "srem" : "frem"); break;
+        default:
+            asprintf(&llvm_op, "%s", "UNKNOWN_OPERATION");
+    }
+    return llvm_op;
+}
+char* binary_op_on_regs(enum REG_BINARY_OP op, int reg_dest, int reg1, int reg2, enum TYPE type){
+    char *llvm_op = binary_op_to_llvm_op(op, type);
+    char *type_name = TO_LLVM_STRING(type);
+    char *code;
+    asprintf(&code, "%%x%d = %s %s %%x%d, %%x%d", reg_dest, llvm_op, type_name, reg1, reg2);
+    free(llvm_op);
+    return code;
+}
+
 
 char* declare_var(char* id, enum TYPE type, short int is_global){
     char* ret;

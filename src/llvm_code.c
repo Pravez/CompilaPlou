@@ -93,13 +93,22 @@ struct computed_expression* generate_code(struct Expression* e){
         llvm__fusion_programs(ret->code, right->code);
 
         if(left->type != right->type){
-            printf("ahahahah. mdr. la conversion de type, t'es un rigolo toi.\n");
-        }else{
-            ret->reg = new_register();
-            ret->type = left->type;
-
-            llvm__program_add_line(ret->code, operate_on_regs(operator, ret->reg, left->reg, right->reg, ret->type));
+            printf("ahahahah. mdr. faut convertir les types.\n");
         }
+
+        ret->reg = new_register();
+        ret->type = left->type;
+
+        char* operation_code;
+        if(is_binary_op(operator))
+            operation_code = binary_op_on_regs(operator, ret->reg, left->reg, right->reg, ret->type);
+        else if(false /* is_bitwise_op(operator) */)
+            asprintf(&operation_code, "TODO bitwise op");
+        else
+            asprintf(&operation_code, "TODO cond op");
+
+        llvm__program_add_line(ret->code, operation_code);
+
         free(left->code);
         free(left);
         free(right->code);

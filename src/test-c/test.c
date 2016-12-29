@@ -1,13 +1,14 @@
-double kldfj(int a){
-    int a;
+int prout(int a){
+
 }
 
 int main(){
     int a;
+    int c = 5;
+    --main++;
 
     int lol, prout;
 
-    int j() = a;
 
     double b;
 

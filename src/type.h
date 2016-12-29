@@ -17,11 +17,6 @@ enum DECL_TYPE{
     VARIABLE, FUNCTION
 };
 
-union VALUE{
-    int value_int;
-    double value_double;
-};
-
 //////Operator
 enum ASSIGN_OPERATOR{
     OP_SIMPLE_ASSIGN,  /* = */
@@ -65,7 +60,7 @@ enum LLVM_TYPE{
 //////Variables
 struct Variable{
     enum TYPE type; // Ne peut pas être VOID
-    union VALUE value;
+    int initialized;
     char* identifier;
 };
 
@@ -94,7 +89,7 @@ struct DeclaratorList{
 
 //Fonction permettant d'ajouter un declarator à une DeclaratorList
 struct DeclaratorList add_declarator(struct DeclaratorList list, struct Declarator declarator);
-#define ADD_PARAMETER(list, declarator) add_declarator(list, declarator)
+struct DeclaratorList add_parameter(struct DeclaratorList list, struct Declarator declarator);
 
 //Fonction appliquant un type sur un declarator
 struct Declarator apply_decl_type(enum TYPE type, struct Declarator declarator);

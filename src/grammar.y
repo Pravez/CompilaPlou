@@ -61,7 +61,6 @@ struct llvm__program program;
     //Basics : values and types
     enum TYPE plou_type;
     enum RETTYPE plou_rettype;
-    union VALUE plou_value;
 
     //Operators:
     enum ASSIGN_OPERATOR assign_operator;
@@ -116,14 +115,14 @@ primary_expression
 
 postfix_expression
 : primary_expression { $$ = $1; }
-| postfix_expression INC_OP { operand_add_postfix(&($1.conditional_expression.leaf), 1); }
-| postfix_expression DEC_OP { operand_add_postfix(&($1.conditional_expression.leaf), -1); }
+| postfix_expression INC_OP { operand_add_postfix(&($1.conditional_expression.leaf), 1); $$ = $1; }
+| postfix_expression DEC_OP { operand_add_postfix(&($1.conditional_expression.leaf), -1); $$ = $1; }
 ;
 
 unary_expression
 : postfix_expression { $$ = $1; }
-| INC_OP unary_expression { operand_add_prefix(&($2.conditional_expression.leaf), 1); }
-| DEC_OP unary_expression { operand_add_prefix(&($2.conditional_expression.leaf), -1); }
+| INC_OP unary_expression { operand_add_prefix(&($2.conditional_expression.leaf), 1); $$ = $2; }
+| DEC_OP unary_expression { operand_add_prefix(&($2.conditional_expression.leaf), -1); $$ = $2; }
 //| unary_operator unary_expression {printf("negation de l'espace\n");}
 | '-' unary_expression {printf("negation de l'espace\n");}
 ;
@@ -159,14 +158,18 @@ comparison_expression
 expression
 : unary_expression assignment_operator expression {
         printf("DEBUG assigment de %s\n", $1.conditional_expression.leaf.operand.variable);
-        $$ = expression_from_unary_cond(&($1.conditional_expression.leaf), $2, &$3);
-        //TODO clean le magnifique débug <3
-        struct computed_expression* e = generate_code(&$$);
-        printf("\n\tcode:\n");
-        llvm__print(&e->code);
-        printf("reg: %%x%d\n", e->reg);
+        if(expression_from_unary_cond(&($1.conditional_expression.leaf), $2, &$3, &$$)){
+            //TODO clean le magnifique débug <3
+            struct computed_expression* e = generate_code(&$$);
+            printf("\n\tcode:\n");
+            llvm__print(&e->code);
+            printf("reg: %%x%d\n", e->reg);
 
-}
+            free(e);
+        }else{
+            report_error(NOT_ASSIGNABLE_EXPR, "");
+        }
+  }
 | conditional_expression { $$ = $1; }
 ;
 
@@ -191,6 +194,7 @@ declaration
         printf("reg: %%x%d\n", e->reg);
 
         $2.declarator.variable.type = $1;
+        $2.declarator.variable.initialized = 1;
         hash__add_item(&scope, $2.declarator.variable.identifier, $2);
 
         //TODO affecter la valeur du registre de expression à la variable
@@ -220,8 +224,8 @@ declarator
 ;
 
 parameter_list
-: parameter_declaration { $$ = ADD_PARAMETER($$, $1);}
-| parameter_list ',' parameter_declaration { $$ = $1; $$ = ADD_PARAMETER($$, $3);}
+: parameter_declaration { $$ = add_parameter($$, $1);}
+| parameter_list ',' parameter_declaration { $$ = $1; $$ = add_parameter($$, $3);}
 ;
 
 parameter_declaration

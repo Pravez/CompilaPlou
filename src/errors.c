@@ -6,6 +6,7 @@
 
 void report_error(enum ERROR_TYPE type, void* data){
     char* error;
+    int allocated = 1;
     char* identifier;
     switch(type){
         case UNDEFINED_FUNC:
@@ -34,6 +35,7 @@ void report_error(enum ERROR_TYPE type, void* data){
                                              "\033[0m has already been defined in scope as a variable");
             break;
         case NOT_ASSIGNABLE_EXPR:
+            allocated = 0;
             error = "Expression is not assignable";
             break;
         case POSTF_OPERATOR_NOT_USABLE:
@@ -56,6 +58,21 @@ void report_error(enum ERROR_TYPE type, void* data){
             error = concatenate_strings(3, "Function \033[31;1m", identifier, 
                                             "\033[0m is initialized like a variable");
             break;
+        case FUNCTION_AS_PARAMETER:
+            identifier = (char*) data;
+            error = concatenate_strings(3, "Unable to declare function \033[31;1m", identifier, 
+                                            "\033[0m as a function parameter");
+            break;
+        case UNARY_ON_FUNCTION:
+            identifier = (char*) data;
+            error = concatenate_strings(3, "Using unary operator on \033[31;1m", identifier, 
+                                            "\033[0m which is a function");
+            break;
+        case UNARY_ON_UNINIT:
+            identifier = (char*) data;
+            error = concatenate_strings(3, "Using unary operator on \033[31;1m", identifier, 
+                                            "\033[0m which has never been initialized");
+            break;
     }
 
     ERR_COUNT ++;
@@ -63,11 +80,12 @@ void report_error(enum ERROR_TYPE type, void* data){
 
     char* result = concatenate_strings(2, "\033[31;1mERROR\033[0m : ", error);
     yyerror(result);
-    free(error);
+    if(allocated)
+        free(error);
 }
 
 void report_warning(){
-    
+
 }
 
 void verify_no_error(char* file_name){

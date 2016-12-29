@@ -1,6 +1,8 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include "expression.h"
+#include "scope.h"
+#include "hash.h"
 
 struct expr_operand init_operand(enum OPERAND_TYPE type){
     struct expr_operand operand;
@@ -36,28 +38,50 @@ struct expr_operand init_operand_double(double double_value){
 
 int operand_add_postfix(struct expr_operand* operand, int value){
     if(operand->prefix != 0){
-        report_error(NOT_ASSIGNABLE_EXPR, 0);
+        report_error(NOT_ASSIGNABLE_EXPR, "");
         return 0;
     }else if(operand->type != O_VARIABLE){
         report_error(POSTF_OPERATOR_NOT_USABLE, value > 0 ? "++" : "--");
         return 0;
-    }
+    }else{
+        struct Declarator declarator = hash__get_item(&scope, operand->operand.variable);
+        if(declarator.decl_type == FUNCTION){ //really ?
+            report_error(UNARY_ON_FUNCTION, operand->operand.variable);
+            return 0;
+        }else{
+            if(!declarator.declarator.variable.initialized){
+                report_error(UNARY_ON_UNINIT, operand->operand.variable);
+                return 0;
+            }
+        }
 
-    operand->postfix += value;
-    return 1;
+        operand->postfix += value;
+        return 1;
+    }
 }
 
 int operand_add_prefix(struct expr_operand* operand, int value){
     if(operand->postfix != 0){
-        report_error(NOT_ASSIGNABLE_EXPR, 0);
+        report_error(NOT_ASSIGNABLE_EXPR, "");
         return 0;
     }else if(operand->type != O_VARIABLE){
         report_error(PREF_OPERATOR_NOT_USABLE, value > 0 ? "++" : "--");
         return 0;
-    }
+    }else{
+        struct Declarator declarator = hash__get_item(&scope, operand->operand.variable);
+        if(declarator.decl_type == FUNCTION){ //really ?
+            report_error(UNARY_ON_FUNCTION, operand->operand.variable);
+            return 0;
+        }else{
+            if(!declarator.declarator.variable.initialized){
+                report_error(UNARY_ON_UNINIT, operand->operand.variable);
+                return 0;
+            }
+        }
 
-    operand->prefix += value;
-    return 1;
+        operand->prefix += value;
+        return 1;
+    }
 }
 
 void print_operand(struct expr_operand operand){
@@ -157,19 +181,21 @@ struct Expression create_branch_cpy(enum COND_OPERATOR operator, struct Expressi
 }*/
 ////////////////////////////////////////////////////////////
 
-struct Expression expression_from_unary_cond(struct expr_operand* operand, enum ASSIGN_OPERATOR assign_operator, struct Expression* cond){
-    struct Expression expression;
+int expression_from_unary_cond(struct expr_operand* operand, enum ASSIGN_OPERATOR assign_operator, struct Expression* cond, struct Expression* final_expression){
+    
+    struct Declarator item = hash__get_item(&scope, operand->operand.variable);
+    if(item.decl_type == FUNCTION){
+        return 0;
+    }
 
-    expression.type = E_AFFECT;
+    final_expression->type = E_AFFECT;
 
-    expression.expression.assign_operator = assign_operator;
-    expression.expression.cond_expression = cond;
-    expression.expression.operand = *operand;
+    final_expression->expression.assign_operator = assign_operator;
+    final_expression->expression.cond_expression = cond;
+    final_expression->expression.operand = *operand;
 
-    /*print_operand(*operand);
-    printf(" = ");
-    print_tree(cond);
-    printf("\n");*/
+    //Says that now it is initialized
+    item.declarator.variable.initialized = 1;
 
-    return expression;
+    return 1;
 }

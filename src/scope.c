@@ -38,7 +38,7 @@ bool hash__key_exists_current(struct Scope *hashmap, char *key) {
  * @return
  */
 bool hash__key_exists_all(struct Scope *hashmap, char *key) {
-    for (int i = 0; i <= hashmap->higher_level; i++) {
+    for (int i = hashmap->higher_level; i >= 0; i--) {
         int position = hachage(key);
         do{
             if (strcmp(hashmap->scope_maps[i][position].key, key) == 0) {
@@ -59,7 +59,7 @@ bool hash__key_exists_all(struct Scope *hashmap, char *key) {
  * @return
  */
 struct Declarator hash__get_item(struct Scope *hashmap, char *key) {
-    for (int i = 0; i <= hashmap->current_level; i++) {
+    for (int i = hashmap->current_level; i >= 0; i--) {
         int position = hachage(key);
         do{
             if (strcmp(hashmap->scope_maps[i][position].key, key) == 0) {
@@ -115,7 +115,7 @@ bool hash__add_item_function(struct Scope *hashmap, struct Declarator declarator
 
     for(int i=0;i<declarator.declarator.function.var_list_size;i++){
         //Because the upper level is truly new, the probability to have an error is zero ?
-        if(!hash__key_exists_all(hashmap, declarator.declarator.function.var_list[i].identifier)) {
+        if(!hash__key_exists_current(hashmap, declarator.declarator.function.var_list[i].identifier)) {
             int position = hash__item_find_position(hashmap, declarator.declarator.function.var_list[i].identifier,
                                                     hashmap->higher_level);
             if (position == -1) {
@@ -148,7 +148,7 @@ bool hash__add_item_function(struct Scope *hashmap, struct Declarator declarator
  */
 bool hash__add_item(struct Scope *hashmap, char *key, struct Declarator declarator) {
     //If the item is not present in the hashmap
-    if (!hash__key_exists_all(hashmap, key)) {
+    if (!hash__key_exists_current(hashmap, key)) {
         //We find the position
         int position = hash__item_find_position(hashmap, key, hashmap->current_level);
         if(position != -1){

@@ -34,26 +34,6 @@ struct expr_operand{
     int prefix;
 };
 
-/*struct cond_expression{
-    enum COND_EXPR_TYPE type;
-    union{
-        struct expr_operand leaf;
-        struct{
-            enum COND_OPERATOR operator;
-            struct cond_expression* e_left;
-            struct cond_expression* e_right;
-        }branch;
-    };
-};
-
-struct Expression{
-    enum EXPR_TYPE type;
-    enum ASSIGN_OPERATOR assign_operator;
-    struct expr_operand operand;
-    struct cond_expression cond_expression;
-};
-*/
-
 struct Expression{
     enum EXPR_TYPE type;
     union{
@@ -89,7 +69,7 @@ struct Expression create_branch(enum COND_OPERATOR operator, struct Expression* 
 struct Expression create_branch_cpy(enum COND_OPERATOR operator, struct Expression expression_right, struct Expression expression_left);
 
 struct Expression expression_from_cond(const struct Expression* e);
-struct Expression expression_from_unary_cond(struct expr_operand* operand, enum ASSIGN_OPERATOR assign_operator, struct Expression* cond);
+int expression_from_unary_cond(struct expr_operand* operand, enum ASSIGN_OPERATOR assign_operator, struct Expression* cond, struct Expression* final_expression);
 
 
 void print_tree(struct Expression* expr);

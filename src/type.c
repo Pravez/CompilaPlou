@@ -2,10 +2,23 @@
 #include "type.h"
 #include <stdio.h>
 #include "tools.h"
+#include "errors.h"
 
 struct DeclaratorList add_declarator(struct DeclaratorList list, struct Declarator declarator){
+    if(declarator.decl_type == VARIABLE)
+        declarator.declarator.variable.initialized = 0;
+        
     list.declarator_list[list.size++] = declarator;
     return list;
+}
+
+struct DeclaratorList add_parameter(struct DeclaratorList list, struct Declarator declarator){
+    if(declarator.decl_type == VARIABLE){
+        declarator.declarator.variable.initialized = 1;
+        return add_declarator(list, declarator);
+    }else{
+        report_error(FUNCTION_AS_PARAMETER, declarator.declarator.function.identifier);
+    }
 }
 
 void print_declarator_list(struct DeclaratorList list){

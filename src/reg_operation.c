@@ -18,15 +18,7 @@ char* load_double(int reg, double value){
     return code;
 }
 
-short int is_binary_op(enum COND_OPERATOR o){
-    return (o == OP_ADD  ||
-            o == OP_SUB  ||
-            o == OP_MUL  ||
-            o == OP_DIV  ||
-            o == OP_SSHL ||
-            o == OP_SSHR );
-}
-
+/**** BINARY OP *****/
 //PRIVATE FUNCTION
 enum REG_BINARY_OP cond_op_to_binary_op(enum COND_OPERATOR o){
     switch (o){
@@ -65,6 +57,7 @@ char* binary_op_to_llvm_op(enum REG_BINARY_OP op, enum TYPE type){
     }
     return llvm_op;
 }
+
 char* binary_op_on_regs(enum REG_BINARY_OP op, int reg_dest, int reg1, int reg2, enum TYPE type){
     char *llvm_op = binary_op_to_llvm_op(op, type);
     char *type_name = TO_LLVM_STRING(type);
@@ -74,6 +67,76 @@ char* binary_op_on_regs(enum REG_BINARY_OP op, int reg_dest, int reg1, int reg2,
     return code;
 }
 
+/**** BITWISE OP *****/
+//PRIVATE FUNCTION
+enum REG_BITWISE_OP cond_op_to_bitwise_op(enum COND_OPERATOR o){
+    switch (o){
+        case OP_SSHL:
+            return REG_SHL;
+        case OP_SSHR:
+            return REG_SHR;
+        default:
+            return -1; // Error. Should have call is_bitwise_op first.
+    }
+}
+
+char* bitwise_op_to_llvm_op(enum REG_BITWISE_OP op){
+    char* llvm_op;
+    switch (op){
+        case REG_SHL:
+            asprintf(&llvm_op, "%s",  "shl"); break;
+        case REG_SHR:
+            asprintf(&llvm_op, "%s", "ashr"); break;
+        case REG_AND:
+            asprintf(&llvm_op, "%s",  "and"); break;
+        case REG_OR:
+            asprintf(&llvm_op, "%s",   "or"); break;
+        case REG_XOR:
+            asprintf(&llvm_op, "%s",  "xor"); break;
+        default:
+            asprintf(&llvm_op, "%s", "UNKNOWN_OPERATION");
+    }
+    return llvm_op;
+}
+
+char* bitwise_op_on_regs(enum REG_BITWISE_OP op, int reg_dest, int reg1, int reg2, enum TYPE type){
+    char *llvm_op = bitwise_op_to_llvm_op(op);
+    char *type_name = TO_LLVM_STRING(type);
+    char *code;
+    asprintf(&code, "%%x%d = %s %s %%x%d, %%x%d", reg_dest, llvm_op, type_name, reg1, reg2);
+    free(llvm_op);
+    return code;
+}
+
+/**** COMPARISON OP *****/
+//TODO
+
+/**** OPERATION REG *****/
+
+short int is_binary_op(enum COND_OPERATOR o){
+    return (o == OP_ADD  ||
+            o == OP_SUB  ||
+            o == OP_MUL  ||
+            o == OP_DIV  );
+}
+
+short int is_bitwise_op(enum COND_OPERATOR o){
+    return (o == OP_SSHL  ||
+            o == OP_SSHR  );
+}
+char* operation_on_regs(enum COND_OPERATOR op, int reg_dest, int reg1, int reg2, enum TYPE type){
+    printf("OPERATOR: %d\n", op);
+    if(is_binary_op(op)) {
+        return binary_op_on_regs(cond_op_to_binary_op(op), reg_dest, reg1, reg2, type);
+    }
+    else if(is_bitwise_op(op))
+        return bitwise_op_on_regs(cond_op_to_bitwise_op(op), reg_dest, reg1, reg2, type);
+    else {
+        char* operation_code;
+        asprintf(&operation_code, "TODO cond op");
+        return operation_code;
+    }
+}
 
 char* declare_var(char* id, enum TYPE type, short int is_global){
     char* ret;

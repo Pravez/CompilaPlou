@@ -99,14 +99,7 @@ struct computed_expression* generate_code(struct Expression* e){
         ret->reg = new_register();
         ret->type = left->type;
 
-        char* operation_code;
-        if(is_binary_op(operator))
-            operation_code = binary_op_on_regs(operator, ret->reg, left->reg, right->reg, ret->type);
-        else if(false /* is_bitwise_op(operator) */)
-            asprintf(&operation_code, "TODO bitwise op");
-        else
-            asprintf(&operation_code, "TODO cond op");
-
+        char* operation_code = operation_on_regs(operator, ret->reg, left->reg, right->reg, ret->type);
         llvm__program_add_line(ret->code, operation_code);
 
         free(left->code);

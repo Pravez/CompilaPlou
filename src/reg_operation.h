@@ -21,6 +21,8 @@ enum REG_BINARY_OP{
 enum REG_BITWISE_OP{
     REG_SHL,    /* << in c */
     REG_SHR,    /* >> in c    NB: the arithmetic one will be used (ashr in llvm) */
+
+    // not suported by the grammar
     REG_AND,    /*  & in c */
     REG_OR,     /*  | in c */
     REG_XOR     /*  ~ in c */
@@ -29,10 +31,15 @@ enum REG_BITWISE_OP{
 
 char* load_int(int reg, int value);
 char* load_double(int reg, double value);
+
 short int is_binary_op(enum COND_OPERATOR o);
+short int is_bitwise_op(enum COND_OPERATOR o);
 
 char* binary_op_on_regs(enum REG_BINARY_OP op, int reg_dest, int reg1, int reg2, enum TYPE type);
+char* bitwise_op_on_regs(enum REG_BITWISE_OP op, int reg_dest, int reg1, int reg2, enum TYPE type);
 
+
+char* operation_on_regs(enum COND_OPERATOR op, int reg_dest, int reg1, int reg2, enum TYPE type);
 char* declare_var(char* id, enum TYPE type, short int is_global);
 char* load_var(int reg, char* id);
 char* store_var(char* id, int reg, enum TYPE type);

@@ -31,21 +31,21 @@ enum ASSIGN_OPERATOR{
 
 enum COND_OPERATOR{
     NONE,
-    OP_MUL,     /* * */
-    OP_DIV,     /* / */
-    OP_REM,     /* % */
-    OP_SHL,     /* < */
-    OP_SSHL,     /* << */
-    OP_SHR,     /* > */
-    OP_SSHR,     /* >> */
-    OP_LE,     /* <= */
-    OP_GE,     /* >= */
+    OP_MUL,     /*  * */
+    OP_DIV,     /*  / */
+    OP_REM,     /*  % */
+    OP_SHL,     /*  < */
+    OP_SSHL,    /* << */
+    OP_SHR,     /*  > */
+    OP_SSHR,    /* >> */
+    OP_LE,      /* <= */
+    OP_GE,      /* >= */
     OP_EQ,      /* == */
     OP_NE,      /* != */
-    OP_ADD,     /* + */
-    OP_SUB,      /* - */
-    OP_OR,
-    OP_AND
+    OP_ADD,     /*  + */
+    OP_SUB,     /*  - */
+    OP_OR,      /* || */
+    OP_AND      /* && */
 };
 
 enum LLVM_TYPE{

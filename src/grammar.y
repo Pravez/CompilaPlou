@@ -256,11 +256,11 @@ parameter_declaration
 
 statement
 : declaration               {printf("--- statement DECL ---\n"); llvm__print(&$1); printf("--- END  statement ---\n");}
-| compound_statement
+| compound_statement        {printf("\n\t\t\tbloc de code {} ou {...}\n\n");}
 | expression_statement      {printf("--- statement CODE ---\n"); llvm__print(&$1); printf("--- END  statement ---\n");}
-| selection_statement
-| iteration_statement
-| jump_statement
+| selection_statement       {printf("\n\t\t\tif ou for\n\n");}
+| iteration_statement       {printf("\n\t\t\twhile ou dowhile\n\n");}
+| jump_statement            {printf("\n\t\t\treturn. FAUT SORTIR !\n\n");}
 ;
 
 LB

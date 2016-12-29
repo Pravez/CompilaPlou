@@ -4,6 +4,7 @@
 #include "type.h"
 #include "tools.h"
 #include "errors.h"
+#include "llvm_code.h"
 
 enum EXPR_COMMAND{
     ADD, SUB, DIV, CONV_2DOUBLE, CONV_2INT, MUL, FMUL
@@ -54,6 +55,7 @@ struct Expression{
             };
         }conditional_expression;
     };
+    struct llvm__program* code;
 };
 
 struct expr_operand init_operand(enum OPERAND_TYPE type);

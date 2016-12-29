@@ -127,7 +127,7 @@ struct Expression create_leaf(struct expr_operand operand){
     expression.type = E_CONDITIONAL;
     expression.conditional_expression.type = C_LEAF;
     expression.conditional_expression.leaf = operand;
-
+    expression.code = NULL;
     printf("CREATED LEAF "); print_operand(operand); printf(", type= %d\n", operand.type);
 
     return expression;
@@ -142,6 +142,7 @@ struct Expression create_branch(enum COND_OPERATOR operator, struct Expression* 
     expression.conditional_expression.branch.operator = operator;
     expression.conditional_expression.branch.e_right = expression_left;
     expression.conditional_expression.branch.e_left = expression_right;
+    expression.code = NULL;
 
     print_tree(&expression);
     printf("\n");
@@ -157,6 +158,7 @@ struct Expression create_branch_cpy(enum COND_OPERATOR operator, struct Expressi
     struct Expression* right = malloc(sizeof(struct Expression));
     *left = expression_left;
     *right = expression_right;
+    expression.code = NULL;
 
     expression.conditional_expression.type = C_BRANCH;
     expression.conditional_expression.branch.operator = operator;
@@ -193,6 +195,7 @@ int expression_from_unary_cond(struct expr_operand* operand, enum ASSIGN_OPERATO
     final_expression->expression.assign_operator = assign_operator;
     final_expression->expression.cond_expression = cond;
     final_expression->expression.operand = *operand;
+    final_expression->code = NULL;
 
     //Says that now it is initialized
     item.declarator.variable.initialized = 1;

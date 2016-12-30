@@ -251,6 +251,9 @@ void hash__init(struct Scope *hashmap) {
  * @return
  */
 bool hash__add_items(struct Scope *hashmap, struct DeclaratorList list){
+    if(verify_no_function(list))
+        return false;
+
     for(int i=0;i<list.size;i++){
         if(list.declarator_list[i].decl_type == FUNCTION){
             if(!hash__add_item(hashmap, list.declarator_list[i].declarator.function.identifier, list.declarator_list[i])){
@@ -279,6 +282,18 @@ bool hash__add_items(struct Scope *hashmap, struct DeclaratorList list){
     }
 
     return true;
+}
+
+bool verify_no_function(struct DeclaratorList list){
+    bool f_presence = false;
+    for(int i=0;i<list.size;i++) {
+        if (list.declarator_list[i].decl_type == FUNCTION) {
+            f_presence = true;
+            report_error(INVALID_FUNC_DECLARATION, list.declarator_list[i].declarator.function.identifier);
+        }
+    }
+
+    return f_presence;
 }
 
 /**

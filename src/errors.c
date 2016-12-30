@@ -72,6 +72,10 @@ void report_error(enum ERROR_TYPE type, void* data){
             error = concatenate_strings(3, "Using unary operator on \033[31;1m", identifier, 
                                             "\033[0m which is a function");
             break;
+        case INVALID_FUNC_DECLARATION:
+            identifier = (char*) data;
+            error = concatenate_strings(3, "Invalid declaration of function \033[31;1m", identifier,
+                                            "\033[0m, definition must be followed by its implementation");
     }
 
     ERR_COUNT ++;

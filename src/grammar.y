@@ -363,17 +363,7 @@ selection_statement
 
 iteration_statement
 : WHILE '(' expression ')' statement { $$ = *generate_while_do_code(&$3, &$5); }
-| DO statement WHILE '(' expression ')' ';' {
-    printf("-- code do s while(e); --\n");
-    int loop = new_label();
-    int end = new_label();
-    printf("\tlabel%d:\n", loop);
-    printf("\ts.code\n");
-    printf("\te.code\n");
-    printf("\tbr i1 %%<e.reg> label %%label%d, label %%label%d\n", loop, end);
-    printf("\tlabel%d:\n", end);
-    printf("-- /dowhile --\n");
-}
+| DO statement WHILE '(' expression ')' ';' { $$ = *generate_do_while_code(&$5, &$2); }
 ;
 
 jump_statement

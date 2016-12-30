@@ -170,6 +170,7 @@ struct llvm__program* generate_while_do_code(struct Expression* condition, struc
     union COMPARATOR comparator;
     comparator.icmp = ICOMP_NE;
 
+    establish_expression_final_type(condition);
     struct computed_expression* computed_condition = generate_code(condition);
 
     struct llvm__program* while_program = malloc(sizeof(struct llvm__program));
@@ -177,19 +178,58 @@ struct llvm__program* generate_while_do_code(struct Expression* condition, struc
                                                  comparator, loop, end);
     llvm__init_program(while_program);
 
+    //While(
+    llvm__program_add_line(while_program, "; while start");
     llvm__program_add_line(while_program, label_to_string(start));
 
+    //expression){
+    llvm__program_add_line(while_program, "; while condition");
     llvm__fusion_programs(while_program, computed_condition->code);
     llvm__fusion_programs(while_program, &do_while_jump);
 
+    //statement
     llvm__program_add_line(while_program, label_to_string(loop));
-
+    llvm__program_add_line(while_program, "; statement");
     llvm__fusion_programs(while_program, statement_code);
 
+    //}
+    llvm__program_add_line(while_program, "; loop");
     llvm__program_add_line(while_program, jump_to(start));
+    llvm__program_add_line(while_program, "; end of loop");
     llvm__program_add_line(while_program, label_to_string(end));
 
     return while_program;
+}
+
+struct llvm__program* generate_do_while_code(struct Expression* condition, struct llvm__program* statement_code){
+    int start = new_label();
+    int loop = new_label();
+    int end = new_label();
+    union COMPARATOR comparator;
+    comparator.icmp = ICOMP_NE;
+
+    establish_expression_final_type(condition);
+    struct computed_expression* computed_condition = generate_code(condition);
+    struct llvm__program* do_while_program = malloc(sizeof(struct llvm__program));
+    struct llvm__program do_dowhile_jump = do_jump(computed_condition->type == T_INT ? 0 : 1, computed_condition->reg,
+                                                 comparator, start, end);
+    llvm__init_program(do_while_program);
+
+    //do{ statement
+    llvm__program_add_line(do_while_program, "; do while start");
+    llvm__program_add_line(do_while_program, label_to_string(start));
+    llvm__fusion_programs(do_while_program, statement_code);
+
+    //}While(
+    llvm__program_add_line(do_while_program, "; while condition");
+    llvm__fusion_programs(do_while_program, computed_condition->code);
+    llvm__fusion_programs(do_while_program, &do_dowhile_jump);
+
+    //);
+    llvm__program_add_line(do_while_program, "; end of loop");
+    llvm__program_add_line(do_while_program, label_to_string(end));
+
+    return do_while_program;
 }
 
 struct llvm__program do_jump(int float_or_int, int condition, union COMPARATOR comparator, int labeltrue, int labelfalse){

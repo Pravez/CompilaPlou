@@ -105,7 +105,7 @@ void report_warning(enum WARNING_TYPE type, void* data){
             break;
         case UNINTIALIZED_VAR:
             identifier = (char*) data;
-            warning = concatenate_strings(3, "Assigning variable \033[35;1m", identifier,
+            warning = concatenate_strings(3, "Using variable \033[35;1m", identifier,
                                           "\033[0m which has never been initialized");
             break;
     }

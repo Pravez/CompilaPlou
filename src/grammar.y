@@ -362,8 +362,8 @@ selection_statement
 ;
 
 iteration_statement
-: WHILE '(' expression ')' statement { $$ = *generate_while_do_code(&$3, &$5); }
-| DO statement WHILE '(' expression ')' ';' { $$ = *generate_do_while_code(&$5, &$2); }
+: WHILE '(' expression ')' statement { $$ = *generate_while_code(&$3, &$5, 0); }
+| DO statement WHILE '(' expression ')' ';' { $$ = *generate_while_code(&$5, &$2, 1); }
 ;
 
 jump_statement

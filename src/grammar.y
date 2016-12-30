@@ -216,20 +216,15 @@ expression
 | conditional_expression { 
     //TODO implementer les operateurs unaires ici
     if($1.type != -1){
-        //To avoid segfault, waiting for implementation
-        /*
-        // Pas bon ça, ça plante tout
-        struct llvm__program empty; 
-        llvm__init_program(&empty); 
-        $$.code->code = &empty;
-        $$.code->type = T_VOID;
-        $$.code->reg = -1;
-        $$.code = NULL;*/
-
         $$ = $1;
      }
      else
         debug("Je sais pas ce qu'il se passe... Un petit ctrl f pour me trouver '64689754654' ?", RED);
+        struct llvm__program empty;
+        llvm__init_program(&empty);
+        $$.code->code = &empty;
+        $$.code->type = T_VOID;
+        $$.code->reg = -1;
      }
 ;
 

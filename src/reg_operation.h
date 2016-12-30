@@ -64,6 +64,11 @@ enum REG_BITWISE_OP{
     REG_XOR     /*  ~ in c */
 };
 
+enum REG_LOGICAL_OP{
+    REG_LAND,    /* && in c */
+    REG_LOR      /* || in c */
+};
+
 
 char* load_int(int reg, int value);
 char* load_double(int reg, double value);

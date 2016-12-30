@@ -147,17 +147,61 @@ char* comparison_op_on_regs(union COMPARATOR op, int reg_dest, int reg1, int reg
     char *type_name = TO_LLVM_STRING(type);
     char *code;
     int temp_reg = new_register();
-    asprintf(&code, "%%x%d = %s %s %s %%x%d, %%x%d\n%%x%d = select i1 %%x%d, %s %s, %s %s",
-             /*       %xx = icmp eq i32 %xy %xz      %xd  =            %%xx, i32 0, i32 0           */
-             /*                                                                                     */
-             /*  %xx                icmp                    eq      i32      %xy  %xz               */
+    asprintf(&code, "; comparison\n%%t%d = %s %s %s %%x%d, %%x%d\n%%x%d = select i1 %%t%d, %s %s, %s %s",
+             /*                    %tx = icmp eq i32 %xy %xz      %xd  =            %%tx, i32 0, i32 0           */
+             /*                                                                                                  */
+             /*  %xx                icmp                    eq      i32      %xy  %xz                            */
              temp_reg, (type == T_INT)? "icmp" : "fcmp", llvm_op, type_name, reg1, reg2,
-             /*  %xd      %xx      i32                  0                   i32                0    */
+             /*  %xd      %xx      i32                  0                   i32                0                 */
              //reg_dest, temp_reg, type_name, (type == T_INT)? "1" : "1.0", type_name, (type == T_INT)? "0" : "0.0");
              reg_dest, temp_reg, type_name, (type == T_INT)? "1" : "0x3ff0000000000000", type_name, (type == T_INT)? "0" : "0x0000000000000000");
 
     return code;
 }
+
+/**** LOGICAL OP *****/
+//PRIVATE FUNCTION
+enum REG_LOGICAL_OP cond_op_to_logical_op(enum COND_OPERATOR o){
+    switch (o){
+        case OP_AND:
+            return REG_LAND;
+        case OP_OR:
+            return REG_LOR;
+        default:
+            return -1; // Error. Should have call is_logical_op first.
+    }
+}
+
+char* logical_op_to_llvm_op(enum REG_LOGICAL_OP op){
+    switch (op){
+        case REG_LAND:
+            return "and";
+        case REG_LOR:
+            return "or";
+        default:
+            return "UNKNOWN_OPERATION";
+    }
+}
+
+char* logical_op_on_regs(enum REG_LOGICAL_OP op, int reg_dest, int reg1, int reg2, enum TYPE type){
+    char *llvm_op = logical_op_to_llvm_op(op);
+    char *type_name = TO_LLVM_STRING(type);
+    char *code;
+    int temp_reg1 = new_register();
+    int temp_reg2 = new_register();
+    asprintf(&code, "; logical %s\n%%t%d = %s %s %%x%d, %%x%d\n%%t%d = icmp ne i32 0, %%t%d\n%%x%d = select i1 %%t%d, i32 1, i32 0",
+             /*                    %xt1= and i32 %xy %xz        %xt2  =                %xt1  %dest              %xt2  */
+             llvm_op,
+             /* %xt1       and       i32     %xy   %xz                                                                */
+             temp_reg1, llvm_op, type_name, reg1, reg2,
+             /* %xt2       %xt1                                                                                       */
+             temp_reg2, temp_reg1,
+             /* %dest      %xt2                                                                                       */
+             reg_dest, temp_reg2);
+
+    return code;
+}
+
 
 /**** CHECK REG OPERATIONS *****/
 
@@ -195,9 +239,7 @@ char* operation_on_regs(enum COND_OPERATOR op, int reg_dest, int reg1, int reg2,
     else if(is_comparison_op(op)){
         return comparison_op_on_regs(cond_op_to_comparison_op(op, type), reg_dest, reg1, reg2, type);
     }else if(is_logical_op(op)){
-        char* res;
-        asprintf(&res, "TODO LOGICAL OP <> <>");
-        return res;
+        return logical_op_on_regs(cond_op_to_logical_op(op), reg_dest, reg1, reg2, type);
     }else{
         char* res;
         asprintf(&res, "ERREUR, UNKNOW OPERATION <> <>");

@@ -111,26 +111,23 @@ void print_tree(struct Expression* expr){
             print_tree(expr->conditional_expression.branch.e_left);
             switch (expr->conditional_expression.branch.operator) {
                 case OP_ADD:
-                    printf("+");
-                    break;
+                    printf("+");  break;
                 case OP_SUB:
-                    printf("-");
-                    break;
+                    printf("-");  break;
                 case OP_MUL:
-                    printf("*");
-                    break;
+                    printf("*");  break;
                 case OP_DIV:
-                    printf("/");
-                    break;
+                    printf("/");  break;
                 case OP_SSHR:
-                    printf(">>");
-                    break;
+                    printf(">>"); break;
                 case OP_SSHL:
-                    printf("<<");
-                    break;
+                    printf("<<"); break;
+                case OP_SHL:
+                    printf("<");  break;
+                case OP_SHR:
+                    printf(">");  break;
                 default:
-                    printf("?");
-                    break;
+                    printf("?");  break;
             }
             printf("[%d]", expr->conditional_expression.branch.operator);
             print_tree(expr->conditional_expression.branch.e_right);

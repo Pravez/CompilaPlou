@@ -110,9 +110,56 @@ char* bitwise_op_on_regs(enum REG_BITWISE_OP op, int reg_dest, int reg1, int reg
 }
 
 /**** COMPARISON OP *****/
-//TODO
+//PRIVATE FUNCTION
+union COMPARATOR cond_op_to_comparison_op(enum COND_OPERATOR o, enum TYPE type){
+    switch (o){
+        case OP_LE:
+            return (type == T_INT) ?
+                   (union COMPARATOR){.icmp = ICOMP_SLE}:
+                   (union COMPARATOR){.fcmp = FCOMP_OLE};
+        case OP_GE:
+            return (type == T_INT) ?
+                   (union COMPARATOR){.icmp = ICOMP_SGE}:
+                   (union COMPARATOR){.fcmp = FCOMP_OGE};
+        case OP_EQ:
+            return (type == T_INT) ?
+                   (union COMPARATOR){.icmp = ICOMP_EQ}:
+                   (union COMPARATOR){.fcmp = FCOMP_OEQ};
+        case OP_NE:
+            return (type == T_INT) ?
+                   (union COMPARATOR){.icmp = ICOMP_NE}:
+                   (union COMPARATOR){.fcmp = FCOMP_ONE};
+        case OP_SHL:
+            return (type == T_INT) ?
+                   (union COMPARATOR){.icmp = ICOMP_SLT}:
+                   (union COMPARATOR){.fcmp = FCOMP_OLT};
+        case OP_SHR:
+            return (type == T_INT) ?
+                   (union COMPARATOR){.icmp = ICOMP_SGT}:
+                   (union COMPARATOR){.fcmp = FCOMP_OGT};
+        default:
+            return (union COMPARATOR){.icmp = -1}; // Error. Should have call is_comparison_op first.
+    }
+}
 
-/**** OPERATION REG *****/
+char* comparison_op_on_regs(union COMPARATOR op, int reg_dest, int reg1, int reg2, enum TYPE type){
+    char *llvm_op = comparator_to_string(op, (type == T_DOUBLE));
+    char *type_name = TO_LLVM_STRING(type);
+    char *code;
+    int temp_reg = new_register();
+    asprintf(&code, "%%x%d = %s %s %s %%x%d, %%x%d\n%%x%d = select i1 %%x%d, %s %s, %s %s",
+             /*       %xx = icmp eq i32 %xy %xz      %xd  =            %%xx, i32 0, i32 0           */
+             /*                                                                                     */
+             /*  %xx                icmp                    eq      i32      %xy  %xz               */
+             temp_reg, (type == T_INT)? "icmp" : "fcmp", llvm_op, type_name, reg1, reg2,
+             /*  %xd      %xx      i32                  0                   i32                0    */
+             //reg_dest, temp_reg, type_name, (type == T_INT)? "1" : "1.0", type_name, (type == T_INT)? "0" : "0.0");
+             reg_dest, temp_reg, type_name, (type == T_INT)? "1" : "0x3ff0000000000000", type_name, (type == T_INT)? "0" : "0x0000000000000000");
+
+    return code;
+}
+
+/**** CHECK REG OPERATIONS *****/
 
 short int is_binary_op(enum COND_OPERATOR o){
     return (o == OP_ADD  ||
@@ -125,6 +172,19 @@ short int is_bitwise_op(enum COND_OPERATOR o){
     return (o == OP_SSHL  ||
             o == OP_SSHR  );
 }
+short int is_comparison_op(enum COND_OPERATOR o){
+    return (o == OP_LE  ||
+            o == OP_GE  ||
+            o == OP_EQ  ||
+            o == OP_NE  ||
+            o == OP_SHL ||
+            o == OP_SHR );
+}
+short int is_logical_op(enum COND_OPERATOR o){
+    return (o == OP_AND ||
+            o == OP_OR  );
+}
+/****  OPERATION ON REG ****/
 char* operation_on_regs(enum COND_OPERATOR op, int reg_dest, int reg1, int reg2, enum TYPE type){
     printf("OPERATOR: %d\n", op);
     if(is_binary_op(op)) {
@@ -132,10 +192,16 @@ char* operation_on_regs(enum COND_OPERATOR op, int reg_dest, int reg1, int reg2,
     }
     else if(is_bitwise_op(op))
         return bitwise_op_on_regs(cond_op_to_bitwise_op(op), reg_dest, reg1, reg2, type);
-    else {
-        char* operation_code;
-        asprintf(&operation_code, "TODO cond op");
-        return operation_code;
+    else if(is_comparison_op(op)){
+        return comparison_op_on_regs(cond_op_to_comparison_op(op, type), reg_dest, reg1, reg2, type);
+    }else if(is_logical_op(op)){
+        char* res;
+        asprintf(&res, "TODO LOGICAL OP <> <>");
+        return res;
+    }else{
+        char* res;
+        asprintf(&res, "ERREUR, UNKNOW OPERATION <> <>");
+        return res;
     }
 }
 
@@ -163,9 +229,9 @@ char* store_var(char* id, int reg, enum TYPE type){
     return code;
 }
 
-char* comparator_to_string(union COMPARATOR comparator, int float_or_int){
+char* comparator_to_string(union COMPARATOR comparator, int is_float){
     //float 1 int 0
-    if(float_or_int) {
+    if(is_float) {
         switch (comparator.fcmp) {
             case FCOMP_FALSE:
                 return "false";

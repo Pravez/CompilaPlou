@@ -260,20 +260,7 @@ declaration
             $2.declarator.variable.initialized = 1;
             if(hash__add_item(&scope, $2.declarator.variable.identifier, $2)){
                 struct llvm__program* decl = generate_var_declaration(&$2.declarator.variable, false); //TODO gérer le cas où c'est global
-                /*
-                struct computed_expression* e = generate_code(&$4);
-                //printf("\n\tcode:\n");
-                //llvm__print(&e->code);
-                //printf("reg: %%x%d\n", e->reg);
 
-                
-                llvm__fusion_programs(decl, e->code);
-                llvm__program_add_line(decl, store_var($2.declarator.variable.identifier, e->reg, $1));
-
-                $$ = *decl;
-                free(e->code);
-                free(e);
-                */
                 struct Expression affected_value;
                 struct expr_operand declarated_operand = variable_to_expr_operand(&$2.declarator.variable);
 
@@ -283,30 +270,21 @@ declaration
 
                     struct computed_expression* e = generate_code(&affected_value);
 
-                    //debug("fin 1?", GREEN);
                     // If next expression has already been calculated (it's an affectation)
                     if($4.type == E_AFFECT){
                         //TODO je sais pas pourquoi $4.code peut être null... mais bon XD
                         if($4.code == NULL || $4.code->code == NULL){
                             debug("NE DEVRAIT PAS ARRIVER.... T.T", RED);
                         }else{
-                            //debug("pas null, la suite est une affecation", GREEN);
                             llvm__fusion_programs($4.code->code, e->code);
                             free(e->code);
                             e->code = $4.code->code;
-
-                            /*debug("dfevrait pas arriver, je crois", RED);
-                            $4.code = malloc(sizeof(struct computed_expression));
-                            llvm__init_program($4.code->code);*/
                         }
                     }
-                    //printf("\t fusionné: \n");
-                    //llvm__print(e->code);
 
                     llvm__fusion_programs(decl, e->code);
                     $$ = *decl;
-                    //debug("fin 2?\n", GREEN);
-                    //free(e);
+                    free(e);
                 }else{
                     report_error(NOT_ASSIGNABLE_EXPR, "");
                 }

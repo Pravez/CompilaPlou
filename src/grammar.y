@@ -170,12 +170,18 @@ comparison_expression
 
 expression
 : unary_expression assignment_operator expression {
-        char* msg;
-        asprintf(&msg, "Assigment de %s:", $1.conditional_expression.leaf.operand.variable);
-        debug(msg, GREEN);
-        free(msg);
-
-        if($1.type != -1){
+        if($1.type == E_CONDITIONAL && $1.conditional_expression.type == C_LEAF && $1.conditional_expression.leaf.type != O_VARIABLE){
+            report_error(NOT_ASSIGNABLE_EXPR, "");
+            struct llvm__program empty;
+            llvm__init_program(&empty);
+            $$.code->code = &empty;
+            $$.code->type = T_VOID;
+            $$.code->reg = -1;
+        }else if($1.type != -1){
+            char* msg;
+            asprintf(&msg, "Assigment de %s:", $1.conditional_expression.leaf.operand.variable);
+            debug(msg, GREEN);
+            free(msg);
             if(expression_from_unary_cond(&($1.conditional_expression.leaf), $2, &$3, &$$)){
                 //TODO clean le magnifique débug <3
                 set_initialized(&scope, $1.conditional_expression.leaf.operand.variable);
@@ -224,16 +230,15 @@ expression
     //TODO implementer les operateurs unaires ici
     if($1.type != -1){
         $$ = $1;
-     }
-     else
+    }else{
         // Undeclared variable... Keep going to look for more errors.
-        debug("Je sais pas ce qu'il se passe... Un petit ctrl f pour me trouver '64689754654' ?", RED);
         struct llvm__program empty;
         llvm__init_program(&empty);
         $$.code->code = &empty;
         $$.code->type = T_VOID;
         $$.code->reg = -1;
-     }
+    }
+}
 ;
 
 assignment_operator

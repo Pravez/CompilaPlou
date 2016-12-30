@@ -39,6 +39,7 @@ struct llvm__program* generate_var_declaration(struct Variable* v, short int is_
 struct llvm__program* generate_multiple_var_declarations(struct DeclaratorList* list, short int are_globals);
 
 struct llvm__program* generate_while_code(struct Expression* condition, struct llvm__program* statement_code, int is_dowhile);
+struct llvm__program* generate_if_code(struct Expression* condition, struct llvm__program* statement_code);
 struct llvm__program do_jump(int float_or_int, int condition, union COMPARATOR comparator, int labeltrue, int labelfalse);
 
 #endif //TESTS_LLVM_CODE_H

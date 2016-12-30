@@ -277,7 +277,7 @@ statement
 : declaration               {printf("--- statement DECL ---\n"); $$ = $1; llvm__print(&$1); printf("--- END  statement ---\n");}
 | compound_statement        { $$ = $1; }
 | expression_statement      {printf("--- statement CODE ---\n"); $$ = $1; llvm__print(&$1); printf("--- END  statement ---\n");}
-| selection_statement       {printf("\n\t\t\tif ou for\n\n");}
+| selection_statement       {printf("--- statement IF OR FOR ---\n");$$ = $1; llvm__print(&$1); printf("--- END  statement ---\n");}
 | iteration_statement       {printf("--- statement WHILE ---\n"); $$ = $1; llvm__print(&$1);printf("--- END  statement ---\n");}
 | jump_statement            {printf("\n\t\t\treturn. FAUT SORTIR !\n\n");}
 ;
@@ -314,29 +314,8 @@ expression_statement
 ;
 
 selection_statement
-: IF '(' expression ')' statement {
-    /*printf("-- code if --\n");
-    int true_label = new_label();
-    int false_label = new_label();
-    printf("\texpression.code\n");
-    printf("\tbr i1 %%<expression.reg> label %%label%d, label %%label%d\n", true_label, false_label);
-    printf("\tlabel%d:\n", true_label);
-    printf("\tstatement.code\n");
-    printf("\tlabel%d:\n", false_label);
-    printf("-- /if --");*/
-}
-| IF '(' expression ')' statement ELSE statement {
-    /*printf("-- code if else --\n");
-    int true_label = new_label();
-    int false_label = new_label();
-    printf("\texpression.code\n");
-    printf("\tbr i1 %%<expression.reg> label %%label%d, label %%label%d\n", true_label, false_label);
-    printf("\tlabel%d:\n", true_label);
-    printf("\ts1.code\n");
-    printf("\tlabel%d:\n", false_label);
-    printf("\ts2.code\n");
-    printf("\t-- /if --\n");*/
-}
+: IF '(' expression ')' statement { $$ = *generate_if_code(&$3, &$5); }
+| IF '(' expression ')' statement ELSE statement {  }
 | FOR '(' expression ';' expression ';' expression ')' statement {
     /*printf("-- code for(e1;e2;e3) s --\n");
     int loop = new_label();

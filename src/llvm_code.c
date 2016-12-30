@@ -58,8 +58,7 @@ char* llvm___create_function_def(struct Function function){
             strcat(args, ", ");
     }
 
-    asprintf(&definition, "define %s @%s(%s)", TO_LLVM_STRING(function.return_type), function.identifier, args);
-
+    asprintf(&definition, "define %s @%s(%s) {", TO_LLVM_STRING(function.return_type), function.identifier, args);
 
     return definition;
 }
@@ -201,8 +200,7 @@ struct llvm__program* generate_while_code(struct Expression* condition, struct l
                                                   comparator, start, end);
 
         //do{ statement
-        llvm__program_add_line(while_program, "; do while start");
-        llvm__program_add_line(while_program, label_to_string(start));
+        llvm__program_add_line(while_program, label_to_string(start, 1, ";do while start"));
         llvm__fusion_programs(while_program, statement_code);
 
         //}While(
@@ -212,15 +210,14 @@ struct llvm__program* generate_while_code(struct Expression* condition, struct l
 
         //);
         llvm__program_add_line(while_program, "; end of loop");
-        llvm__program_add_line(while_program, label_to_string(end));
+        llvm__program_add_line(while_program, label_to_string(end, 0, ";while end"));
 
     }else{
         struct llvm__program while_jump = do_jump(computed_condition->type == T_INT ? 0 : 1, computed_condition->reg,
                                                      comparator, loop, end);
 
         //While(
-        llvm__program_add_line(while_program, "; while start");
-        llvm__program_add_line(while_program, label_to_string(start));
+        llvm__program_add_line(while_program, label_to_string(start, 1, ";while start"));
 
         //expression){
         llvm__program_add_line(while_program, "; while condition");
@@ -228,15 +225,14 @@ struct llvm__program* generate_while_code(struct Expression* condition, struct l
         llvm__fusion_programs(while_program, &while_jump);
 
         //statement
-        llvm__program_add_line(while_program, label_to_string(loop));
+        llvm__program_add_line(while_program, label_to_string(loop, 0, ";while loop"));
         llvm__program_add_line(while_program, "; statement");
         llvm__fusion_programs(while_program, statement_code);
 
         //}
         llvm__program_add_line(while_program, "; loop");
         llvm__program_add_line(while_program, jump_to(start));
-        llvm__program_add_line(while_program, "; end of loop");
-        llvm__program_add_line(while_program, label_to_string(end));
+        llvm__program_add_line(while_program, label_to_string(end, 0, ";while end"));
     }
 
     return while_program;
@@ -261,12 +257,10 @@ struct llvm__program* generate_if_code(struct Expression* condition, struct llvm
     llvm__fusion_programs(if_program, computed_condition->code);
     llvm__program_add_line(if_program, "; jump");
     llvm__fusion_programs(if_program, &if_jump);
-    llvm__program_add_line(if_program, "; then");
-    llvm__program_add_line(if_program, label_to_string(then));
+    llvm__program_add_line(if_program, label_to_string(then, 0, ";then"));
     llvm__fusion_programs(if_program, statement_code);
 
-    llvm__program_add_line(if_program, "; end");
-    llvm__program_add_line(if_program, label_to_string(end));
+    llvm__program_add_line(if_program, label_to_string(end, 1, ";endif"));
 
     return if_program;
 }
@@ -292,17 +286,14 @@ struct llvm__program* generate_ifelse_code(struct Expression* condition, struct 
     llvm__program_add_line(if_else_program, "; jump");
     llvm__fusion_programs(if_else_program, &if_jump);
 
-    llvm__program_add_line(if_else_program, "; then");
-    llvm__program_add_line(if_else_program, label_to_string(then));
+    llvm__program_add_line(if_else_program, label_to_string(then, 0, ";then"));
     llvm__fusion_programs(if_else_program, statement_if);
     llvm__program_add_line(if_else_program, jump_to(end));
 
-    llvm__program_add_line(if_else_program, "; else");
-    llvm__program_add_line(if_else_program, label_to_string(l_else));
+    llvm__program_add_line(if_else_program, label_to_string(l_else, 0, ";else"));
     llvm__fusion_programs(if_else_program, statement_else);
 
-    llvm__program_add_line(if_else_program, "; end");
-    llvm__program_add_line(if_else_program, label_to_string(end));
+    llvm__program_add_line(if_else_program, label_to_string(end, 1, ";endif"));
 
 
     return if_else_program;
@@ -325,4 +316,20 @@ struct llvm__program do_jump(int float_or_int, int condition, union COMPARATOR c
     llvm__program_add_line(&jump, br_line);
 
     return jump;
+}
+
+void write_file(struct llvm__program* main_program, char* filename){
+    FILE* file = fopen(filename, "w");
+
+    if(file == NULL){
+        fflush(stdout);
+        fprintf(stderr, "Error when trying to create or open file");
+        exit(1);
+    }
+
+    for(int i=0;i<main_program->line_number;i++){
+        fprintf(file, "%s\n", main_program->code[i]);
+    }
+
+    fclose(file);
 }

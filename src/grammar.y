@@ -33,6 +33,7 @@ struct llvm__program program;
 %token TYPE_NAME
 %token INT DOUBLE VOID
 %token IF ELSE DO WHILE RETURN FOR
+
 //Declarations
 %type <plou_declarator_list> declarator_list parameter_list
 %type <plou_declarator> declarator parameter_declaration
@@ -45,7 +46,8 @@ struct llvm__program program;
 %type <plou_expression> primary_expression postfix_expression shift_expression unary_expression
 
 //Statement
-%type <code> expression_statement declaration statement compound_statement iteration_statement jump_statement selection_statement statement_list
+%type <code> expression_statement declaration statement compound_statement iteration_statement function_definition
+%type <code> jump_statement selection_statement statement_list function_declaration program_parts external_declaration
 
 %start program
 %union {
@@ -339,15 +341,15 @@ statement
 ;
 
 LB
-: '{' {level++ ; if(!hash__upper_level(&scope)) YYABORT; llvm__program_add_line(&program, "{");}// pour le hash[i] il faut faire attention si on retourne à un même level, ce n'est pas forcément le même bloc ! il faudra sûrement utiliser deux var, une disant le dernier hash_nb atteint et le hash_nb actuel à utiliser
+: '{' {level++ ; if(!hash__upper_level(&scope)) YYABORT; }// pour le hash[i] il faut faire attention si on retourne à un même level, ce n'est pas forcément le même bloc ! il faudra sûrement utiliser deux var, une disant le dernier hash_nb atteint et le hash_nb actuel à utiliser
 ;
 
 RB
-: '}' {level--; hash__lower_level(&scope); llvm__program_add_line(&program, "}");} // normalement ici pas de soucis pour le hash_nb
+: '}' {level--; hash__lower_level(&scope);} // normalement ici pas de soucis pour le hash_nb
 ;
 
 compound_statement
-: LB RB {}
+: LB RB { }
 | LB statement_list RB { $$ = $2; }
 /*| LB declaration_list statement_list RB
 | LB declaration_list RB*/
@@ -407,23 +409,30 @@ jump_statement
 ;
 
 program
-: external_declaration
-| program external_declaration
+: program_parts { llvm__fusion_programs(&program, &$1); }
+;
+
+program_parts
+: external_declaration { $$ = $1; }
+| program_parts external_declaration { llvm__fusion_programs(&$1, &$2); $$ = $1; }
 ;
 
 external_declaration
-: function_definition
-| declaration
+: function_definition { $$ = $1; }
+| declaration { $$ = $1; }
 ;
 
 function_definition
-: function_declaration compound_statement
+: function_declaration compound_statement { llvm__fusion_programs(&$1, &$2);llvm__program_add_line(&$1, "}"); $$ = $1; }
 ;
 
 function_declaration
 : type_name declarator {$2.declarator.function.return_type = $1;
     if(hash__add_item(&scope, $2.declarator.function.identifier, $2)){
-        printf("%s\n", llvm___create_function_def(hash__get_item(&scope, $2.declarator.function.identifier).declarator.function));
+        struct llvm__program temp;
+        llvm__init_program(&temp);
+        llvm__program_add_line(&temp, llvm___create_function_def(hash__get_item(&scope, $2.declarator.function.identifier).declarator.function));
+        $$ = temp;
     }}
 ;
 
@@ -452,28 +461,45 @@ int main (int argc, char *argv[]) {
     llvm__init_program(&program);
     error_flag = 0;
     FILE *input = NULL;
-    if (argc==2) {
+    char* file_name_output;
+    if (argc>=2) {
         input = fopen (argv[1], "r");
         file_name = strdup(argv[1]);
         if (input) {
             yyin = input;
+            if(argc == 3){
+                file_name_output = argv[2];
+                //If no extension we add it
+                if(strcmp(".ll", (file_name_output+(strlen(file_name_output)-4))) != 0){
+                    asprintf(&file_name_output, "%s.lli", file_name_output);
+                }
+            }else{
+                file_name_output = "output.ll";
+            }
         }
         else {
             fprintf (stderr, "%s: Could not open %s\n", *argv, argv[1]);
+            fprintf (stderr, "Usage : parse C_FILE [OUTPUT_FILE]\n");
             return 1;
         }
     }
     else {
         fprintf (stderr, "%s: error: no input file\n", *argv);
+        fprintf (stderr, "Usage : parse C_FILE [OUTPUT_FILE]\n");
         return 1;
     }
+
     yyparse ();
+    fclose(input);
 
     //First we verify errors
-    verify_no_error(file_name);
+    if(verify_no_error(file_name)){
+        //Then we create code
+        printf("Writing program ...\n");
+        write_file(&program, file_name_output);
+    }
 
 
-    //Then we create code
 
     return 0;
 }

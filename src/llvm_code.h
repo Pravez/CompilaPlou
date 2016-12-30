@@ -43,4 +43,7 @@ struct llvm__program* generate_if_code(struct Expression* condition, struct llvm
 struct llvm__program* generate_ifelse_code(struct Expression* condition, struct llvm__program* statement_if, struct llvm__program* statement_else);
 struct llvm__program do_jump(int float_or_int, int condition, union COMPARATOR comparator, int labeltrue, int labelfalse);
 
+
+void write_file(struct llvm__program* main_program, char* filename);
+
 #endif //TESTS_LLVM_CODE_H

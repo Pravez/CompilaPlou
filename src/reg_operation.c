@@ -290,9 +290,10 @@ char* comparator_to_string(union COMPARATOR comparator, int is_float){
     return "ERROR COMP TO STRING '245254244'";
 }
 
-char* label_to_string(int label){
+char* label_to_string(int label, int br_precedes, char* comment){
     char* code;
-    asprintf(&code, "label%d:", label);
+    asprintf(&code, "%s%s%s%slabel%d:", comment != NULL ? comment : "", comment != NULL ? "\n" : "",
+             br_precedes ? jump_to(label) : "", br_precedes ? "\n" : "", label);
     return code;
 }
 

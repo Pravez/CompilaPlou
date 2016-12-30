@@ -35,6 +35,6 @@ extern void yyerror (char const*);
 
 void report_error(enum ERROR_TYPE type, void* data);
 void report_warning(enum WARNING_TYPE type, void* data);
-void verify_no_error(char* file_name);
+int verify_no_error(char* file_name);
 
 #endif

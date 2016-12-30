@@ -129,13 +129,14 @@ void report_warning(enum WARNING_TYPE type, void* data){
         free(warning);
 }
 
-void verify_no_error(char* file_name){
+int verify_no_error(char* file_name){
     if(ERR_COUNT > 0){
         printf("%s: \033[31;1m%d\033[0m error(s) occured. \n", file_name, ERR_COUNT);
         printf("%s: exitting ...\n", file_name);
         free (file_name);
-        exit(0);
+        return 0;
     }
 
     free (file_name);
+    return 1;
 }

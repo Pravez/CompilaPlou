@@ -81,7 +81,7 @@ char* load_var(int reg, char* id);
 char* store_var(char* id, int reg, enum TYPE type);
 
 char* comparator_to_string(union COMPARATOR comparator, int float_or_int);
-char* label_to_string(int label);
+char* label_to_string(int label, int br_precedes, char* comment);
 char* true_comp(int reg);
 char* jump_to(int label);
 

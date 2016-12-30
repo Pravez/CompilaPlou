@@ -139,7 +139,7 @@ void print_tree(struct Expression* expr){
                 case OP_OR:
                     printf("||"); break;
                 default:
-                    printf(" <??> ");  break;
+                    printf(" <?> ");  break;
             }
             printf("[%d]", expr->conditional_expression.branch.operator);
             print_tree(expr->conditional_expression.branch.e_right);

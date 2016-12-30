@@ -1,7 +1,7 @@
 %{
+#define _GNU_SOURCE
 #include <stdio.h>
 #include <string.h>
-#define _GNU_SOURCE
 #include <search.h>
 #include <stdlib.h>
 
@@ -211,7 +211,14 @@ expression
             }else{
                 report_error(NOT_ASSIGNABLE_EXPR, "");
             }
-    }
+        }else{
+            // Undeclared variable... Keep going to look for more errors.
+            struct llvm__program empty;
+            llvm__init_program(&empty);
+            $$.code->code = &empty;
+            $$.code->type = T_VOID;
+            $$.code->reg = -1;
+        }
     }
 | conditional_expression { 
     //TODO implementer les operateurs unaires ici
@@ -219,6 +226,7 @@ expression
         $$ = $1;
      }
      else
+        // Undeclared variable... Keep going to look for more errors.
         debug("Je sais pas ce qu'il se passe... Un petit ctrl f pour me trouver '64689754654' ?", RED);
         struct llvm__program empty;
         llvm__init_program(&empty);

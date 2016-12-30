@@ -1,5 +1,5 @@
+#define _GNU_SOURCE
 #include "reg_operation.h"
-
 #include <stdio.h>
 
 #define TO_LLVM_STRING(type) type_of(llvm__convert(type))
@@ -341,7 +341,7 @@ char* label_to_string(int label, int br_precedes, char* comment){
 
 char* true_comp(int reg){
     char* cmp;
-    asprintf(&cmp, "%%x%d = fcmp true double 0.0, 0.0");
+    asprintf(&cmp, "%%x%d = fcmp true double 0.0, 0.0", reg);
     return cmp;
 }
 

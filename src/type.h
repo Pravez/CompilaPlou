@@ -42,7 +42,7 @@ enum COND_OPERATOR{
     OP_SUB,     /*  - */
     OP_OR,      /* || */
     OP_AND      /* && */
-    /* NB: '|' and '&' are not recognised and throw syntax error */
+    /* NB: '|', '&', and '~' are not recognised and throw syntax error */
 };
 
 enum LLVM_TYPE{

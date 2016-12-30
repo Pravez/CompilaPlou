@@ -7,3 +7,4 @@
 - Vérification de type pour le cast implicite (voir expression_from_unary_cond)
 - Empécher la déclaration de fonctions en groupe ? `int a(), b(), c();` par exemple
 - Warnings dans les expressions du while/dowhile
+- Segfault sur variable non initialisée. `int main(){ i; }` par exemple

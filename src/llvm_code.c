@@ -250,6 +250,43 @@ struct llvm__program* generate_if_code(struct Expression* condition, struct llvm
     return if_program;
 }
 
+struct llvm__program* generate_ifelse_code(struct Expression* condition, struct llvm__program* statement_if, struct llvm__program* statement_else){
+    int then = new_label();
+    int l_else = new_label();
+    int end = new_label();
+
+    union COMPARATOR comparator;
+    comparator.icmp = ICOMP_NE;
+
+    establish_expression_final_type(condition);
+    struct computed_expression* computed_condition = generate_code(condition);
+    struct llvm__program* if_else_program = malloc(sizeof(struct llvm__program));
+    struct llvm__program if_jump = do_jump(computed_condition->type == T_INT ? 0 : 1, computed_condition->reg, comparator,
+                                           then, l_else);
+
+    llvm__init_program(if_else_program);
+
+    llvm__program_add_line(if_else_program, "; if starting condition");
+    llvm__fusion_programs(if_else_program, computed_condition->code);
+    llvm__program_add_line(if_else_program, "; jump");
+    llvm__fusion_programs(if_else_program, &if_jump);
+
+    llvm__program_add_line(if_else_program, "; then");
+    llvm__program_add_line(if_else_program, label_to_string(then));
+    llvm__fusion_programs(if_else_program, statement_if);
+    llvm__program_add_line(if_else_program, jump_to(end));
+
+    llvm__program_add_line(if_else_program, "; else");
+    llvm__program_add_line(if_else_program, label_to_string(l_else));
+    llvm__fusion_programs(if_else_program, statement_else);
+
+    llvm__program_add_line(if_else_program, "; end");
+    llvm__program_add_line(if_else_program, label_to_string(end));
+
+
+    return if_else_program;
+}
+
 struct llvm__program do_jump(int float_or_int, int condition, union COMPARATOR comparator, int labeltrue, int labelfalse){
     struct llvm__program jump;
     char* cmp_line;

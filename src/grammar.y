@@ -315,7 +315,7 @@ expression_statement
 
 selection_statement
 : IF '(' expression ')' statement { $$ = *generate_if_code(&$3, &$5); }
-| IF '(' expression ')' statement ELSE statement {  }
+| IF '(' expression ')' statement ELSE statement { $$ = *generate_ifelse_code(&$3, &$5, &$7); }
 | FOR '(' expression ';' expression ';' expression ')' statement {
     /*printf("-- code for(e1;e2;e3) s --\n");
     int loop = new_label();

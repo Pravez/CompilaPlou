@@ -34,6 +34,12 @@ char* llvm__create_constant(char* name, enum TYPE type, int size, void* value){
 }
 
 void llvm__fusion_programs(struct llvm__program* main, const struct llvm__program* toappend){
+    //debug("FUSION\n", GREEN);
+    //printf("\t main:\n");
+    //llvm__print(main);
+    //printf("\t toappend:\n");
+    //llvm__print(toappend);
+    //printf("\n");
     for(int i=0;i<toappend->line_number;i++){
         llvm__program_add_line(main, toappend->code[i]);
     }
@@ -59,11 +65,14 @@ char* llvm___create_function_def(struct Function function){
 }
 
 struct computed_expression* generate_code(struct Expression* e){
+    printf("generate_expression : "); print_tree(e); printf(" => ");
+
     struct computed_expression* ret = malloc(sizeof(struct computed_expression));
     ret->code = malloc(sizeof(struct llvm__program));
     llvm__init_program(ret->code);
 
     if(e->type == E_CONDITIONAL && e->conditional_expression.type == C_LEAF){
+        printf("operande\n");
         struct expr_operand* o = &e->conditional_expression.leaf;
         switch(o->type){
             case O_INT:
@@ -86,6 +95,7 @@ struct computed_expression* generate_code(struct Expression* e){
                 }
         }
     }else if(e->type == E_CONDITIONAL){
+        printf("operatioon\n");
         struct computed_expression* left = generate_code(e->conditional_expression.branch.e_left);
         struct computed_expression* right = generate_code(e->conditional_expression.branch.e_right);
         enum COND_OPERATOR operator = e->conditional_expression.branch.operator;
@@ -108,17 +118,29 @@ struct computed_expression* generate_code(struct Expression* e){
         free(right);
 
     }else if(e->type == E_AFFECT){
+        printf("affect\n");
         //register is no longer up to date.
         hash_delete(&CURRENT_LOADED_REGS, e->expression.operand.operand.variable);
-        struct computed_expression* affected_value = generate_code(e->expression.cond_expression);
-        ret->reg = affected_value->reg;
-        ret->type = hash__get_item(&scope, e->expression.operand.operand.variable).declarator.variable.type;
-        //check même type ?
-        llvm__fusion_programs(ret->code, affected_value->code);
-        switch (e->expression.assign_operator)
-        {
+        //if next nested expression is an affectation, it has already been computed
+        if(e->expression.cond_expression->type == E_AFFECT){
+            print_tree(e->expression.cond_expression);
+            printf(" est une affect déjà calculée dans %%x%d.\n", e->expression.cond_expression->code->reg);
+
+            ret->reg = e->expression.cond_expression->code->reg;
+            ret->type = e->expression.cond_expression->code->type;
+        }else {
+            struct computed_expression *affected_value = generate_code(e->expression.cond_expression);
+
+            ret->reg = affected_value->reg;
+            ret->type = hash__get_item(&scope, e->expression.operand.operand.variable).declarator.variable.type;
+            //TODO check même type ?
+            llvm__fusion_programs(ret->code, affected_value->code);
+            free(affected_value);
+        }
+        switch (e->expression.assign_operator) {
             case OP_SIMPLE_ASSIGN:
-                llvm__program_add_line(ret->code, store_var(e->expression.operand.operand.variable, ret->reg, ret->type));
+                llvm__program_add_line(ret->code,
+                                       store_var(e->expression.operand.operand.variable, ret->reg, ret->type));
                 break;
             case OP_MUL_ASSIGN:
             case OP_DIV_ASSIGN:
@@ -132,7 +154,6 @@ struct computed_expression* generate_code(struct Expression* e){
             default:
                 printf("erreur. Enfin, je crois\n");
         }
-        free(affected_value);
     }else{
         printf("erreur. Je suppose.\n");
     }
@@ -157,7 +178,7 @@ struct llvm__program* generate_var_declaration(struct Variable* v, short int is_
     return ret;
 }
 
-void llvm__print(struct llvm__program* program){
+void llvm__print(const struct llvm__program* program){
     for(int i = 0; i < program->line_number; ++i){
         printf("%s\n", program->code[i]);
     }

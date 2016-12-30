@@ -27,8 +27,8 @@ struct expr_operand{
         int unary_sub;
     }operand;
 
-    int postfix;
-    int prefix;
+    short int postfix;
+    short int prefix;
 };
 
 struct Expression{
@@ -51,7 +51,7 @@ struct Expression{
             };
         }conditional_expression;
     };
-    struct llvm__program* code;
+    struct computed_expression* code;
 };
 
 struct expr_operand init_operand(enum OPERAND_TYPE type);
@@ -74,4 +74,6 @@ enum TYPE establish_expression_final_type(struct Expression* expression);
 enum TYPE get_operand_type(struct expr_operand operand);
 
 void print_tree(struct Expression* expr);
+
+struct expr_operand variable_to_expr_operand(struct Variable* var);
 #endif //_EXPRESSION_H

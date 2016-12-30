@@ -168,7 +168,11 @@ comparison_expression
 
 expression
 : unary_expression assignment_operator expression {
-        //printf("DEBUG assigment de %s\n", $1.conditional_expression.leaf.operand.variable);
+        char* msg;
+        asprintf(&msg, "Assigment de %s:", $1.conditional_expression.leaf.operand.variable);
+        debug(msg, GREEN);
+        free(msg);
+
         if($1.type != -1){
             if(expression_from_unary_cond(&($1.conditional_expression.leaf), $2, &$3, &$$)){
                 //TODO clean le magnifique débug <3
@@ -179,9 +183,29 @@ expression
                 //llvm__print(e->code);
                 //printf("reg: %%x%d\n", e->reg);
 
-                $$.code = e->code;
+                //debug("fin 1?", GREEN);
+                // If next expression has already been calculated (it's an affectation)
+                if($3.type == E_AFFECT){
+                    //TODO je sais pas pourquoi $3.code peut être null... mais bon XD
+                    if($3.code == NULL || $3.code->code == NULL){
+                        debug("NE DEVRAIT PAS ARRIVER.... T.T", RED);
+                    }else{
+                        //debug("pas null, la suite est une affecation", GREEN);
+                        llvm__fusion_programs($3.code->code, e->code);
+                        free(e->code);
+                        e->code = $3.code->code;
 
-                free(e);
+                        /*debug("dfevrait pas arriver, je crois", RED);
+                        $3.code = malloc(sizeof(struct computed_expression));
+                        llvm__init_program($3.code->code);*/
+                    }
+                }
+                //printf("\t fusionné: \n");
+                //llvm__print(e->code);
+
+                $$.code = e;
+                //debug("fin 2?\n", GREEN);
+                //free(e);
             }else{
                 report_error(NOT_ASSIGNABLE_EXPR, "");
             }
@@ -191,11 +215,19 @@ expression
     //TODO implementer les operateurs unaires ici
     if($1.type != -1){
         //To avoid segfault, waiting for implementation
+        /*
+        // Pas bon ça, ça plante tout
         struct llvm__program empty; 
         llvm__init_program(&empty); 
-        $$.code = &empty;
-        //$$ = $1;
+        $$.code->code = &empty;
+        $$.code->type = T_VOID;
+        $$.code->reg = -1;
+        $$.code = NULL;*/
+
+        $$ = $1;
      }
+     else
+        debug("Je sais pas ce qu'il se passe... Un petit ctrl f pour me trouver '64689754654' ?", RED);
      }
 ;
 
@@ -218,11 +250,17 @@ declaration
 }
 | type_name declarator '=' expression ';' {
     if($2.decl_type == VARIABLE){
+        char* msg;
+        asprintf(&msg, "Declaration + assigment de %s:", $2.declarator.variable.identifier);
+        debug(msg, GREEN);
+        free(msg);
+
         $2.declarator.variable.type = $1;
         if(verify_expression_type($2, &$4)){
             $2.declarator.variable.initialized = 1;
             if(hash__add_item(&scope, $2.declarator.variable.identifier, $2)){
                 struct llvm__program* decl = generate_var_declaration(&$2.declarator.variable, false); //TODO gérer le cas où c'est global
+                /*
                 struct computed_expression* e = generate_code(&$4);
                 //printf("\n\tcode:\n");
                 //llvm__print(&e->code);
@@ -235,11 +273,50 @@ declaration
                 $$ = *decl;
                 free(e->code);
                 free(e);
+                */
+                struct Expression affected_value;
+                struct expr_operand declarated_operand = variable_to_expr_operand(&$2.declarator.variable);
+
+                if(expression_from_unary_cond(&declarated_operand, OP_SIMPLE_ASSIGN, &$4, &affected_value)){
+                    //TODO clean le magnifique débug <3
+                    set_initialized(&scope, $2.declarator.variable.identifier);
+
+                    struct computed_expression* e = generate_code(&affected_value);
+
+                    //debug("fin 1?", GREEN);
+                    // If next expression has already been calculated (it's an affectation)
+                    if($4.type == E_AFFECT){
+                        //TODO je sais pas pourquoi $4.code peut être null... mais bon XD
+                        if($4.code == NULL || $4.code->code == NULL){
+                            debug("NE DEVRAIT PAS ARRIVER.... T.T", RED);
+                        }else{
+                            //debug("pas null, la suite est une affecation", GREEN);
+                            llvm__fusion_programs($4.code->code, e->code);
+                            free(e->code);
+                            e->code = $4.code->code;
+
+                            /*debug("dfevrait pas arriver, je crois", RED);
+                            $4.code = malloc(sizeof(struct computed_expression));
+                            llvm__init_program($4.code->code);*/
+                        }
+                    }
+                    //printf("\t fusionné: \n");
+                    //llvm__print(e->code);
+
+                    llvm__fusion_programs(decl, e->code);
+                    $$ = *decl;
+                    //debug("fin 2?\n", GREEN);
+                    //free(e);
+                }else{
+                    report_error(NOT_ASSIGNABLE_EXPR, "");
+                }
             }else{
                 report_error(DEFINED_VAR, $2.declarator.variable.identifier);
             }
+        }else{
+            // TODO ?
+            debug("ERROR, OPERAND IS NOT A VARIABLE !!", RED);
         }
-        // TODO ?
     } else{
         report_error(FUNCTION_AS_VARIABLE, $2.declarator.function.identifier);
     }
@@ -310,7 +387,7 @@ statement_list
 
 expression_statement
 : ';'            {struct llvm__program empty; llvm__init_program(&empty); $$ = empty;};
-| expression ';' {$$ = *$1.code;}
+| expression ';' {$$ = *$1.code->code;}
 ;
 
 selection_statement

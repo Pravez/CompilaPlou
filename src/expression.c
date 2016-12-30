@@ -104,31 +104,42 @@ void print_operand(struct expr_operand operand){
 
 void print_tree(struct Expression* expr){
     printf("(");
-    if(expr->conditional_expression.type == C_LEAF){
-        print_operand(expr->conditional_expression.leaf);
-    }else{
-        print_tree(expr->conditional_expression.branch.e_left);
-        switch(expr->conditional_expression.branch.operator){
-            case OP_ADD:
-                printf ("+"); break;
-            case OP_SUB:
-                printf ("-"); break;
-            case OP_MUL:
-                printf ("*"); break;
-            case OP_DIV:
-                printf ("/"); break;
-            case OP_SSHR:
-                printf(">>"); break;
-            case OP_SSHL:
-                printf("<<"); break;
-            default:
-                printf ("?"); break;
+    if(expr->type == E_CONDITIONAL) {
+        if (expr->conditional_expression.type == C_LEAF) {
+            print_operand(expr->conditional_expression.leaf);
+        } else {
+            print_tree(expr->conditional_expression.branch.e_left);
+            switch (expr->conditional_expression.branch.operator) {
+                case OP_ADD:
+                    printf("+");
+                    break;
+                case OP_SUB:
+                    printf("-");
+                    break;
+                case OP_MUL:
+                    printf("*");
+                    break;
+                case OP_DIV:
+                    printf("/");
+                    break;
+                case OP_SSHR:
+                    printf(">>");
+                    break;
+                case OP_SSHL:
+                    printf("<<");
+                    break;
+                default:
+                    printf("?");
+                    break;
+            }
+            printf("[%d]", expr->conditional_expression.branch.operator);
+            print_tree(expr->conditional_expression.branch.e_right);
         }
-        printf("[%d]", expr->conditional_expression.branch.operator);
-        print_tree(expr->conditional_expression.branch.e_right);
+        printf(")");
+    }else{ //E_AFFECT
+        printf("(%s) = ", expr->expression.operand.operand.variable);
+        print_tree(expr->expression.cond_expression);
     }
-    printf(")");
-
 }
 
 struct Expression create_leaf(struct expr_operand operand){
@@ -136,7 +147,10 @@ struct Expression create_leaf(struct expr_operand operand){
     expression.type = E_CONDITIONAL;
     expression.conditional_expression.type = C_LEAF;
     expression.conditional_expression.leaf = operand;
-    expression.code = NULL;
+
+    expression.code = malloc(sizeof(struct computed_expression));
+    expression.code->code = NULL;
+
     //printf("CREATED LEAF "); print_operand(operand); printf(", type= %d\n", operand.type);
 
     return expression;
@@ -151,6 +165,10 @@ struct Expression create_branch(enum COND_OPERATOR operator, struct Expression* 
     expression.conditional_expression.branch.operator = operator;
     expression.conditional_expression.branch.e_right = expression_left;
     expression.conditional_expression.branch.e_left = expression_right;
+
+    expression.code = malloc(sizeof(struct computed_expression));
+    expression.code->code = NULL;
+
     expression.code = NULL;
 
     print_tree(&expression);
@@ -193,7 +211,6 @@ struct Expression create_branch_cpy(enum COND_OPERATOR operator, struct Expressi
 ////////////////////////////////////////////////////////////
 
 int expression_from_unary_cond(struct expr_operand* operand, enum ASSIGN_OPERATOR assign_operator, struct Expression* cond, struct Expression* final_expression){
-
     struct Declarator item = hash__get_item(&scope, operand->operand.variable);
     if(item.decl_type == FUNCTION){
         return 0;
@@ -249,7 +266,7 @@ enum TYPE establish_expression_final_type(struct Expression* expression){
                 return left;
             }
         }
-    }else if(expression->type == E_AFFECT){
+    }else /*if(expression->type == E_AFFECT)*/{
         return get_operand_type(expression->expression.operand);
     }
 }
@@ -276,6 +293,15 @@ enum TYPE get_operand_type(struct expr_operand operand){
     }
 
     return -1;
+}
+
+struct expr_operand variable_to_expr_operand(struct Variable* var){
+    struct expr_operand ret;
+    ret.type = O_VARIABLE;
+    ret.operand.variable = var->identifier;
+    ret.postfix = false;
+    ret.prefix = false;
+    return ret;
 }
 
 /*

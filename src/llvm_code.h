@@ -32,7 +32,7 @@ void llvm__fusion_programs(struct llvm__program* main, const struct llvm__progra
 char* llvm__create_constant(char* name, enum TYPE type, int size, void* value);
 char* llvm___create_function_def(struct Function function);
 
-void llvm__print(struct llvm__program* program);
+void llvm__print(const struct llvm__program* program);
 struct computed_expression* generate_code(struct Expression* e);
 
 struct llvm__program* generate_var_declaration(struct Variable* v, short int is_global);

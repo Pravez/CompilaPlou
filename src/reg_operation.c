@@ -220,6 +220,8 @@ char* comparator_to_string(union COMPARATOR comparator, int float_or_int){
                 return "sle";
         }
     }
+    debug("ERROR COMP TO STRING '245254244'", RED);
+    return "ERROR COMP TO STRING '245254244'";
 }
 
 char* label_to_string(int label){

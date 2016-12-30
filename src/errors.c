@@ -76,6 +76,15 @@ void report_error(enum ERROR_TYPE type, void* data){
             identifier = (char*) data;
             error = concatenate_strings(3, "Invalid declaration of function \033[31;1m", identifier,
                                             "\033[0m, definition must be followed by its implementation");
+            break;
+        case SCOPE_MAX_LEVEL:
+            allocated = 0;
+            error = "(\033[31;1mFATAL\033[0m) Impossible to add a new level, maximum quantity reached";
+            break;
+        case SCOPE_MAX_IDENT:
+            allocated = 0;
+            error = "(\033[31;1mFATAL\033[0m) Unable to create another identifier, maximum quantity reached";
+            break;
     }
 
     ERR_COUNT ++;

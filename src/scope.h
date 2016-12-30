@@ -42,7 +42,7 @@ bool hash__add_item(struct Scope *hashmap, char *key, struct Declarator declarat
 bool hash__add_item_function(struct Scope *hashmap, struct Declarator declarator);
 void hash__clean_level(struct Scope *hashmap, int level);
 void hash__prepare_upper_level(struct Scope *hashmap);
-void hash__upper_level(struct Scope *hashmap);
+bool hash__upper_level(struct Scope *hashmap);
 void hash__lower_level(struct Scope *hashmap);
 void hash__init(struct Scope *hashmap);
 

@@ -361,7 +361,7 @@ statement
 ;
 
 LB
-: '{' {level++ ; hash__upper_level(&scope); llvm__program_add_line(&program, "{");}// pour le hash[i] il faut faire attention si on retourne à un même level, ce n'est pas forcément le même bloc ! il faudra sûrement utiliser deux var, une disant le dernier hash_nb atteint et le hash_nb actuel à utiliser
+: '{' {level++ ; if(!hash__upper_level(&scope)) YYABORT; llvm__program_add_line(&program, "{");}// pour le hash[i] il faut faire attention si on retourne à un même level, ce n'est pas forcément le même bloc ! il faudra sûrement utiliser deux var, une disant le dernier hash_nb atteint et le hash_nb actuel à utiliser
 ;
 
 RB

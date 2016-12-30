@@ -6,6 +6,8 @@
 
 #define AVG_LOADED_REG 64
 
+#define CHECK_LEVEL_SIZE(hashmap) hashmap->current_level == NB_LEVELS - 1
+
 int hachage(char *s) {
     unsigned int hash = 0;
     while (*s != '\0') hash = hash * 31 + *s++;
@@ -168,6 +170,11 @@ bool hash__add_item_function(struct Scope *hashmap, struct Declarator declarator
  * @return
  */
 bool hash__add_item(struct Scope *hashmap, char *key, struct Declarator declarator) {
+    if(CHECK_LEVEL_SIZE(hashmap)){
+        report_error(SCOPE_MAX_IDENT, 0);
+        return false;
+    }
+
     //If the item is not present in the hashmap
     if (!hash__key_exists_current(hashmap, key)) {
         //We find the position
@@ -213,13 +220,20 @@ void hash__clean_level(struct Scope *hashmap, int level){
  * Add a level. If higher_level is higher is not bigger, we clean next level (because not already set)
  * @param hashmap
  */
-void hash__upper_level(struct Scope *hashmap) {
-    hashmap->current_level++;
-    if(hashmap->current_level > hashmap->higher_level) {
-        hashmap->higher_level++;
-        hash__clean_level(hashmap, hashmap->current_level); //clean next level
+bool hash__upper_level(struct Scope *hashmap) {
+    if(hashmap->current_level != NB_LEVELS -1) {
+        hashmap->current_level++;
+        if (hashmap->current_level > hashmap->higher_level) {
+            hashmap->higher_level++;
+            hash__clean_level(hashmap, hashmap->current_level); //clean next level
+        }
+        hash_init(&CURRENT_LOADED_REGS, AVG_LOADED_REG); //init loaded registers
+    }else{
+        report_error(SCOPE_MAX_LEVEL, 0);
+        return 0;
     }
-    hash_init(&CURRENT_LOADED_REGS, AVG_LOADED_REG); //init loaded registers
+
+    return 1;
 }
 
 /**
@@ -253,6 +267,11 @@ void hash__init(struct Scope *hashmap) {
 bool hash__add_items(struct Scope *hashmap, struct DeclaratorList list){
     if(verify_no_function(list))
         return false;
+
+    if(CHECK_LEVEL_SIZE(hashmap)){
+        report_error(SCOPE_MAX_IDENT, 0);
+        return false;
+    }
 
     for(int i=0;i<list.size;i++){
         if(list.declarator_list[i].decl_type == FUNCTION){

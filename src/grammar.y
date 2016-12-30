@@ -245,8 +245,9 @@ assignment_operator
 declaration
 : type_name declarator_list ';' {
     $2 = apply_type($1, $2);
-    hash__add_items(&scope, $2);
-    $$ = *generate_multiple_var_declarations(&$2, 0); //TODO gérer le cas où c'est global
+    if(hash__add_items(&scope, $2)){
+        $$ = *generate_multiple_var_declarations(&$2, 0); //TODO gérer le cas où c'est global
+    }
 }
 | type_name declarator '=' expression ';' {
     if($2.decl_type == VARIABLE){
@@ -338,7 +339,7 @@ statement
 ;
 
 LB
-: '{' {level++ ; hash__upper_level(&scope); llvm__program_add_line(&program, "{");}// pour le hash[i] il faut faire attention si on retourne à un même level, ce n'est pas forcément le même bloc ! il faudra sûrement utiliser deux var, une disant le dernier hash_nb atteint et le hash_nb actuel à utiliser
+: '{' {level++ ; if(!hash__upper_level(&scope)) YYABORT; llvm__program_add_line(&program, "{");}// pour le hash[i] il faut faire attention si on retourne à un même level, ce n'est pas forcément le même bloc ! il faudra sûrement utiliser deux var, une disant le dernier hash_nb atteint et le hash_nb actuel à utiliser
 ;
 
 RB

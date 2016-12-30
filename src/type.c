@@ -21,6 +21,10 @@ struct Declarator init_declarator_as_variable(char* identifier){
 struct DeclaratorList add_parameter(struct DeclaratorList list, struct Declarator declarator){
     if(declarator.decl_type == VARIABLE){
         declarator.declarator.variable.initialized = 1;
+        if(declarator.declarator.variable.type == T_VOID){
+            report_error(VOID_UNAUTHORIZED, declarator.declarator.variable.identifier);
+            return list;
+        }
         return add_declarator(list, declarator);
     }else{
         report_error(FUNCTION_AS_PARAMETER, declarator.declarator.function.identifier);
@@ -80,11 +84,10 @@ struct DeclaratorList apply_type(enum TYPE type, struct DeclaratorList list){
     return list;
 }
 
-//TODO Causes segfault if type == void
 struct Declarator apply_decl_type(enum TYPE type, struct Declarator declarator){
     if(declarator.decl_type == VARIABLE){
         declarator.declarator.variable.type = type;
-    }else{
+    }else if(declarator.decl_type == FUNCTION){
         declarator.declarator.function.return_type = type;
     }
 

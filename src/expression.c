@@ -126,8 +126,20 @@ void print_tree(struct Expression* expr){
                     printf("<");  break;
                 case OP_SHR:
                     printf(">");  break;
+                case OP_LE:
+                    printf("<="); break;
+                case OP_GE:
+                    printf(">="); break;
+                case OP_EQ:
+                    printf("=="); break;
+                case OP_NE:
+                    printf("!="); break;
+                case OP_AND:
+                    printf("&&"); break;
+                case OP_OR:
+                    printf("||"); break;
                 default:
-                    printf("?");  break;
+                    printf(" <??> ");  break;
             }
             printf("[%d]", expr->conditional_expression.branch.operator);
             print_tree(expr->conditional_expression.branch.e_right);

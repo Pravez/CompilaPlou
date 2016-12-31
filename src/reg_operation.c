@@ -352,8 +352,17 @@ char* jump_to(int label){
     asprintf(&jump, "br label %%label%d", label);
     return jump;
 }
-char* return_expr(struct computed_expression* e){
+
+char* convert_reg(int reg_src, enum TYPE ty_src, int reg_dest, int ty_dest){
     char* ret;
-    asprintf(&ret, "ret %s %%x%d", TO_LLVM_STRING(e->type), e->reg);
+    asprintf(&ret, "%%x%d = %s %s %%x%d to %s",
+             reg_dest, (ty_dest == T_INT)? "fptosi" : "sitofp",
+             TO_LLVM_STRING(ty_src), reg_src, TO_LLVM_STRING(ty_dest));
+    return ret;
+}
+
+char* return_expr(int reg, enum TYPE type){
+    char* ret;
+    asprintf(&ret, "ret %s %%x%d", TO_LLVM_STRING(type), reg);
     return ret;
 }

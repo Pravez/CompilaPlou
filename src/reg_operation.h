@@ -69,8 +69,6 @@ enum REG_LOGICAL_OP{
     REG_LOR      /* || in c */
 };
 
-struct computed_expression;
-
 char* load_int(int reg, int value);
 char* load_double(int reg, double value);
 
@@ -91,5 +89,16 @@ char* label_to_string(int label, int br_precedes, char* comment);
 char* true_comp(int reg);
 char* jump_to(int label);
 
-char* return_expr(struct computed_expression* e);
+/***
+ * Convert a given register to a new given type and store the result in a given register
+ * @warning one type must be floating point, the other integer
+ * @param reg_src
+ * @param ty_src
+ * @param reg_dest
+ * @param ty_dest
+ * @return llvm-code string
+ */
+char* convert_reg(int reg_src, enum TYPE ty_src, int reg_dest, int ty_dest);
+
+char* return_expr(int reg, enum TYPE type);
 #endif

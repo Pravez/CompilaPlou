@@ -259,7 +259,10 @@ int verify_expression_type(struct Declarator item, struct Expression* expression
 }
 
 enum TYPE establish_expression_final_type(struct Expression* expression){
-
+    //If expression has already been calculated (affectation or cast for instance)
+    if(is_already_computed(expression)){
+        return expression->code->type;
+    }else
     if(expression->type == E_CONDITIONAL){
         if(expression->conditional_expression.type == C_LEAF){
             return get_operand_type(expression->conditional_expression.leaf);
@@ -311,6 +314,10 @@ struct expr_operand variable_to_expr_operand(struct Variable* var){
     ret.postfix = false;
     ret.prefix = false;
     return ret;
+}
+
+short int is_already_computed(struct Expression* e){
+    return (e->code != NULL && e->code->code != NULL);
 }
 
 /*

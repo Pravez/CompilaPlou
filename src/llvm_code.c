@@ -121,9 +121,10 @@ struct computed_expression* generate_code(struct Expression* e){
         //register is no longer up to date.
         hash_delete(&CURRENT_LOADED_REGS, e->expression.operand.operand.variable);
         //if next nested expression is an affectation, it has already been computed
-        if(e->expression.cond_expression->type == E_AFFECT){
+        if(e->expression.cond_expression->type == E_AFFECT ||
+                (e->expression.cond_expression->code != NULL && e->expression.cond_expression->code->code != NULL)){
             print_tree(e->expression.cond_expression);
-            printf(" est une affect déjà calculée dans %%x%d.\n", e->expression.cond_expression->code->reg);
+            printf(" est une expression déjà calculée dans %%x%d.\n", e->expression.cond_expression->code->reg);
 
             ret->reg = e->expression.cond_expression->code->reg;
             ret->type = e->expression.cond_expression->code->type;

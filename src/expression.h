@@ -76,4 +76,6 @@ enum TYPE get_operand_type(struct expr_operand operand);
 void print_tree(struct Expression* expr);
 
 struct expr_operand variable_to_expr_operand(struct Variable* var);
+
+short int is_already_computed(struct Expression* e);
 #endif //_EXPRESSION_H

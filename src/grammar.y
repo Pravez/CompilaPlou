@@ -192,13 +192,13 @@ expression
                 //printf("reg: %%x%d\n", e->reg);
 
                 //debug("fin 1?", GREEN);
-                // If next expression has already been calculated (it's an affectation)
-                if($3.type == E_AFFECT){
+                // If next expression has already been calculated (it's an affectation or a cast)
+                if($3.type == E_AFFECT || is_already_computed(&$3)){
                     //TODO je sais pas pourquoi $3.code peut être null... mais bon XD
-                    if($3.code == NULL || $3.code->code == NULL){
+                    if(!is_already_computed(&$3)){
                         debug("NE DEVRAIT PAS ARRIVER.... T.T", RED);
                     }else{
-                        //debug("pas null, la suite est une affecation", GREEN);
+                        debug("pas null, la suite est une affecation ou un cast", GREEN);
                         llvm__fusion_programs($3.code->code, e->code);
                         free(e->code);
                         e->code = $3.code->code;
@@ -239,20 +239,31 @@ expression
         $$.code->reg = -1;
     }
 }
-/*| '(' type_name ')' conditional_expression {
-    //TODO faudrait peut-être avoir une nouvelle règle cast qui définirait une variable globale pour le prochain cast..
-    // Et encore ça pose des problèmes puisqu'on évalue de bas en haut.La "Prochaine expression" n'est donc pas la bonne
+| '(' type_name ')' conditional_expression {
+    debug("EXPLICIT CAST required", BLUE);
     if($2 == T_VOID){
         report_error(VOID_ASSIGN, "");
     }else{
         if($4.type != -1){
-            if($2 == establish_expression_final_type(&$4)){
+
+            struct computed_expression* e = generate_code(&$4);
+            $$ = $4;
+            $$.code = e;
+            if($2 == e->type){
                 report_warning(USELESS_CAST, "");
             }else{
-                //TODO faire le cast.. mais comme $4 a déjà été évalué... XD
-                debug("CAST", BLUE);
+                int new_reg = new_register();
+                printf("---- CODE AVANT\n");
+                llvm__print($$.code->code);
+                llvm__program_add_line($$.code->code, convert_reg(e->reg, e->type, new_reg, $2));
+
+                printf("\n---- CODE APRRES\n");
+                llvm__print($$.code->code);
+
+                $$.code->reg = new_reg;
+                $$.code->type = $2;
+                debug("CASTED ! HAHAH", GREEN);
             }
-            $$ = $4;
         }else{
             // Undeclared variable... Keep going to look for more errors.
             struct llvm__program empty;
@@ -262,7 +273,7 @@ expression
             $$.code->reg = -1;
         }
     }
-}*/
+}
 ;
 
 assignment_operator
@@ -448,7 +459,7 @@ jump_statement
         print_tree(&$2);
         printf("\n");
         $$ = *e->code;
-        llvm__program_add_line(&$$, return_expr(e));
+        llvm__program_add_line(&$$, return_expr(e->reg, e->type));
     }else{
         debug("merde 585768754", RED);
     }

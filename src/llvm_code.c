@@ -85,6 +85,7 @@ struct computed_expression* generate_code(struct Expression* e){
                 llvm__program_add_line(ret->code,load_double(ret->reg, o->operand.double_value));
                 break;
             case O_VARIABLE:
+                printf("cherche pour la variable %s...\n", o->operand.variable);
                 ret->reg = hash_lookup(&CURRENT_LOADED_REGS, o->operand.variable);
                 ret->type = hash__get_item(&scope, o->operand.variable).declarator.variable.type;
                 if(ret->reg == HASH_FAIL) {
@@ -122,7 +123,7 @@ struct computed_expression* generate_code(struct Expression* e){
         hash_delete(&CURRENT_LOADED_REGS, e->expression.operand.operand.variable);
         //if next nested expression is an affectation, it has already been computed
         if(e->expression.cond_expression->type == E_AFFECT ||
-                (e->expression.cond_expression->code != NULL && e->expression.cond_expression->code->code != NULL)){
+                (is_already_computed(e->expression.cond_expression))){
             print_tree(e->expression.cond_expression);
             printf(" est une expression déjà calculée dans %%x%d.\n", e->expression.cond_expression->code->reg);
 
@@ -154,6 +155,8 @@ struct computed_expression* generate_code(struct Expression* e){
             default:
                 printf("erreur. Enfin, je crois\n");
         }
+        // new register for affected variable
+        hash_insert(&CURRENT_LOADED_REGS, e->expression.operand.operand.variable, ret->reg);
     }else{
         printf("erreur. Je suppose.\n");
     }

@@ -317,9 +317,9 @@ declaration
                     struct computed_expression* e = generate_code(&affected_value);
 
                     // If next expression has already been calculated (it's an affectation)
-                    if($4.type == E_AFFECT){
+                    if($4.type == E_AFFECT || is_already_computed(&$4)){
                         //TODO je sais pas pourquoi $4.code peut être null... mais bon XD
-                        if($4.code == NULL || $4.code->code == NULL){
+                        if(!is_already_computed(&$4)){
                             debug("NE DEVRAIT PAS ARRIVER.... T.T", RED);
                         }else{
                             llvm__fusion_programs($4.code->code, e->code);

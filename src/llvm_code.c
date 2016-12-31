@@ -1,5 +1,6 @@
 #define _GNU_SOURCE
 #include "llvm_code.h"
+#include "type.h"
 #include "external_function.h"
 #include <stdlib.h>
 #include <stdio.h>
@@ -137,6 +138,26 @@ struct computed_expression* generate_code(struct Expression* e){
                     llvm__program_add_line(ret->code,load_var(ret->reg, o->operand.variable));
                     hash_insert(&CURRENT_LOADED_REGS,o->operand.variable, ret->reg); // new register of variable
                 }
+                break;
+
+            case O_FUNCCALL_ARGS:
+                ret->reg = new_register();
+                ret->type = hash__get_item(&scope, o->operand.function.name).declarator.function.return_type;
+
+                int args_regs[o->operand.function.parameters.expression_count];
+                enum TYPE args_types[o->operand.function.parameters.expression_count];
+                for(int i = 0;i < o->operand.function.parameters.expression_count; i++){
+                    llvm__fusion_programs(ret->code, o->operand.function.computed_array[i].code);
+                    args_regs[i] = o->operand.function.computed_array[i].reg;
+                    args_types[i] = o->operand.function.computed_array[i].type;
+                }
+
+                llvm__program_add_line(ret->code, call_function(ret->reg, o->operand.function.name, ret->type, args_types,
+                                                                args_regs, o->operand.function.parameters.expression_count));
+                break;
+            case O_FUNCCALL:
+                //TO CONTINUE
+                break;
         }
     }else if(e->type == E_CONDITIONAL){ // Operation
         printf("operatioon\n");
@@ -391,9 +412,10 @@ struct llvm__program add_external_functions_declaration(){
             asprintf(&function_line, "declare %s @%s(%s)", type_of(llvm__convert(external_functions.extern_functions[i].function.return_type)),
                      external_functions.extern_functions[i].function.identifier, parameters);
             llvm__program_add_line(&functions, function_line);
-            llvm__program_add_line(&functions, "\n");
         }
     }
+
+    llvm__program_add_line(&functions, "\n");
 
     return functions;
 }

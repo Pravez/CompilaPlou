@@ -2,6 +2,8 @@
 #define _P5_LIB_H_
 
 #include "type.h"
+#include "scope.h"
+
 
 #define DEFAULT_EXTERN_FUNC_QTY 10
 
@@ -21,7 +23,7 @@ struct external_functions_declarations external_functions;
 void init_external_functions_declaration();
 void add_external_function(struct Function func);
 void register_external_function(char* name, enum TYPE return_type, int args_qty, ...);
-int add_if_registered_as_external(char* name);
+int add_if_registered_as_external(struct Scope* hashmap, char* name);
 
 void add_p5_functions();
 

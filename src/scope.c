@@ -184,7 +184,6 @@ bool hash__add_item(struct Scope *hashmap, char *key, struct Declarator declarat
             struct hashmap_item *item = &hashmap->scope_maps[hashmap->current_level][position];
             //If the item is a function
             if(declarator.decl_type == FUNCTION){
-                printf("ADDING FUNCTION %s\n", key);
                 //If we could add the function
                 if(hash__add_item_function(hashmap, declarator)){
                     item->key = key;
@@ -214,6 +213,8 @@ bool hash__add_item_extern_function(struct Scope *hashmap, char* key, struct Dec
             item->value = declarator;
 
             return true;
+
+            printf("Added extern func %s\n", key);
         }
     }
 
@@ -371,13 +372,14 @@ void display_scope(struct Scope scope){
  * @return
  */
 bool is_declared(struct Scope *scope, char* identifier, enum DECL_TYPE type){
-
     if(!hash__key_exists_all(scope, identifier)){
         if(type == VARIABLE){
             report_error( UNDEFINED_VAR, identifier);
         }else{
-            if(!add_if_registered_as_external(identifier)){
+            if(!add_if_registered_as_external(scope, identifier)){
                 report_error( UNDEFINED_FUNC, identifier);
+            }else{
+                return true;
             }
         }
 

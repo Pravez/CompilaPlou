@@ -6,8 +6,10 @@
 #include "errors.h"
 #include "llvm_code.h"
 
+#define DEFAULT_EXPR_ARRAY_SIZE 5
+
 enum OPERAND_TYPE{
-    O_VARIABLE, O_INT, O_DOUBLE
+    O_VARIABLE, O_INT, O_DOUBLE, O_FUNCCALL, O_FUNCCALL_ARGS
 };
 
 enum EXPR_TYPE{
@@ -18,6 +20,13 @@ enum COND_EXPR_TYPE{
     C_BRANCH, C_LEAF
 };
 
+struct Expression_array{
+    int expression_count;
+    int size;
+    struct Expression* array;
+};
+
+
 struct expr_operand{
     enum OPERAND_TYPE type;
     union{
@@ -25,6 +34,11 @@ struct expr_operand{
         int int_value;
         double double_value;
         int unary_sub;
+        struct{
+            char* name;
+            struct Expression_array parameters;
+            struct computed_expression* computed_array;
+        }function;
     }operand;
 
     short int postfix;
@@ -54,10 +68,14 @@ struct Expression{
     struct computed_expression* code; //Declared in llvm_code.h
 };
 
+struct Expression_array create_expression_array(struct Expression expression);
+void add_expression_to_array(struct Expression_array* array, struct Expression expression);
+
 struct expr_operand init_operand(enum OPERAND_TYPE type);
 struct expr_operand init_operand_identifier(char* variable);
 struct expr_operand init_operand_integer(int int_value);
 struct expr_operand init_operand_double(double double_value);
+struct expr_operand init_operand_function(char* name, struct Expression_array* array);
 int operand_add_postfix(struct expr_operand* operand, int value);
 int operand_add_prefix(struct expr_operand* operand, int value);
 

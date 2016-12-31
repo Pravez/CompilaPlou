@@ -49,6 +49,7 @@ struct llvm__program program;
 //Statement
 %type <code> expression_statement declaration statement compound_statement iteration_statement function_definition
 %type <code> jump_statement selection_statement statement_list function_declaration program_parts external_declaration
+%type <arguments_expression> argument_expression_list
 
 %start program
 %union {
@@ -72,6 +73,7 @@ struct llvm__program program;
 
     //Expressions
     struct Expression plou_expression;
+    struct Expression_array arguments_expression;
 
     //Code
     struct llvm__program code;
@@ -114,13 +116,13 @@ primary_expression
     }
 | '(' expression ')' { $$ = $2; }
 | IDENTIFIER '(' ')' {
-    $$ = create_leaf(init_operand_identifier($1));
+    $$ = create_leaf(init_operand_function($1, NULL));
     if(!is_declared(&scope, $1, FUNCTION)){
         $$.type = -1;
     }
     }
-| IDENTIFIER '(' argument_expression_list ')' { // A MODIFIER
-    $$ = create_leaf(init_operand_identifier($1));
+| IDENTIFIER '(' argument_expression_list ')' {
+    $$ = create_leaf(init_operand_function($1, &$3));
     if(!is_declared(&scope, $1, FUNCTION)){
         $$.type = -1;
     }
@@ -142,8 +144,8 @@ unary_expression
 ;
 
 argument_expression_list
-: expression
-| argument_expression_list ',' expression
+: expression { $$ = create_expression_array($1); }
+| argument_expression_list ',' expression { add_expression_to_array(&$1, $3); $$ = $1; }
 ;
 
 multiplicative_expression
@@ -412,7 +414,7 @@ statement_list
 
 expression_statement
 : ';'            {struct llvm__program empty; llvm__init_program(&empty); $$ = empty;};
-| expression ';' {$$ = *$1.code->code;}
+| expression ';' { if($1.code != NULL) $$ = *$1.code->code; }
 ;
 
 selection_statement

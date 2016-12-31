@@ -7,3 +7,4 @@
 - Faire le cast dans le llvm
 - Pour les appels de fonctions vérifier la liste des arguments (dans is_declared)
 - Faire les appels de fonctions en llvm
+- int a(){} int main(){ int a; a = a(); } ?

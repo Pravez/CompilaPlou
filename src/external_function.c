@@ -1,9 +1,9 @@
 #include "external_function.h"
 
 #include <stdlib.h>
+#include <stdio.h>
 #include <stdarg.h>
 #include <string.h>
-#include "scope.h"
 
 void init_external_functions_declaration(){
     external_functions.functions_number = 0;
@@ -48,11 +48,11 @@ void register_external_function(char* name, enum TYPE return_type, int args_qty,
     add_external_function(func);
 }
 
-int add_if_registered_as_external(char* name){
+int add_if_registered_as_external(struct Scope *hashmap, char* name){
     for(int i = 0;i < external_functions.functions_number;i++){
         if(strcmp(name, external_functions.extern_functions[i].function.identifier) == 0){
             external_functions.extern_functions[i].to_add = 1;
-            return hash__add_item_extern_function(&scope, name, (struct Declarator){
+            return hash__add_item_extern_function(hashmap, name, (struct Declarator){
                 .decl_type = FUNCTION, .declarator.function = external_functions.extern_functions[i].function });
         }
     }

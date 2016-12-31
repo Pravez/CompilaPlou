@@ -20,6 +20,24 @@ struct expr_operand init_operand_identifier(char* variable){
     return operand;
 }
 
+struct expr_operand init_operand_function(char* name, struct Expression_array *array){
+    struct expr_operand operand;
+    operand = init_operand(array == NULL ? O_FUNCCALL : O_FUNCCALL_ARGS);
+    operand.operand.function.name = name;
+
+    if(array != NULL) {
+        operand.operand.function.parameters = *array;
+        operand.operand.function.computed_array = malloc(
+                sizeof(struct computed_expression) * array->expression_count);
+
+        for (int i = 0; i < operand.operand.function.parameters.expression_count; i++) {
+            operand.operand.function.computed_array[i] = *generate_code(&operand.operand.function.parameters.array[i]);
+        }
+    }
+
+    return operand;
+}
+
 struct expr_operand init_operand_integer(int int_value){
     struct expr_operand operand;
     operand = init_operand(O_INT);
@@ -40,20 +58,18 @@ int operand_add_postfix(struct expr_operand* operand, int value){
     if(operand->prefix != 0){
         report_error(NOT_ASSIGNABLE_EXPR, "");
         return 0;
+    }else if(operand->type == O_FUNCCALL){
+        report_error(UNARY_ON_FUNCTION, operand->operand.variable);
+        return 0;
     }else if(operand->type != O_VARIABLE){
         report_error(POSTF_OPERATOR_NOT_USABLE, value > 0 ? "++" : "--");
         return 0;
     }else{
         struct Declarator declarator = hash__get_item(&scope, operand->operand.variable);
         if(declarator.decl_type != -1) {
-            if (declarator.decl_type == FUNCTION) { //really ?
-                report_error(UNARY_ON_FUNCTION, operand->operand.variable);
+            if (!declarator.declarator.variable.initialized) {
+                report_warning(UNARY_ON_UNINIT, operand->operand.variable);
                 return 0;
-            } else {
-                if (!declarator.declarator.variable.initialized) {
-                    report_warning(UNARY_ON_UNINIT, operand->operand.variable);
-                    return 0;
-                }
             }
         }
 
@@ -320,89 +336,23 @@ short int is_already_computed(struct Expression* e){
     return (e->code != NULL && e->code->code != NULL);
 }
 
-/*
-enum WARNING_TYPE verify_leaf_type(struct expr_operand operand, enum OPERAND_TYPE main_type){
-    enum OPERAND_TYPE temp_type = operand.type;
-    
-    
-    if(temp_type != main_type){
-        if(main_type == O_INT){
-            return ASSIGN_DOUBLE_TO_INT;
-        }else if(main_type == O_DOUBLE){
-            return ASSIGN_INT_TO_DOUBLE; // On s'en fout normalement non ?
-        }
-    }
 
-    return -1;
+struct Expression_array create_expression_array(struct Expression expression){
+    struct Expression_array array;
+    array.size = DEFAULT_EXPR_ARRAY_SIZE;
+    array.array = malloc(sizeof(struct Expression)* array.size);
+    array.expression_count = 1;
+
+    array.array[0] = expression;
+
+    return array;
 }
 
-enum OPERAND_TYPE type_to_optype(enum TYPE type){
-    switch(type){
-        case T_INT:
-            return O_INT;
-        case T_DOUBLE:
-            return O_DOUBLE;
-        default:
-            return -1;
+void add_expression_to_array(struct Expression_array* array, struct Expression expression){
+    if(array->expression_count == array->size-1) {
+        array->size *= 2;
+        array->array = realloc(array->array, sizeof(struct Expression)* array->size);
     }
+
+    array->array[array->expression_count++] = expression;
 }
-*/
-
-/*
-int is_conditional_expr_leaf(struct Expression* expression){
-    if(expression->type == E_CONDITIONAL){
-        if(expression->conditional_expression.type == C_LEAF)
-            return 1;
-    }
-
-    return 0;
-}*/
-
-/*
-enum WARNING_TYPE verify_expression_type(enum OPERAND_TYPE main_type, struct Expression* expression){
-    //No cast needed first (ehehe, we didn't analyze anything)
-    expression->needed_cast = NO_CAST;
-    printf("EXPRESSION TYPE = %d", expression->conditional_expression.type);
-    //If the expression is just conditional and is a leaf
-    if(is_conditional_expr_leaf(expression)){
-            //Then we verify the type of the leaf accord to the main assignation type.
-            printf("VERIFYING LEAF leaf");
-            return verify_leaf_type(expression->conditional_expression.leaf, main_type);
-    }else if(expression->type == E_CONDITIONAL){
-        //Recursive, we call it until we have a leaf
-        enum WARNING_TYPE returned = -1;
-        if(is_conditional_expr_leaf(expression->conditional_expression.branch.e_left)){
-            printf("NEXT IS LEAF");
-            returned = verify_expression_type(main_type, expression->conditional_expression.branch.e_left);
-            //If after verification types are different
-            if(returned != -1){
-                //We do the cast accordingly to what warning error the verification returned
-                modify_expression_cast_type(expression, returned);
-            }
-        }else{
-            //If it's not a leaf we do not care of the returned value, and we simply just go on
-            //(but we return the value to know what error it was)
-            returned = verify_expression_type(main_type, expression->conditional_expression.branch.e_left);
-        }
-
-        //We do the same for right branch
-        if(is_conditional_expr_leaf(expression->conditional_expression.branch.e_right)){
-            returned = verify_expression_type(main_type, expression->conditional_expression.branch.e_right);
-            //If after verification types are different
-            if(returned != -1){
-                //We do the cast accordingly to what warning error the verification returned
-                modify_expression_cast_type(expression, returned);
-            }
-        }else{
-            returned = verify_expression_type(main_type, expression->conditional_expression.branch.e_right);
-        }
-
-        //If one of the returned values is not -1, or if the two are not -1 it doesn't change anything
-        //because there is only one main type for this expresison so only one type cannot be the good 
-        //one (because we have only 2 main types) , so if there's at least one cast needed it's ok.
-
-        return returned;
-    }else if(expression->type == E_AFFECT){
-
-    }
-}*/

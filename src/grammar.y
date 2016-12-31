@@ -247,7 +247,7 @@ expression
             if($2 == establish_expression_final_type(&$4)){
                 report_warning(USELESS_CAST, "");
             }else{
-                //TODO faire le cast
+                //TODO faire le cast.. mais comme $4 a déjà été évalué... XD
                 debug("CAST", BLUE);
             }
             $$ = $4;

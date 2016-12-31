@@ -239,7 +239,9 @@ expression
         $$.code->reg = -1;
     }
 }
-| '(' type_name ')' conditional_expression {
+/*| '(' type_name ')' conditional_expression {
+    //TODO faudrait peut-être avoir une nouvelle règle cast qui définirait une variable globale pour le prochain cast..
+    // Et encore ça pose des problèmes puisqu'on évalue de bas en haut.La "Prochaine expression" n'est donc pas la bonne
     if($2 == T_VOID){
         report_error(VOID_ASSIGN, "");
     }else{
@@ -260,7 +262,7 @@ expression
             $$.code->reg = -1;
         }
     }
-}
+}*/
 ;
 
 assignment_operator

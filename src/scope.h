@@ -40,6 +40,7 @@ struct Declarator* hash__get_item_reference(struct Scope* hashmap, char*key);
 int hash__item_find_position(struct Scope* hashmap, char *key, int level);
 bool hash__add_item(struct Scope *hashmap, char *key, struct Declarator declarator);
 bool hash__add_item_function(struct Scope *hashmap, struct Declarator declarator);
+bool hash__add_item_extern_function(struct Scope *hashmap, char* key, struct Declarator declarator);
 void hash__clean_level(struct Scope *hashmap, int level);
 void hash__prepare_upper_level(struct Scope *hashmap);
 bool hash__upper_level(struct Scope *hashmap);

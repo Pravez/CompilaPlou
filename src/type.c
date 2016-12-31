@@ -145,6 +145,8 @@ char* type_of(enum LLVM_TYPE type){
             return "double";
         case LLVM_I8:
             return "i8";
+        case LLVM_VOID:
+            return "void";
         default:
             break;
     }
@@ -159,6 +161,8 @@ enum LLVM_TYPE llvm__convert(enum TYPE type){
         case T_DOUBLE:
             return LLVM_DOUBLE;
         case T_VOID:
+            return LLVM_VOID;
+        default:
             break;
     }
 

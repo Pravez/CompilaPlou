@@ -1,8 +1,6 @@
 int main(){
-    int a;
-    a = 5;
+    int a = 0;
+    a = 5.0;
 
-    if(a == 5){
-        a = 6;
-    }
+    stroke();
 }

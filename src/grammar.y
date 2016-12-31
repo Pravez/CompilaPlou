@@ -12,6 +12,7 @@
 #include "hash.h"
 #include "expression.h"
 #include "errors.h"
+#include "external_function.h"
 
 extern int yylineno;
 int yylex ();
@@ -467,7 +468,8 @@ jump_statement
 ;
 
 program
-: program_parts { llvm__fusion_programs(&program, &$1); }
+: program_parts { struct llvm__program extern_funcs = add_external_functions_declaration(); 
+            llvm__fusion_programs(&program, &extern_funcs); llvm__fusion_programs(&program, &$1); }
 ;
 
 program_parts
@@ -547,17 +549,17 @@ int main (int argc, char *argv[]) {
         return 1;
     }
 
-    yyparse ();
-    fclose(input);
+    init_external_functions_declaration();
+    add_p5_functions();
 
     //First we verify errors
-    if(verify_no_error(file_name)){
+    if(yyparse() == 0 && verify_no_error(file_name)){
         //Then we create code
         printf("Writing program ...\n");
         write_file(&program, file_name_output);
     }
 
-
+    fclose(input);
 
     return 0;
 }

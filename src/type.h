@@ -51,7 +51,8 @@ enum LLVM_TYPE{
     LLVM_I8, //Character
     LLVM_I32_PTR,
     LLVM_DOUBLE_PTR,
-    LLVM_I8_PTR
+    LLVM_I8_PTR,
+    LLVM_VOID
 };
 
 //////Variables

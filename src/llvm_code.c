@@ -1,5 +1,6 @@
 #define _GNU_SOURCE
 #include "llvm_code.h"
+#include "external_function.h"
 #include <stdlib.h>
 #include <stdio.h>
 #include <stdarg.h>
@@ -316,6 +317,32 @@ struct llvm__program do_jump(int float_or_int, int condition, union COMPARATOR c
     llvm__program_add_line(&jump, br_line);
 
     return jump;
+}
+
+struct llvm__program add_external_functions_declaration(){
+    struct llvm__program functions;
+    llvm__init_program(&functions);
+
+    for(int i = 0;i < external_functions.functions_number; i++){
+        if(external_functions.extern_functions[i].to_add){
+            char* parameters = "";
+            for(int j = 0; j < external_functions.extern_functions[i].function.var_list_size;j++){
+                if(j == external_functions.extern_functions[i].function.var_list_size - 1)
+                    parameters = concatenate_strings(2, parameters,
+                    type_of(llvm__convert(external_functions.extern_functions[i].function.var_list[j].type)));
+                else
+                    parameters = concatenate_strings(3, parameters,
+                                    type_of(llvm__convert(external_functions.extern_functions[i].function.var_list[j].type)), ", ");
+            }
+            char* function_line;
+            asprintf(&function_line, "declare %s @%s(%s)", type_of(llvm__convert(external_functions.extern_functions[i].function.return_type)),
+                     external_functions.extern_functions[i].function.identifier, parameters);
+            llvm__program_add_line(&functions, function_line);
+            llvm__program_add_line(&functions, "\n");
+        }
+    }
+
+    return functions;
 }
 
 void write_file(struct llvm__program* main_program, char* filename){

@@ -43,6 +43,7 @@ struct llvm__program* generate_if_code(struct Expression* condition, struct llvm
 struct llvm__program* generate_ifelse_code(struct Expression* condition, struct llvm__program* statement_if, struct llvm__program* statement_else);
 struct llvm__program do_jump(int float_or_int, int condition, union COMPARATOR comparator, int labeltrue, int labelfalse);
 
+struct llvm__program add_external_functions_declaration();
 
 void write_file(struct llvm__program* main_program, char* filename);
 

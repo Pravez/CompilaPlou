@@ -69,6 +69,7 @@ enum REG_LOGICAL_OP{
     REG_LOR      /* || in c */
 };
 
+struct computed_expression;
 
 char* load_int(int reg, int value);
 char* load_double(int reg, double value);
@@ -90,4 +91,5 @@ char* label_to_string(int label, int br_precedes, char* comment);
 char* true_comp(int reg);
 char* jump_to(int label);
 
+char* return_expr(struct computed_expression* e);
 #endif

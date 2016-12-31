@@ -51,7 +51,7 @@ struct Expression{
             };
         }conditional_expression;
     };
-    struct computed_expression* code;
+    struct computed_expression* code; //Declared in llvm_code.h
 };
 
 struct expr_operand init_operand(enum OPERAND_TYPE type);

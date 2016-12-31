@@ -369,7 +369,7 @@ statement
 | expression_statement      {printf("--- statement CODE ---\n"); $$ = $1; llvm__print(&$1); printf("--- END  statement ---\n");}
 | selection_statement       {printf("--- statement IF OR FOR ---\n");$$ = $1; llvm__print(&$1); printf("--- END  statement ---\n");}
 | iteration_statement       {printf("--- statement WHILE ---\n"); $$ = $1; llvm__print(&$1);printf("--- END  statement ---\n");}
-| jump_statement            {printf("\n\t\t\treturn. FAUT SORTIR !\n\n");}
+| jump_statement            { $$ = $1; printf("\n\t\t\treturn. FAUT SORTIR !\n\n");}
 ;
 
 LB
@@ -436,8 +436,23 @@ iteration_statement
 ;
 
 jump_statement
-: RETURN ';' {}
-| RETURN expression ';' {}
+: RETURN ';' { llvm__init_program(&$$); llvm__program_add_line(&$$, "ret void");}
+| RETURN expression ';' {
+    if($2.type != -1){
+        struct computed_expression* e = generate_code(&$2);
+
+        if(false/*establish_expression_final_type(&$2) != type retour fonction*/){
+            debug("faut cast hahahaha\n", RED);
+        }
+
+        print_tree(&$2);
+        printf("\n");
+        $$ = *e->code;
+        llvm__program_add_line(&$$, return_expr(e));
+    }else{
+        debug("merde 585768754", RED);
+    }
+}
 ;
 
 program

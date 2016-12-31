@@ -1,6 +1,8 @@
 #define _GNU_SOURCE
 #include "reg_operation.h"
+
 #include <stdio.h>
+#include "llvm_code.h"
 
 #define TO_LLVM_STRING(type) type_of(llvm__convert(type))
 
@@ -349,4 +351,9 @@ char* jump_to(int label){
     char* jump;
     asprintf(&jump, "br label %%label%d", label);
     return jump;
+}
+char* return_expr(struct computed_expression* e){
+    char* ret;
+    asprintf(&ret, "ret %s %%x%d", TO_LLVM_STRING(e->type), e->reg);
+    return ret;
 }

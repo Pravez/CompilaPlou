@@ -28,7 +28,8 @@ enum WARNING_TYPE{
     ASSIGN_DOUBLE_TO_INT,
     ASSIGN_INT_TO_DOUBLE,
     UNARY_ON_UNINIT,
-    UNINTIALIZED_VAR
+    UNINTIALIZED_VAR,
+    USELESS_CAST
 };
 
 extern void yyerror (char const*);

@@ -121,6 +121,10 @@ void report_warning(enum WARNING_TYPE type, void* data){
             warning = concatenate_strings(3, "Using variable \033[35;1m", identifier,
                                           "\033[0m which has never been initialized");
             break;
+        case USELESS_CAST:
+            warning = "Cast has no effect"; allocated = 0;
+            break;
+
     }
 
     char* result = concatenate_strings(2, "\033[35;1mWARNING\033[0m : ", warning);

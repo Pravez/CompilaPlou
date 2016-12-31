@@ -239,6 +239,28 @@ expression
         $$.code->reg = -1;
     }
 }
+| '(' type_name ')' conditional_expression {
+    if($2 == T_VOID){
+        report_error(VOID_ASSIGN, "");
+    }else{
+        if($4.type != -1){
+            if($2 == establish_expression_final_type(&$4)){
+                report_warning(USELESS_CAST, "");
+            }else{
+                //TODO faire le cast
+                debug("CAST", BLUE);
+            }
+            $$ = $4;
+        }else{
+            // Undeclared variable... Keep going to look for more errors.
+            struct llvm__program empty;
+            llvm__init_program(&empty);
+            $$.code->code = &empty;
+            $$.code->type = T_VOID;
+            $$.code->reg = -1;
+        }
+    }
+}
 ;
 
 assignment_operator

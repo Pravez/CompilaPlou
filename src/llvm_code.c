@@ -7,6 +7,7 @@
 #include <string.h>
 
 #define TO_LLVM_STRING(type) type_of(llvm__convert(type))
+#define GET_VAR_TYPE(ptr_scope, var_id) hash__get_item(ptr_scope, var_id).declarator.variable.type
 
 void llvm__init_program(struct llvm__program* program){
     program->line_number = 0;
@@ -63,6 +64,48 @@ char* llvm___create_function_def(struct Function function){
 
     return definition;
 }
+/**
+ *
+ * @param code
+ * @param e1
+ * @param e2
+ * @return true if conversion occured, false if not
+ */
+short int convert_if_needed(struct llvm__program* code, struct computed_expression* e1, struct computed_expression* e2){
+    if(e1->type != e2->type){
+        if(e1->type == T_DOUBLE){
+            debug("CONVERT !", GREEN);
+            int reg = new_register();
+            llvm__program_add_line(code, convert_reg(e2->reg, e2->type, reg, e1->type));
+            e2->type = e1->type;
+            e2->reg = reg;
+            return true;
+        }
+        if(e2->type == T_DOUBLE){
+            debug("CONVERT !", GREEN);
+            int reg = new_register();
+            llvm__program_add_line(code, convert_reg(e1->reg, e1->type, reg, e2->type));
+            e1->type = e2->type;
+            e1->reg = reg;
+            return true;
+        }
+        // Should not happend
+        debug("ERROR 91897188772", RED);
+        return false;
+    }
+    return false;
+}
+short int convert_computed_expr_to_typ_if_needed(struct llvm__program* code, struct computed_expression* e, enum TYPE t){
+    if(e->type != t){
+        debug("CONVERT", GREEN);
+        int reg = new_register();
+        llvm__program_add_line(code, convert_reg(e->reg, e->type, reg, t));
+        e->type = t;
+        e->reg = reg;
+        return true;
+    }
+    return false;
+}
 
 struct computed_expression* generate_code(struct Expression* e){
     printf("generate_expression : "); print_tree(e); printf(" => ");
@@ -71,7 +114,7 @@ struct computed_expression* generate_code(struct Expression* e){
     ret->code = malloc(sizeof(struct llvm__program));
     llvm__init_program(ret->code);
 
-    if(e->type == E_CONDITIONAL && e->conditional_expression.type == C_LEAF){
+    if(e->type == E_CONDITIONAL && e->conditional_expression.type == C_LEAF){ // Operand
         printf("operande\n");
         struct expr_operand* o = &e->conditional_expression.leaf;
         switch(o->type){
@@ -88,14 +131,14 @@ struct computed_expression* generate_code(struct Expression* e){
             case O_VARIABLE:
                 printf("cherche pour la variable %s...\n", o->operand.variable);
                 ret->reg = hash_lookup(&CURRENT_LOADED_REGS, o->operand.variable);
-                ret->type = hash__get_item(&scope, o->operand.variable).declarator.variable.type;
+                ret->type = GET_VAR_TYPE(&scope, o->operand.variable);
                 if(ret->reg == HASH_FAIL) {
                     ret->reg = new_register();
                     llvm__program_add_line(ret->code,load_var(ret->reg, o->operand.variable));
                     hash_insert(&CURRENT_LOADED_REGS,o->operand.variable, ret->reg); // new register of variable
                 }
         }
-    }else if(e->type == E_CONDITIONAL){
+    }else if(e->type == E_CONDITIONAL){ // Operation
         printf("operatioon\n");
         struct computed_expression* left = generate_code(e->conditional_expression.branch.e_left);
         struct computed_expression* right = generate_code(e->conditional_expression.branch.e_right);
@@ -103,11 +146,13 @@ struct computed_expression* generate_code(struct Expression* e){
         llvm__fusion_programs(ret->code, left->code);
         llvm__fusion_programs(ret->code, right->code);
 
-        if(left->type != right->type){
-            printf("ahahahah. mdr. faut convertir les types.\n");
+        //CONVERSION IF NEEDED
+        if(convert_if_needed(ret->code, right, left)){
+            //TODO report erreur ? ou on le fait plus haut, c'est plus logique ?
         }
 
         ret->reg = new_register();
+
         ret->type = left->type;
 
         char* operation_code = operation_on_regs(operator, ret->reg, left->reg, right->reg, ret->type);
@@ -122,21 +167,25 @@ struct computed_expression* generate_code(struct Expression* e){
         printf("affect\n");
         //register is no longer up to date.
         hash_delete(&CURRENT_LOADED_REGS, e->expression.operand.operand.variable);
+        //return type is the affected variable type
+        ret->type = GET_VAR_TYPE(&scope, e->expression.operand.operand.variable);
+
         //if next nested expression is an affectation, it has already been computed
         if(e->expression.cond_expression->type == E_AFFECT ||
                 (is_already_computed(e->expression.cond_expression))){
             print_tree(e->expression.cond_expression);
             printf(" est une expression déjà calculée dans %%x%d.\n", e->expression.cond_expression->code->reg);
 
+            convert_computed_expr_to_typ_if_needed(ret->code, e->expression.cond_expression->code, ret->type);
             ret->reg = e->expression.cond_expression->code->reg;
-            ret->type = e->expression.cond_expression->code->type;
         }else {
             struct computed_expression *affected_value = generate_code(e->expression.cond_expression);
 
+            convert_computed_expr_to_typ_if_needed(affected_value->code, affected_value, ret->type);
+
             ret->reg = affected_value->reg;
-            ret->type = hash__get_item(&scope, e->expression.operand.operand.variable).declarator.variable.type;
-            //TODO check même type ?
             llvm__fusion_programs(ret->code, affected_value->code);
+
             free(affected_value);
         }
         switch (e->expression.assign_operator) {

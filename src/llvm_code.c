@@ -118,6 +118,10 @@ struct computed_expression* generate_code(struct Expression* e){
     if(e->type == E_CONDITIONAL && e->conditional_expression.type == C_LEAF){ // Operand
         printf("operande\n");
         struct expr_operand* o = &e->conditional_expression.leaf;
+
+        int args_regs[o->operand.function.parameters.expression_count];
+        enum TYPE args_types[o->operand.function.parameters.expression_count];
+
         switch(o->type){
             case O_INT:
                 ret->reg = new_register();
@@ -139,13 +143,13 @@ struct computed_expression* generate_code(struct Expression* e){
                     hash_insert(&CURRENT_LOADED_REGS,o->operand.variable, ret->reg); // new register of variable
                 }
                 break;
-
             case O_FUNCCALL_ARGS:
-                ret->reg = new_register();
                 ret->type = hash__get_item(&scope, o->operand.function.name).declarator.function.return_type;
+                if(ret->type == T_VOID)
+                    ret->reg = -1;
+                else
+                    ret->reg = new_register();
 
-                int args_regs[o->operand.function.parameters.expression_count];
-                enum TYPE args_types[o->operand.function.parameters.expression_count];
                 for(int i = 0;i < o->operand.function.parameters.expression_count; i++){
                     llvm__fusion_programs(ret->code, o->operand.function.computed_array[i].code);
                     args_regs[i] = o->operand.function.computed_array[i].reg;
@@ -154,9 +158,6 @@ struct computed_expression* generate_code(struct Expression* e){
 
                 llvm__program_add_line(ret->code, call_function(ret->reg, o->operand.function.name, ret->type, args_types,
                                                                 args_regs, o->operand.function.parameters.expression_count));
-                break;
-            case O_FUNCCALL:
-                //TO CONTINUE
                 break;
         }
     }else if(e->type == E_CONDITIONAL){ // Operation

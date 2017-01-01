@@ -22,7 +22,7 @@ struct expr_operand init_operand_identifier(char* variable){
 
 struct expr_operand init_operand_function(char* name, struct Expression_array *array){
     struct expr_operand operand;
-    operand = init_operand(array == NULL ? O_FUNCCALL : O_FUNCCALL_ARGS);
+    operand = init_operand(O_FUNCCALL_ARGS);
     operand.operand.function.name = name;
 
     if(array != NULL) {
@@ -33,6 +33,8 @@ struct expr_operand init_operand_function(char* name, struct Expression_array *a
         for (int i = 0; i < operand.operand.function.parameters.expression_count; i++) {
             operand.operand.function.computed_array[i] = *generate_code(&operand.operand.function.parameters.array[i]);
         }
+    }else{
+        operand.operand.function.parameters.expression_count = 0;
     }
 
     return operand;
@@ -58,7 +60,7 @@ int operand_add_postfix(struct expr_operand* operand, int value){
     if(operand->prefix != 0){
         report_error(NOT_ASSIGNABLE_EXPR, "");
         return 0;
-    }else if(operand->type == O_FUNCCALL){
+    }else if(operand->type == O_FUNCCALL_ARGS){
         report_error(UNARY_ON_FUNCTION, operand->operand.variable);
         return 0;
     }else if(operand->type != O_VARIABLE){
@@ -114,6 +116,9 @@ void print_operand(struct expr_operand operand){
             break;
         case O_DOUBLE:
             printf("%f ", operand.operand.double_value);
+            break;
+        case O_FUNCCALL_ARGS:
+            printf("%s ", operand.operand.function.name);
             break;
     }
 }
@@ -300,24 +305,30 @@ enum TYPE establish_expression_final_type(struct Expression* expression){
 }
 
 enum TYPE get_operand_type(struct expr_operand operand){
-    struct Declarator variable;
+    struct Declarator func_or_var;
     switch(operand.type){
         case O_INT:
             return T_INT;
         case O_DOUBLE:
             return T_DOUBLE;
         case O_VARIABLE:
-            variable = hash__get_item(&scope, operand.operand.variable);
-            if(variable.decl_type != -1) {
-                if (variable.decl_type == FUNCTION) {
-                    return variable.declarator.function.return_type;
-                }else {
-                    if(!variable.declarator.variable.initialized)
-                        report_warning(UNINTIALIZED_VAR, variable.declarator.variable.identifier);
-                    return variable.declarator.variable.type;
+            func_or_var = hash__get_item(&scope, operand.operand.variable);
+            if(func_or_var.decl_type != -1) {
+                if (func_or_var.decl_type == VARIABLE){
+                    if(!func_or_var.declarator.variable.initialized)
+                        report_warning(UNINTIALIZED_VAR, func_or_var.declarator.variable.identifier);
+                    return func_or_var.declarator.variable.type;
                 }
             }
-
+            break;
+        case O_FUNCCALL_ARGS:
+            func_or_var = hash__get_item(&scope, operand.operand.function.name);
+            if(func_or_var.decl_type != -1) {
+                if (func_or_var.decl_type == FUNCTION) {
+                    return func_or_var.declarator.function.return_type;
+                }
+            }
+            break;
     }
 
     return -1;

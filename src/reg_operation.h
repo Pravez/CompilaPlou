@@ -71,8 +71,7 @@ enum REG_LOGICAL_OP{
 
 char* load_int(int reg, int value);
 char* load_double(int reg, double value);
-char* call_function(int reg, char* function_name, enum TYPE func_type);
-char* call_function_args(int reg, char* function_name, enum TYPE func_type, enum TYPE* args_types, int* args_regs, int args_qty);
+char* call_function(int reg, char* function_name, enum TYPE func_type, enum TYPE* args_types, int* args_regs, int args_qty);
 
 short int is_binary_op(enum COND_OPERATOR o);
 short int is_bitwise_op(enum COND_OPERATOR o);

@@ -21,18 +21,7 @@ char* load_double(int reg, double value){
     return code;
 }
 
-char* call_function(int reg, char* function_name, enum TYPE func_type){
-    char* code;
-    char reg_code[10];
-    if(reg != -1){
-        sprintf(reg_code, "%%x%d = ", reg);
-    }
-
-    asprintf(&code, "%scall %s @%s()", reg_code, type_of(llvm__convert(func_type)), function_name);
-    return code;
-}
-
-char* call_function_args(int reg, char* function_name, enum TYPE func_type, enum TYPE* args_types, int* args_regs, int args_qty){
+char* call_function(int reg, char* function_name, enum TYPE func_type, enum TYPE* args_types, int* args_regs, int args_qty){
     char* code;
     char* args;
     char reg_code[10];
@@ -40,13 +29,17 @@ char* call_function_args(int reg, char* function_name, enum TYPE func_type, enum
         sprintf(reg_code, "%%x%d = ", reg);
     }
 
-    for(int i = 0;i < args_qty;i++){
-        char* char_reg[3];
-        sprintf(char_reg, "%d", args_regs[i]);
-        if(i == args_qty - 1)
-            args = concatenate_strings(5, args, type_of(llvm__convert(args_types[i])), " %x", char_reg);
-        else
-            args = concatenate_strings(6, args, type_of(llvm__convert(args_types[i])), " %x", char_reg, ", ");
+    if(args_qty == 0) {
+        args = "";
+    }else {
+        for (int i = 0; i < args_qty; i++) {
+            char char_reg[3];
+            sprintf(char_reg, "%d", args_regs[i]);
+            if (i == args_qty - 1)
+                args = concatenate_strings(5, args, type_of(llvm__convert(args_types[i])), " %x", char_reg);
+            else
+                args = concatenate_strings(6, args, type_of(llvm__convert(args_types[i])), " %x", char_reg, ", ");
+        }
     }
 
     asprintf(&code, "%scall %s @%s(%s)", reg_code, type_of(llvm__convert(func_type)), function_name, args);

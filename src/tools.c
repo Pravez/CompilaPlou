@@ -79,10 +79,15 @@ char* concatenate_strings(int qty, ...){
     final[0] = '\0';
 
     for(int i=0;i<qty;i++){
-        strcat(final, va_arg(list, char*));
+        m_strcat(final, va_arg(list, char*));
     }
-    final[total_length-1] = '\0'; // theoretically, no use of that line, but anyway...
 
     va_end(list);
     return final;
+}
+
+char* m_strcat(char* dest, char* src){
+    while (*dest) dest++;
+    while (*dest++ = *src++);
+    return --dest;
 }

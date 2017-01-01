@@ -61,5 +61,7 @@ int new_label();
  */
 char* concatenate_strings(int qty, ...);
 
+char* m_strcat(char* dest, char* src);
+
 
 #endif //PROJET_COMPILATION_TOOLS_H

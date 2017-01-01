@@ -32,13 +32,15 @@ char* call_function(int reg, char* function_name, enum TYPE func_type, enum TYPE
     if(args_qty == 0) {
         args = "";
     }else {
+        args = "\0";
         for (int i = 0; i < args_qty; i++) {
-            char char_reg[3];
+            char char_reg[10];
+            char_reg[0] = '\n';
             sprintf(char_reg, "%d", args_regs[i]);
             if (i == args_qty - 1)
-                args = concatenate_strings(5, args, type_of(llvm__convert(args_types[i])), " %x", char_reg);
+                args = concatenate_strings(4, args, type_of(llvm__convert(args_types[i])), " %x", char_reg);
             else
-                args = concatenate_strings(6, args, type_of(llvm__convert(args_types[i])), " %x", char_reg, ", ");
+                args = concatenate_strings(5, args, type_of(llvm__convert(args_types[i])), " %x", char_reg, ", ");
         }
     }
 

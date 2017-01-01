@@ -52,13 +52,14 @@ char* llvm___create_function_def(struct Function function){
     char *definition;
 
     char* args = malloc(sizeof(char) * 256);
+    args[0] = '\0';
 
     for(int i=0;i< function.var_list_size;i++){
-        strcat(args, TO_LLVM_STRING(function.var_list[i].type));
-        strcat(args, " %");
-        strcat(args, function.var_list[i].identifier);
+        m_strcat(args, TO_LLVM_STRING(function.var_list[i].type));
+        m_strcat(args, " %");
+        m_strcat(args, function.var_list[i].identifier);
         if(i != function.var_list_size - 1)
-            strcat(args, ", ");
+            m_strcat(args, ", ");
     }
 
     asprintf(&definition, "define %s @%s(%s) {", TO_LLVM_STRING(function.return_type), function.identifier, args);
@@ -157,7 +158,6 @@ struct computed_expression* generate_code(struct Expression* e){
 
                 for(int i = 0;i < o->operand.function.parameters.expression_count; i++){
                     llvm__fusion_programs(ret->code, o->operand.function.computed_array[i].code);
-                    printf("REGISTER %d\n", o->operand.function.computed_array[i].reg);
                     args_regs[i] = o->operand.function.computed_array[i].reg;
                     args_types[i] = o->operand.function.computed_array[i].type;
                 }
@@ -166,6 +166,12 @@ struct computed_expression* generate_code(struct Expression* e){
                                                                 args_regs, o->operand.function.parameters.expression_count));
                 break;
         }
+
+        if(o->type == O_FUNCCALL_ARGS) {
+            free(args_regs);
+            free(args_types);
+        }
+
     }else if(e->type == E_CONDITIONAL){ // Operation
         printf("operatioon\n");
         struct computed_expression* left = generate_code(e->conditional_expression.branch.e_left);

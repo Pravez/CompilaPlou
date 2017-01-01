@@ -119,8 +119,13 @@ struct computed_expression* generate_code(struct Expression* e){
         printf("operande\n");
         struct expr_operand* o = &e->conditional_expression.leaf;
 
-        int args_regs[o->operand.function.parameters.expression_count];
-        enum TYPE args_types[o->operand.function.parameters.expression_count];
+        int* args_regs;
+        enum TYPE* args_types;
+
+        if(o->type == O_FUNCCALL_ARGS) {
+            int args_regs = (int) malloc(sizeof(int)*o->operand.function.parameters.expression_count);
+            enum TYPE args_types = (enum TYPE) malloc(sizeof(enum TYPE)*o->operand.function.parameters.expression_count);
+        }
 
         switch(o->type){
             case O_INT:

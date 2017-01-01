@@ -1,6 +1,6 @@
 LEX=lex
 YACC=bison
-CFLAGS=-Wall -std=gnu99
+CFLAGS=-Wall -std=gnu99 -g
 CC=gcc
 
 all:clean parse

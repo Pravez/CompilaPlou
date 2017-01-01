@@ -25,19 +25,51 @@ struct expr_operand init_operand_function(char* name, struct Expression_array *a
     operand = init_operand(O_FUNCCALL_ARGS);
     operand.operand.function.name = name;
 
+
     if(array != NULL) {
         operand.operand.function.parameters = *array;
         operand.operand.function.computed_array = malloc(sizeof(struct computed_expression) * array->expression_count);
 
         for (int i = 0; i < operand.operand.function.parameters.expression_count; i++) {
             operand.operand.function.computed_array[i] = *generate_code(&operand.operand.function.parameters.array[i]);
-            printf("FUNCTION %s, line %s\n", name, operand.operand.function.computed_array[i].code->code[0]);
+
         }
     }else{
         operand.operand.function.parameters.expression_count = 0;
     }
 
     return operand;
+}
+
+int is_corresponding_to_function(struct expr_operand* operand){
+    struct Declarator function = hash__get_item(&scope, operand->operand.function.name);
+
+    //Check it is a function
+    if(function.decl_type == FUNCTION){
+        //Check it has same parameters number
+        if(function.declarator.function.var_list_size == operand->operand.function.parameters.expression_count){
+            enum TYPE arg_type;
+            enum TYPE expr_type;
+            //Check parameters have same type
+            for(int i = 0;i < operand->operand.function.parameters.expression_count;i++){
+                arg_type = function.declarator.function.var_list[i].type;
+                expr_type = operand->operand.function.computed_array[i].type;
+                if(arg_type != expr_type){
+                    struct arg_wrong_type* wrong = malloc(sizeof(struct arg_wrong_type));
+                    wrong->expected = arg_type;
+                    wrong->given = expr_type;
+                    wrong->function_name = operand->operand.function.name;
+                    char arg_pos[2];
+                    arg_pos[0] = '\0';
+                    sprintf(arg_pos, "%d", i);
+                    wrong->position = arg_pos;
+                    report_warning(FUNCTION_ARG_WRONG_TYPE, (void*)wrong);
+                }
+            }
+        }
+    }
+
+    return 1;
 }
 
 struct expr_operand init_operand_integer(int int_value){

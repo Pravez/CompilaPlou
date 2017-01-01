@@ -101,6 +101,7 @@ struct Declarator declare_function(struct DeclaratorList list, char* identifier)
 void print_declarator_list(struct DeclaratorList list);
 void describe_declarator(struct Declarator decl);
 
+char* type_to_str(enum TYPE type);
 char* type_of(enum LLVM_TYPE type);
 enum LLVM_TYPE llvm__convert(enum TYPE type);
 

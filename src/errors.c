@@ -105,6 +105,7 @@ void report_warning(enum WARNING_TYPE type, void* data){
     char* warning;
     int allocated = 1;
     char* identifier;
+    struct arg_wrong_type wrong_type;
     switch(type){
         case ASSIGN_DOUBLE_TO_INT:
             identifier = (char*) data;
@@ -128,6 +129,12 @@ void report_warning(enum WARNING_TYPE type, void* data){
             break;
         case USELESS_CAST:
             warning = "Cast has no effect"; allocated = 0;
+            break;
+        case FUNCTION_ARG_WRONG_TYPE:
+            wrong_type = *(struct arg_wrong_type*)data;
+            warning = concatenate_strings(9, "Expected parameter \033[33;1m", wrong_type.position, "\033[0m of \033[33;1m", wrong_type.function_name,
+                                          "\033[0m to be \033[35;1m", type_to_str(wrong_type.expected), "\033[0m, got \033[35;1m",
+                                            type_to_str(wrong_type.given), "\033[0m instead");
             break;
 
     }

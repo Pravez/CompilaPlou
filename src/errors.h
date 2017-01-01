@@ -1,6 +1,8 @@
 #ifndef _ERRORS_H_
 #define _ERRORS_H_
 
+#include "type.h"
+
 extern int ERR_COUNT;
 
 int error_flag;
@@ -30,7 +32,15 @@ enum WARNING_TYPE{
     ASSIGN_INT_TO_DOUBLE,
     UNARY_ON_UNINIT,
     UNINTIALIZED_VAR,
-    USELESS_CAST
+    USELESS_CAST,
+    FUNCTION_ARG_WRONG_TYPE
+};
+
+struct arg_wrong_type{
+    char* position;
+    enum TYPE given;
+    enum TYPE expected;
+    char* function_name;
 };
 
 extern void yyerror (char const*);

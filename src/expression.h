@@ -77,6 +77,7 @@ struct expr_operand init_operand_identifier(char* variable);
 struct expr_operand init_operand_integer(int int_value);
 struct expr_operand init_operand_double(double double_value);
 struct expr_operand init_operand_function(char* name, struct Expression_array* array);
+int is_corresponding_to_function(struct expr_operand* operand);
 int operand_add_postfix(struct expr_operand* operand, int value);
 int operand_add_prefix(struct expr_operand* operand, int value);
 

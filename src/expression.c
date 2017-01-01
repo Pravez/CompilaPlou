@@ -27,11 +27,11 @@ struct expr_operand init_operand_function(char* name, struct Expression_array *a
 
     if(array != NULL) {
         operand.operand.function.parameters = *array;
-        operand.operand.function.computed_array = malloc(
-                sizeof(struct computed_expression) * array->expression_count);
+        operand.operand.function.computed_array = malloc(sizeof(struct computed_expression) * array->expression_count);
 
         for (int i = 0; i < operand.operand.function.parameters.expression_count; i++) {
             operand.operand.function.computed_array[i] = *generate_code(&operand.operand.function.parameters.array[i]);
+            printf("FUNCTION %s, line %s\n", name, operand.operand.function.computed_array[i].code->code[0]);
         }
     }else{
         operand.operand.function.parameters.expression_count = 0;

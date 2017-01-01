@@ -1,10 +1,10 @@
-void prout(int a){
-    int c = a + 5;
+int prout(int a){
+    return 6;
 }
 
 int main(){
     int a = 0;
-    a = a + 5;
+    a = prout(0) + 5;
     //stroke();
     //stroke();
     //background();

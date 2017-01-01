@@ -123,8 +123,8 @@ struct computed_expression* generate_code(struct Expression* e){
         enum TYPE* args_types;
 
         if(o->type == O_FUNCCALL_ARGS) {
-            int args_regs = (int) malloc(sizeof(int)*o->operand.function.parameters.expression_count);
-            enum TYPE args_types = (enum TYPE) malloc(sizeof(enum TYPE)*o->operand.function.parameters.expression_count);
+            args_regs = (int*) malloc(sizeof(int)*o->operand.function.parameters.expression_count);
+            args_types = (enum TYPE*) malloc(sizeof(enum TYPE)*o->operand.function.parameters.expression_count);
         }
 
         switch(o->type){
@@ -157,6 +157,7 @@ struct computed_expression* generate_code(struct Expression* e){
 
                 for(int i = 0;i < o->operand.function.parameters.expression_count; i++){
                     llvm__fusion_programs(ret->code, o->operand.function.computed_array[i].code);
+                    printf("REGISTER %d\n", o->operand.function.computed_array[i].reg);
                     args_regs[i] = o->operand.function.computed_array[i].reg;
                     args_types[i] = o->operand.function.computed_array[i].type;
                 }

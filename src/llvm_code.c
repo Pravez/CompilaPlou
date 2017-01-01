@@ -151,7 +151,7 @@ struct computed_expression* generate_code(struct Expression* e){
                 break;
             case O_FUNCCALL_ARGS:
                 ret->type = hash__get_item(&scope, o->operand.function.name).declarator.function.return_type;
-                if(ret->type == T_VOID)
+                if(e->conditional_expression.is_alone)
                     ret->reg = -1;
                 else
                     ret->reg = new_register();

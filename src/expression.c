@@ -61,7 +61,7 @@ int operand_add_postfix(struct expr_operand* operand, int value){
         report_error(NOT_ASSIGNABLE_EXPR, "");
         return 0;
     }else if(operand->type == O_FUNCCALL_ARGS){
-        report_error(UNARY_ON_FUNCTION, operand->operand.variable);
+        report_error(UNARY_ON_FUNCTION, operand->operand.function.name);
         return 0;
     }else if(operand->type != O_VARIABLE){
         report_error(POSTF_OPERATOR_NOT_USABLE, value > 0 ? "++" : "--");
@@ -177,6 +177,7 @@ struct Expression create_leaf(struct expr_operand operand){
     expression.type = E_CONDITIONAL;
     expression.conditional_expression.type = C_LEAF;
     expression.conditional_expression.leaf = operand;
+    expression.conditional_expression.is_alone = 0;
 
     expression.code = malloc(sizeof(struct computed_expression));
     expression.code->code = NULL;
@@ -195,6 +196,7 @@ struct Expression create_branch(enum COND_OPERATOR operator, struct Expression* 
     expression.conditional_expression.branch.operator = operator;
     expression.conditional_expression.branch.e_right = expression_left;
     expression.conditional_expression.branch.e_left = expression_right;
+    expression.conditional_expression.is_alone = 0;
 
     expression.code = malloc(sizeof(struct computed_expression));
     expression.code->code = NULL;
@@ -221,6 +223,7 @@ struct Expression create_branch_cpy(enum COND_OPERATOR operator, struct Expressi
     expression.conditional_expression.branch.operator = operator;
     expression.conditional_expression.branch.e_right = right;
     expression.conditional_expression.branch.e_left = left;
+    expression.conditional_expression.is_alone = 0;
 
     print_tree(&expression);
     printf("\n");

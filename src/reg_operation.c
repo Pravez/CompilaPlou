@@ -25,6 +25,7 @@ char* call_function(int reg, char* function_name, enum TYPE func_type, enum TYPE
     char* code;
     char* args;
     char reg_code[10];
+    reg_code[0] = '\0';
     if(reg != -1){
         sprintf(reg_code, "%%x%d = ", reg);
     }

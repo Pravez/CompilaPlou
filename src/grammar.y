@@ -414,7 +414,14 @@ statement_list
 
 expression_statement
 : ';'            {struct llvm__program empty; llvm__init_program(&empty); $$ = empty;};
-| expression ';' { if($1.code != NULL) $$ = *$1.code->code; }
+| expression ';' { 
+    if($1.type == E_CONDITIONAL){
+        $1.conditional_expression.is_alone = 1;
+        $$ = *generate_code(&$1)->code;
+    } else {
+        $$ = *$1.code->code;
+    }
+  }
 ;
 
 selection_statement

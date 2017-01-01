@@ -85,6 +85,11 @@ void report_error(enum ERROR_TYPE type, void* data){
             allocated = 0;
             error = "(\033[31;1mFATAL\033[0m) Unable to create another identifier, maximum quantity reached";
             break;
+        case FUNCTION_EXTERNAL_REGISTERED:
+            identifier = (char*) data;
+            error = concatenate_strings(3, "Impossible to declare function \033[31;1m", identifier,
+                                        "\033[0m, it has already been declared as external (probably part of p5 functions)");
+            break;
     }
 
     ERR_COUNT ++;

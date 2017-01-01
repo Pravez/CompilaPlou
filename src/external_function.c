@@ -59,3 +59,12 @@ int add_if_registered_as_external(struct Scope *hashmap, char* name){
 
     return 0;
 }
+
+int is_registered_external(char* function){
+    for(int i=0;i< external_functions.functions_number;i++){
+        if(strcmp(function, external_functions.extern_functions[i].function.identifier) == 0)
+            return 1;
+    }
+
+    return 0;
+}

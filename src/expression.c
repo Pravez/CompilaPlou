@@ -54,6 +54,7 @@ int is_corresponding_to_function(struct expr_operand* operand){
             for(int i = 0;i < operand->operand.function.parameters.expression_count;i++){
                 arg_type = function.declarator.function.var_list[i].type;
                 expr_type = operand->operand.function.computed_array[i].type;
+                //Means that an arg is wrong type
                 if(arg_type != expr_type){
                     struct arg_wrong_type* wrong = malloc(sizeof(struct arg_wrong_type));
                     wrong->expected = arg_type;
@@ -61,12 +62,30 @@ int is_corresponding_to_function(struct expr_operand* operand){
                     wrong->function_name = operand->operand.function.name;
                     char arg_pos[2];
                     arg_pos[0] = '\0';
-                    sprintf(arg_pos, "%d", i);
+                    sprintf(arg_pos, "%d", i+1);
                     wrong->position = arg_pos;
                     report_warning(FUNCTION_ARG_WRONG_TYPE, (void*)wrong);
+                    free(wrong);
                 }
             }
+            //Means that different parameters count
+        }else{
+            struct arg_wrong_type* wrong = malloc(sizeof(struct arg_wrong_type));
+            wrong->function_name = operand->operand.function.name;
+            wrong->expected = -1;
+            wrong->given = -1;
+            char arg_pos[2];
+            arg_pos[0] = '\0';
+            sprintf(arg_pos, "%d", function.declarator.function.var_list_size);
+            wrong->position = arg_pos;
+            report_error(FUNCTION_INVALID_PARAM_COUNT, (void*)wrong);
+            free(wrong);
+
+            return 0;
         }
+    }else{
+        report_error(NOT_A_FUNCTION, operand->operand.function.name);
+        return 0;
     }
 
     return 1;
@@ -244,12 +263,17 @@ struct Expression create_branch(enum COND_OPERATOR operator, struct Expression* 
 
 struct Expression create_branch_cpy(enum COND_OPERATOR operator, struct Expression expression_right, struct Expression expression_left){
     struct Expression expression;
-    expression.type = E_CONDITIONAL;
+    if(expression_left.type == -1 || expression_right.type == -1){
+        expression.type = -1;
+    }else{
+        expression.type = E_CONDITIONAL;
+    }
     struct Expression* left = malloc(sizeof(struct Expression));
     struct Expression* right = malloc(sizeof(struct Expression));
     *left = expression_left;
     *right = expression_right;
     expression.code = NULL;
+
 
     expression.conditional_expression.type = C_BRANCH;
     expression.conditional_expression.branch.operator = operator;
@@ -257,7 +281,7 @@ struct Expression create_branch_cpy(enum COND_OPERATOR operator, struct Expressi
     expression.conditional_expression.branch.e_left = left;
     expression.conditional_expression.is_alone = 0;
 
-    print_tree(&expression);
+    //print_tree(&expression);
     printf("\n");
 
     return expression;

@@ -183,42 +183,44 @@ expression
             $$.code->type = T_VOID;
             $$.code->reg = -1;
         }else if($1.type != -1){
-            char* msg;
-            asprintf(&msg, "Assigment de %s:", $1.conditional_expression.leaf.operand.variable);
-            debug(msg, GREEN);
-            free(msg);
-            if(expression_from_unary_cond(&($1.conditional_expression.leaf), $2, &$3, &$$)){
-                //TODO clean le magnifique débug <3
-                set_initialized(&scope, $1.conditional_expression.leaf.operand.variable);
+            if($3.type != -1){
+                char* msg;
+                asprintf(&msg, "Assigment de %s:", $1.conditional_expression.leaf.operand.variable);
+                debug(msg, GREEN);
+                free(msg);
+                if(expression_from_unary_cond(&($1.conditional_expression.leaf), $2, &$3, &$$)){
+                    //TODO clean le magnifique débug <3
+                    set_initialized(&scope, $1.conditional_expression.leaf.operand.variable);
 
-                struct computed_expression* e = generate_code(&$$);
-                //printf("\n\tcode:\n");
-                //llvm__print(e->code);
-                //printf("reg: %%x%d\n", e->reg);
+                    struct computed_expression* e = generate_code(&$$);
+                    //printf("\n\tcode:\n");
+                    //llvm__print(e->code);
+                    //printf("reg: %%x%d\n", e->reg);
 
-                //debug("fin 1?", GREEN);
-                // If next expression has already been calculated (it's an affectation or a cast)
-                if($3.type == E_AFFECT || is_already_computed(&$3)){
-                    //TODO je sais pas pourquoi $3.code peut être null... mais bon XD
-                    if(!is_already_computed(&$3)){
-                        debug("NE DEVRAIT PAS ARRIVER.... T.T", RED);
-                    }else{
-                        debug("pas null, la suite est une affecation ou un cast", GREEN);
-                        llvm__fusion_programs($3.code->code, e->code);
-                        free(e->code);
-                        e->code = $3.code->code;
+                    //debug("fin 1?", GREEN);
+                    // If next expression has already been calculated (it's an affectation or a cast)
+                    if($3.type == E_AFFECT || is_already_computed(&$3)){
+                        //TODO je sais pas pourquoi $3.code peut être null... mais bon XD
+                        if(!is_already_computed(&$3)){
+                            debug("NE DEVRAIT PAS ARRIVER.... T.T", RED);
+                        }else{
+                            debug("pas null, la suite est une affecation ou un cast", GREEN);
+                            llvm__fusion_programs($3.code->code, e->code);
+                            free(e->code);
+                            e->code = $3.code->code;
 
-                        /*debug("dfevrait pas arriver, je crois", RED);
-                        $3.code = malloc(sizeof(struct computed_expression));
-                        llvm__init_program($3.code->code);*/
+                            /*debug("dfevrait pas arriver, je crois", RED);
+                            $3.code = malloc(sizeof(struct computed_expression));
+                            llvm__init_program($3.code->code);*/
+                        }
                     }
-                }
-                //printf("\t fusionné: \n");
-                //llvm__print(e->code);
+                    //printf("\t fusionné: \n");
+                    //llvm__print(e->code);
 
-                $$.code = e;
-                //debug("fin 2?\n", GREEN);
-                //free(e);
+                    $$.code = e;
+                    //debug("fin 2?\n", GREEN);
+                    //free(e);
+                }
             }else{
                 report_error(NOT_ASSIGNABLE_EXPR, "");
             }
@@ -239,9 +241,11 @@ expression
         // Undeclared variable... Keep going to look for more errors.
         struct llvm__program empty;
         llvm__init_program(&empty);
-        $$.code->code = &empty;
-        $$.code->type = T_VOID;
-        $$.code->reg = -1;
+        struct computed_expression not_expr;
+        not_expr.code = &empty;
+        not_expr.type = T_VOID;
+        not_expr.reg = -1;
+        $$.code = &not_expr;
     }
 }
 | '(' type_name ')' conditional_expression {
@@ -521,7 +525,7 @@ char *file_name = NULL;
 //Voir le error handling de gnu bison et le location-type
 void yyerror (char const *s) {
     fflush (stdout);
-    fprintf (stderr, "%s:%d:%d: %s\n", file_name, yylineno, column, s);
+    fprintf (stderr, "%s:\033[1m%d\033[0m:\033[1m%d\033[0m: %s\n", file_name, yylineno, column, s);
 
     //return 0;
 }

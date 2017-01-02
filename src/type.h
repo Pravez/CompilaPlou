@@ -58,7 +58,8 @@ enum LLVM_TYPE{
 //////Variables
 struct Variable{
     enum TYPE type; // Ne peut pas être VOID
-    int initialized;
+    short int initialized;
+    short int is_func_param;
     char* identifier;
 };
 

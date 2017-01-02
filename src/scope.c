@@ -134,8 +134,11 @@ int hash__item_find_position(struct Scope* hashmap, char *key, int level){
  * @return
  */
 bool hash__add_item_function(struct Scope *hashmap, struct Declarator declarator){
-    hashmap->higher_level++;
-    hash__clean_level(hashmap, hashmap->higher_level); // clean next level
+    //Because we cannot declare a function inside a function, we always have 1 unit difference with current_level
+    if(hashmap->higher_level == hashmap->current_level) {
+        hashmap->higher_level++;
+        hash__clean_level(hashmap, hashmap->higher_level); // clean next level
+    }
 
     for(int i=0;i<declarator.declarator.function.var_list_size;i++){
         //Because the upper level is truly new, the probability to have an error is zero ?
@@ -161,6 +164,25 @@ bool hash__add_item_function(struct Scope *hashmap, struct Declarator declarator
     }
 
     return true;
+}
+
+bool hash__add_individual_item_function(struct Scope *hashmap, struct Declarator declarator){
+    if(!hash__key_exists_current(hashmap, declarator.declarator.variable.identifier)){
+        int position = hash__item_find_position(hashmap, declarator.declarator.variable.identifier, hashmap->higher_level);
+        if(position == -1){
+            return false;
+        }else{
+            //Getting the iem
+            struct hashmap_item *item = &hashmap->scope_maps[hashmap->higher_level][position];
+            item->key = declarator.declarator.variable.identifier;
+            item->value = declarator;
+
+            return true;
+        }
+    }else{
+        report_error( DEFINED_FUNC_VAR, declarator.declarator.variable.identifier);
+        return false;
+    }
 }
 
 /**

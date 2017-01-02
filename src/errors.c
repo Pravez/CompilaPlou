@@ -43,12 +43,12 @@ void report_error(enum ERROR_TYPE type, void* data){
         case POSTF_OPERATOR_NOT_USABLE:
             identifier = (char*) data;
             error = concatenate_strings(3, "Cannot use postfix operator \033[31;1m", identifier, 
-                                            "\033[0m on other thing than variable");
+                                            "\033[0m on something that is not a variable");
             break;
         case PREF_OPERATOR_NOT_USABLE:
             identifier = (char*) data;
             error = concatenate_strings(3, "Cannot use prefix operator \033[31;1m", identifier, 
-                                            "\033[0m on other thing than variable");
+                                            "\033[0m on something that is not a variable");
             break;
         case VOID_UNAUTHORIZED:
             identifier = (char*) data;

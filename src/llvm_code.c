@@ -155,11 +155,10 @@ struct computed_expression* generate_code(struct Expression* e){
             case O_VARIABLE:
                 var_name = o->operand.variable;
                 printf("cherche pour la variable %s...", var_name);
-                //DECOMMENTE ICI TODO
-                /*if(IS_FUNC_PARAM(&scope, var_name)){
+                if(IS_FUNC_PARAM(&scope, var_name)){
                     asprintf(&var_name, "%s.addr", var_name);
                     printf(" est un argument de fonction chercher %s à la place...", var_name);
-                }*/
+                }
                 printf("\n");
                 ret->reg = hash_lookup(&CURRENT_LOADED_REGS, var_name);
                 

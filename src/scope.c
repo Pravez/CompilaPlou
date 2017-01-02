@@ -440,3 +440,13 @@ bool set_initialized(struct Scope* scope, char* identifier){
 
     return false;
 }
+
+bool check_main_exists(struct Scope* scope){
+    struct Declarator main_decl = hash__get_item(scope, "main");
+    if(main_decl.decl_type == FUNCTION){
+        return true;
+    }
+
+    report_error(MAIN_NOT_EXISTING, 0);
+    return false;
+}

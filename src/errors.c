@@ -100,6 +100,9 @@ void report_error(enum ERROR_TYPE type, void* data){
         case NOT_A_FUNCTION:
             identifier = (char*) data;
             error = concatenate_strings(3, "\033[31;1m", identifier, "\033[0m is not a function");
+        case MAIN_NOT_EXISTING:
+            allocated = 0;
+            error = concatenate_strings(3, "\033[31;1mmain\033[0m function is required to start the program");
     }
 
     ERR_COUNT ++;

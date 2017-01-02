@@ -16,5 +16,3 @@
 - définitions externes
 - warnings/erreurs dans le for
 - warnings dans while, if (expression ne prenant aucune variable ...)
-- reecrire is_declared
-- verifier variable main declaree

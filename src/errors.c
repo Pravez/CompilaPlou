@@ -62,7 +62,7 @@ void report_error(enum ERROR_TYPE type, void* data){
         case FUNCTION_AS_VARIABLE:
             identifier = (char*) data;
             error = concatenate_strings(3, "Function \033[31;1m", identifier, 
-                                            "\033[0m is initialized like a variable");
+                                            "\033[0m is used like a variable");
             break;
         case FUNCTION_AS_PARAMETER:
             identifier = (char*) data;

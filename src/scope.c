@@ -394,7 +394,18 @@ void display_scope(struct Scope scope){
  * @return
  */
 bool is_declared(struct Scope *scope, char* identifier, enum DECL_TYPE type){
-    if(!hash__key_exists_all(scope, identifier)){
+    struct Declarator declarator = hash__get_item(scope, identifier);
+    if(declarator.decl_type != -1){
+        if(declarator.decl_type == type){
+            return true;
+        }else{
+            if(type == VARIABLE){
+                report_error(FUNCTION_AS_VARIABLE, identifier);
+            }else{
+                report_error(NOT_A_FUNCTION, identifier);
+            }
+        }
+    }else{
         if(type == VARIABLE){
             report_error( UNDEFINED_VAR, identifier);
         }else{
@@ -404,11 +415,9 @@ bool is_declared(struct Scope *scope, char* identifier, enum DECL_TYPE type){
                 return true;
             }
         }
-
-        return false;
     }
 
-    return true;
+    return false;
 }
 
 bool is_of_type(struct Scope *scope, char* identifier, enum TYPE type){

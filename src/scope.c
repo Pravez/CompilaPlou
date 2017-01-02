@@ -134,8 +134,11 @@ int hash__item_find_position(struct Scope* hashmap, char *key, int level){
  * @return
  */
 bool hash__add_item_function(struct Scope *hashmap, struct Declarator declarator){
-    hashmap->higher_level++;
-    hash__clean_level(hashmap, hashmap->higher_level); // clean next level
+    //Because we cannot declare a function inside a function, we always have 1 unit difference with current_level
+    if(hashmap->higher_level == hashmap->current_level) {
+        hashmap->higher_level++;
+        hash__clean_level(hashmap, hashmap->higher_level); // clean next level
+    }
 
     for(int i=0;i<declarator.declarator.function.var_list_size;i++){
         //Because the upper level is truly new, the probability to have an error is zero ?
@@ -161,6 +164,25 @@ bool hash__add_item_function(struct Scope *hashmap, struct Declarator declarator
     }
 
     return true;
+}
+
+bool hash__add_individual_item_function(struct Scope *hashmap, struct Declarator declarator){
+    if(!hash__key_exists_current(hashmap, declarator.declarator.variable.identifier)){
+        int position = hash__item_find_position(hashmap, declarator.declarator.variable.identifier, hashmap->higher_level);
+        if(position == -1){
+            return false;
+        }else{
+            //Getting the iem
+            struct hashmap_item *item = &hashmap->scope_maps[hashmap->higher_level][position];
+            item->key = declarator.declarator.variable.identifier;
+            item->value = declarator;
+
+            return true;
+        }
+    }else{
+        report_error( DEFINED_FUNC_VAR, declarator.declarator.variable.identifier);
+        return false;
+    }
 }
 
 /**
@@ -372,7 +394,18 @@ void display_scope(struct Scope scope){
  * @return
  */
 bool is_declared(struct Scope *scope, char* identifier, enum DECL_TYPE type){
-    if(!hash__key_exists_all(scope, identifier)){
+    struct Declarator declarator = hash__get_item(scope, identifier);
+    if(declarator.decl_type != -1){
+        if(declarator.decl_type == type){
+            return true;
+        }else{
+            if(type == VARIABLE){
+                report_error(FUNCTION_AS_VARIABLE, identifier);
+            }else{
+                report_error(NOT_A_FUNCTION, identifier);
+            }
+        }
+    }else{
         if(type == VARIABLE){
             report_error( UNDEFINED_VAR, identifier);
         }else{
@@ -382,11 +415,9 @@ bool is_declared(struct Scope *scope, char* identifier, enum DECL_TYPE type){
                 return true;
             }
         }
-
-        return false;
     }
 
-    return true;
+    return false;
 }
 
 bool is_of_type(struct Scope *scope, char* identifier, enum TYPE type){
@@ -416,5 +447,15 @@ bool set_initialized(struct Scope* scope, char* identifier){
         return true;
     }
 
+    return false;
+}
+
+bool check_main_exists(struct Scope* scope){
+    struct Declarator main_decl = hash__get_item(scope, "main");
+    if(main_decl.decl_type == FUNCTION){
+        return true;
+    }
+
+    report_error(MAIN_NOT_EXISTING, 0);
     return false;
 }

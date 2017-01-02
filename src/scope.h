@@ -40,6 +40,7 @@ struct Declarator* hash__get_item_reference(struct Scope* hashmap, char*key);
 int hash__item_find_position(struct Scope* hashmap, char *key, int level);
 bool hash__add_item(struct Scope *hashmap, char *key, struct Declarator declarator);
 bool hash__add_item_function(struct Scope *hashmap, struct Declarator declarator);
+bool hash__add_individual_item_function(struct Scope *hashmap, struct Declarator declarator);
 bool hash__add_item_extern_function(struct Scope *hashmap, char* key, struct Declarator declarator);
 void hash__clean_level(struct Scope *hashmap, int level);
 void hash__prepare_upper_level(struct Scope *hashmap);
@@ -53,6 +54,7 @@ bool verify_no_function(struct DeclaratorList list);
 bool is_declared(struct Scope *scope, char* identifier, enum DECL_TYPE type);
 bool is_of_type(struct Scope *scope, char* identifier, enum TYPE type);
 bool set_initialized(struct Scope* scope, char* identifier);
+bool check_main_exists(struct Scope* scope);
 
 /**For debug**/
 void display_scope(struct Scope scope);

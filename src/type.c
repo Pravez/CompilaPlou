@@ -14,6 +14,7 @@ struct Declarator init_declarator_as_variable(char* identifier){
     var.decl_type = VARIABLE;
     var.declarator.variable.identifier = identifier;
     var.declarator.variable.initialized = 0;
+    var.declarator.variable.is_func_param = 0;
 
     return var;
 }
@@ -25,6 +26,7 @@ struct DeclaratorList add_parameter(struct DeclaratorList list, struct Declarato
             report_error(VOID_UNAUTHORIZED, declarator.declarator.variable.identifier);
             return list;
         }
+        declarator.declarator.variable.is_func_param = 1;
         return add_declarator(list, declarator);
     }else{
         report_error(FUNCTION_AS_PARAMETER, declarator.declarator.function.identifier);

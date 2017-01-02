@@ -49,29 +49,34 @@ void llvm__fusion_programs(struct llvm__program* main, const struct llvm__progra
     }
 }
 
-char* llvm___create_function_def(struct Function function){
+char** llvm___create_function_def(struct Function function){
     if(!is_registered_external(function.identifier)) {
         char *definition;
 
         char *args = malloc(sizeof(char) * 256);
         args[0] = '\0';
 
+        char ** func_var_initializer = malloc(sizeof(char*) * (1+function.var_list_size));
+
         for (int i = 0; i < function.var_list_size; i++) {
             m_strcat(args, TO_LLVM_STRING(function.var_list[i].type));
             m_strcat(args, " %");
             m_strcat(args, function.var_list[i].identifier);
+            func_var_initializer[i+1] = alloca_func_param(function.var_list[i]);
             if (i != function.var_list_size - 1)
                 m_strcat(args, ", ");
         }
 
         asprintf(&definition, "define %s @%s(%s) {", TO_LLVM_STRING(function.return_type), function.identifier, args);
+        func_var_initializer[0] = definition;
 
-        return definition;
+        return func_var_initializer;
     }else{
         report_error(FUNCTION_EXTERNAL_REGISTERED, function.identifier);
-        return "";
+        return NULL;
     }
 }
+
 /**
  *
  * @param code

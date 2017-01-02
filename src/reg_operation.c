@@ -49,6 +49,21 @@ char* call_function(int reg, char* function_name, enum TYPE func_type, enum TYPE
     return code;
 }
 
+char* alloca_func_param(struct Variable variable){
+    char* new_var;
+    asprintf(&new_var, "%s.addr", variable.identifier);
+
+    char* code;
+    char* llvm_type_of = type_of(llvm__convert(variable.type));
+    asprintf(&code, "%%%s = alloca %s\nstore %s %%%s, %s* %%%s", new_var, llvm_type_of, llvm_type_of, variable.identifier, llvm_type_of, new_var);
+
+    struct Declarator declarator = { .declarator.variable = variable, .decl_type = VARIABLE };
+    //Supposed to always return true ... but we are not going to check
+    hash__add_individual_item_function(&scope, declarator);
+
+    return code;
+}
+
 /**** BINARY OP *****/
 //PRIVATE FUNCTION
 enum REG_BINARY_OP cond_op_to_binary_op(enum COND_OPERATOR o){

@@ -520,8 +520,13 @@ jump_statement
 ;
 
 program
-: program_parts { struct llvm__program extern_funcs = add_external_functions_declaration(); 
-            llvm__fusion_programs(&program, &extern_funcs); llvm__fusion_programs(&program, &$1); }
+: program_parts { 
+    if(check_main_exists(&scope)){
+        struct llvm__program extern_funcs = add_external_functions_declaration(); 
+        llvm__fusion_programs(&program, &extern_funcs); 
+        llvm__fusion_programs(&program, &$1); 
+    }
+}
 ;
 
 program_parts
@@ -543,8 +548,17 @@ function_declaration
     if(hash__add_item(&scope, $2.declarator.function.identifier, $2)){
         struct llvm__program temp;
         llvm__init_program(&temp);
-        llvm__program_add_line(&temp, llvm___create_function_def(hash__get_item(&scope, $2.declarator.function.identifier).declarator.function));
+        struct Function temp_func = hash__get_item(&scope, $2.declarator.function.identifier).declarator.function;
+        char** function_def = llvm___create_function_def(temp_func);
+        if(function_def != NULL){
+            llvm__program_add_line(&temp, function_def[0]);
+            for(int i = 0;i < temp_func.var_list_size;i++){
+                llvm__program_add_line(&temp, function_def[i+1]);
+            }
+        }
+
         $$ = temp;
+
     }}
 ;
 

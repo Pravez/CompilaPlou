@@ -554,7 +554,18 @@ external_declaration
 ;
 
 function_definition
-: function_declaration compound_statement {llvm__fusion_programs(&$1, &$2);llvm__program_add_line(&$1, "}"); $$ = $1; }
+: function_declaration compound_statement {
+    llvm__fusion_programs(&$1, &$2);
+    if(true/* && TODO return pas fait */){
+        if(current_function.return_type == T_VOID){
+            llvm__program_add_line(&$1, "ret void");
+        }else{
+            //TODO warning pas de return !
+        }
+    }
+    llvm__program_add_line(&$1, "}");
+    $$ = $1;
+}
 ;
 
 function_declaration

@@ -109,6 +109,9 @@ short int convert_if_needed(struct llvm__program* code, struct computed_expressi
     return false;
 }
 short int convert_computed_expr_to_type_if_needed(struct llvm__program* code, struct computed_expression* e, enum TYPE t){
+    if(e->type == T_VOID && t != T_VOID){
+        report_error(VOID_TYPE_USED_AS_VALUE, "");
+    }else
     if(e->type != t){
         debug("CONVERT", GREEN);
         int reg = new_register();
@@ -265,7 +268,6 @@ struct computed_expression* generate_code(struct Expression* e){
         hash_delete(&CURRENT_LOADED_REGS, e->expression.operand.operand.variable);
         //return type is the affected variable type
         ret->type = GET_VAR_TYPE(&scope, e->expression.operand.operand.variable);
-
         //if next nested expression is an affectation, it has already been computed
         if(e->expression.cond_expression->type == E_AFFECT ||
                 (is_already_computed(e->expression.cond_expression))){

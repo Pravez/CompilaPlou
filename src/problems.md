@@ -10,9 +10,9 @@
 
 ###Listing ce qu'il reste à Faire
 - Opérateur de négation (règle '-' expression)
-- faire les ++, --
 - faire les for
 - variables globales
 - définitions externes
 - warnings/erreurs dans le for
 - warnings dans while, if (expression ne prenant aucune variable ...)
+- warning si pas de return dans une fonction non void

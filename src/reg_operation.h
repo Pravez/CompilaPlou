@@ -80,6 +80,17 @@ char* binary_op_on_regs(enum REG_BINARY_OP op, int reg_dest, int reg1, int reg2,
 char* bitwise_op_on_regs(enum REG_BITWISE_OP op, int reg_dest, int reg1, int reg2, enum TYPE type);
 char* comparison_op_on_regs(union COMPARATOR op, int reg_dest, int reg1, int reg2, enum TYPE type);
 
+/**
+ *
+ * @param op
+ * @param reg_dest
+ * @param reg1
+ * @param value will be cast accordingly to type
+ * @param type
+ * @return
+ */
+char* binary_op_on_reg_const(enum REG_BINARY_OP op, int reg_dest, int reg1, double value, enum TYPE type);
+
 char* operation_on_regs(enum COND_OPERATOR op, int reg_dest, int reg1, int reg2, enum TYPE type);
 char* declare_var(char* id, enum TYPE type, short int is_global);
 char* load_var(int reg, char* id);

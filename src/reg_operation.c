@@ -89,6 +89,24 @@ char* binary_op_to_llvm_op(enum REG_BINARY_OP op, enum TYPE type){
     return llvm_op;
 }
 
+char* binary_op_on_reg_const(enum REG_BINARY_OP op, int reg_dest, int reg1, double value, enum TYPE type){
+    char *llvm_op = binary_op_to_llvm_op(op, type);
+    char *type_name = TO_LLVM_STRING(type);
+    char *code;
+    char* str_value;
+
+    if(type == T_INT)
+        asprintf(&str_value, "%d", (int) value);
+    else
+        asprintf(&str_value, "%f", value);
+
+    asprintf(&code, "%%x%d = %s %s %%x%d, %s ; coucou", reg_dest, llvm_op, type_name, reg1, str_value);
+
+    free(llvm_op);
+    free(str_value);
+    return code;
+}
+
 char* binary_op_on_regs(enum REG_BINARY_OP op, int reg_dest, int reg1, int reg2, enum TYPE type){
     char *llvm_op = binary_op_to_llvm_op(op, type);
     char *type_name = TO_LLVM_STRING(type);

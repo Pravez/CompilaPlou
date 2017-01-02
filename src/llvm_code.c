@@ -9,6 +9,7 @@
 
 #define TO_LLVM_STRING(type) type_of(llvm__convert(type))
 #define GET_VAR_TYPE(ptr_scope, var_id) hash__get_item(ptr_scope, var_id).declarator.variable.type
+#define IS_FUNC_PARAM(ptr_scope, var_id) hash__get_item(ptr_scope, var_id).declarator.variable.is_func_param
 
 void llvm__init_program(struct llvm__program* program){
     program->line_number = 0;
@@ -122,7 +123,8 @@ struct computed_expression* generate_code(struct Expression* e){
     llvm__init_program(ret->code);
 
     if(e->type == E_CONDITIONAL && e->conditional_expression.type == C_LEAF){ // Operand
-        printf("operande\n");
+        printf("operande %d var %d \n", e->conditional_expression.leaf.prefix,
+               e->conditional_expression.leaf.postfix);
         struct expr_operand* o = &e->conditional_expression.leaf;
 
         int* args_regs;
@@ -133,6 +135,7 @@ struct computed_expression* generate_code(struct Expression* e){
             args_types = (enum TYPE*) malloc(sizeof(enum TYPE)*o->operand.function.parameters.expression_count);
         }
 
+        char* var_name;
         switch(o->type){
             case O_INT:
                 ret->reg = new_register();
@@ -145,14 +148,64 @@ struct computed_expression* generate_code(struct Expression* e){
                 llvm__program_add_line(ret->code,load_double(ret->reg, o->operand.double_value));
                 break;
             case O_VARIABLE:
-                printf("cherche pour la variable %s...\n", o->operand.variable);
-                ret->reg = hash_lookup(&CURRENT_LOADED_REGS, o->operand.variable);
-                ret->type = GET_VAR_TYPE(&scope, o->operand.variable);
+                var_name = o->operand.variable;
+                printf("cherche pour la variable %s...", var_name);
+                //DECOMMENTE ICI TODO
+                /*if(IS_FUNC_PARAM(&scope, var_name)){
+                    asprintf(&var_name, "%s.addr", var_name);
+                    printf(" est un argument de fonction chercher %s à la place...", var_name);
+                }*/
+                printf("\n");
+                ret->reg = hash_lookup(&CURRENT_LOADED_REGS, var_name);
+                
+                ret->type = GET_VAR_TYPE(&scope, var_name);
                 if(ret->reg == HASH_FAIL) {
                     ret->reg = new_register();
-                    llvm__program_add_line(ret->code,load_var(ret->reg, o->operand.variable));
-                    hash_insert(&CURRENT_LOADED_REGS,o->operand.variable, ret->reg); // new register of variable
+                    llvm__program_add_line(ret->code,load_var(ret->reg, var_name));
                 }
+                //prefix and postfix modifications
+                int new_reg = 0;
+                while (o->prefix > 0){
+                    new_reg = new_register();
+                    llvm__program_add_line(ret->code, binary_op_on_reg_const(REG_ADD, new_reg, ret->reg, 1, ret->type));
+                    ret->reg = new_reg;
+                    o->prefix--;
+                }
+                while (o->prefix < 0){
+                    new_reg = new_register();
+                    llvm__program_add_line(ret->code, binary_op_on_reg_const(REG_SUB, new_reg, ret->reg, 1, ret->type));
+                    ret->reg = new_reg;
+                    o->prefix++;
+                }
+                int old_reg = 0;
+                while (o->postfix > 0){
+                    printf("a++\n");
+                    old_reg = ret->reg;
+                    new_reg = new_register();
+                    llvm__program_add_line(ret->code, binary_op_on_reg_const(REG_ADD, new_reg, ret->reg, 1, ret->type));
+                    ret->reg = new_reg;
+                    o->postfix--;
+                }
+                while (o->postfix < 0){
+                    old_reg = ret->reg;
+                    new_reg = new_register();
+                    llvm__program_add_line(ret->code, binary_op_on_reg_const(REG_SUB, new_reg, ret->reg, 1, ret->type));
+                    ret->reg = new_reg;
+                    o->postfix++;
+                }
+                // Post or Pre fix opperation used
+                if(new_reg != 0) {
+                    llvm__program_add_line(ret->code, store_var(var_name, ret->reg, ret->type));
+                    //Postfix operator used
+                    if(old_reg != 0)
+                        ret->reg = old_reg;
+                }else {
+                    new_reg = ret->reg;
+                }
+
+                hash_delete(&CURRENT_LOADED_REGS, var_name);
+                hash_insert(&CURRENT_LOADED_REGS, var_name, new_reg); // new register of variable
+
                 break;
             case O_FUNCCALL_ARGS:
                 ret->type = hash__get_item(&scope, o->operand.function.name).declarator.function.return_type;

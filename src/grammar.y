@@ -106,6 +106,7 @@ primary_expression
     $$ = create_leaf(init_operand_identifier($1));
     if(!is_declared(&scope, $1, VARIABLE)){
         $$.type = -1;
+        printf("C'est cassé! \n");
     }
     }
 | CONSTANTI  {
@@ -133,14 +134,50 @@ primary_expression
 
 postfix_expression
 : primary_expression { $$ = $1; }
-| postfix_expression INC_OP { operand_add_postfix(&($1.conditional_expression.leaf), 1); $$ = $1; }
-| postfix_expression DEC_OP { operand_add_postfix(&($1.conditional_expression.leaf), -1); $$ = $1; }
+| postfix_expression INC_OP {
+    if( $1.type == E_CONDITIONAL &&
+        $1.conditional_expression.type == C_LEAF &&
+        $1.conditional_expression.leaf.type == O_VARIABLE ) {
+        operand_add_postfix(&($1.conditional_expression.leaf), 1);
+        $$ = $1;
+    }else{
+        report_error(POSTF_OPERATOR_NOT_USABLE, "++");
+    }
+}
+| postfix_expression DEC_OP {
+    if( $1.type == E_CONDITIONAL &&
+        $1.conditional_expression.type == C_LEAF &&
+        $1.conditional_expression.leaf.type == O_VARIABLE ) {
+        operand_add_postfix(&($1.conditional_expression.leaf), -1);
+        $$ = $1;
+    }else{
+        report_error(POSTF_OPERATOR_NOT_USABLE, "--");
+    }
+}
 ;
 
 unary_expression
 : postfix_expression { $$ = $1; }
-| INC_OP unary_expression { operand_add_prefix(&($2.conditional_expression.leaf), 1); $$ = $2; }
-| DEC_OP unary_expression { operand_add_prefix(&($2.conditional_expression.leaf), -1); $$ = $2; }
+| INC_OP unary_expression {
+    if( $2.type == E_CONDITIONAL &&
+        $2.conditional_expression.type == C_LEAF &&
+        $2.conditional_expression.leaf.type == O_VARIABLE ) {
+        operand_add_prefix(&($2.conditional_expression.leaf), 1);
+        $$ = $2;
+    }else{
+        report_error(PREF_OPERATOR_NOT_USABLE, "++");
+    }
+}
+| DEC_OP unary_expression {
+    if( $2.type == E_CONDITIONAL &&
+        $2.conditional_expression.type == C_LEAF &&
+        $2.conditional_expression.leaf.type == O_VARIABLE ) {
+        operand_add_prefix(&($2.conditional_expression.leaf), -1);
+        $$ = $2;
+    }else{
+        report_error(PREF_OPERATOR_NOT_USABLE, "--");
+    }
+}
 //| unary_operator unary_expression {printf("negation de l'espace\n");}
 | '-' unary_expression {printf("negation de l'espace\n");}
 ;
@@ -570,7 +607,7 @@ int main (int argc, char *argv[]) {
     //First we verify errors
     if(yyparse() == 0 && verify_no_error(file_name)){
         //Then we create code
-        printf("Writing program ...\n");
+        printf("Writing program in %s...\n", file_name_output);
         write_file(&program, file_name_output);
     }
 

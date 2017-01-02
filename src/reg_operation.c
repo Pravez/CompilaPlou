@@ -57,6 +57,7 @@ char* alloca_func_param(struct Variable variable){
     char* llvm_type_of = type_of(llvm__convert(variable.type));
     asprintf(&code, "%%%s = alloca %s\nstore %s %%%s, %s* %%%s", new_var, llvm_type_of, llvm_type_of, variable.identifier, llvm_type_of, new_var);
 
+    variable.identifier = new_var;
     struct Declarator declarator = { .declarator.variable = variable, .decl_type = VARIABLE };
     //Supposed to always return true ... but we are not going to check
     hash__add_individual_item_function(&scope, declarator);

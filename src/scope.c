@@ -235,8 +235,6 @@ bool hash__add_item_extern_function(struct Scope *hashmap, char* key, struct Dec
             item->value = declarator;
 
             return true;
-
-            printf("Added extern func %s\n", key);
         }
     }
 

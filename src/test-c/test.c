@@ -1,7 +1,7 @@
 int prout(int a, int b, double c){
-    return 1;
+    return a;
 }
 
 int main(){
-    main++;
+    return prout(1, 1, 1.0);
 }

@@ -103,12 +103,12 @@ short int convert_if_needed(struct llvm__program* code, struct computed_expressi
             return true;
         }
         // Should not happend
-        debug("ERROR 91897188772", RED);
+        report_error(VOID_TYPE_USED_AS_VALUE, "");
         return false;
     }
     return false;
 }
-short int convert_computed_expr_to_typ_if_needed(struct llvm__program* code, struct computed_expression* e, enum TYPE t){
+short int convert_computed_expr_to_type_if_needed(struct llvm__program* code, struct computed_expression* e, enum TYPE t){
     if(e->type != t){
         debug("CONVERT", GREEN);
         int reg = new_register();
@@ -244,7 +244,7 @@ struct computed_expression* generate_code(struct Expression* e){
 
         //CONVERSION IF NEEDED
         if(convert_if_needed(ret->code, right, left)){
-            //TODO report erreur ? ou on le fait plus haut, c'est plus logique ?
+            //TODO report warning ? ou on le fait plus haut, c'est plus logique ?
         }
 
         ret->reg = new_register();
@@ -272,12 +272,12 @@ struct computed_expression* generate_code(struct Expression* e){
             print_tree(e->expression.cond_expression);
             printf(" est une expression déjà calculée dans %%x%d.\n", e->expression.cond_expression->code->reg);
 
-            convert_computed_expr_to_typ_if_needed(ret->code, e->expression.cond_expression->code, ret->type);
+            convert_computed_expr_to_type_if_needed(ret->code, e->expression.cond_expression->code, ret->type);
             ret->reg = e->expression.cond_expression->code->reg;
         }else {
             struct computed_expression *affected_value = generate_code(e->expression.cond_expression);
 
-            convert_computed_expr_to_typ_if_needed(affected_value->code, affected_value, ret->type);
+            convert_computed_expr_to_type_if_needed(affected_value->code, affected_value, ret->type);
 
             ret->reg = affected_value->reg;
             llvm__fusion_programs(ret->code, affected_value->code);

@@ -45,6 +45,8 @@ struct llvm__program do_jump(int float_or_int, int condition, union COMPARATOR c
 
 struct llvm__program add_external_functions_declaration();
 
+short int convert_computed_expr_to_type_if_needed(struct llvm__program* code, struct computed_expression* e, enum TYPE t);
+
 void write_file(struct llvm__program* main_program, char* filename);
 
 #endif //TESTS_LLVM_CODE_H

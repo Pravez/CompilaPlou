@@ -100,9 +100,21 @@ void report_error(enum ERROR_TYPE type, void* data){
         case NOT_A_FUNCTION:
             identifier = (char*) data;
             error = concatenate_strings(3, "\033[31;1m", identifier, "\033[0m is not a function");
+            break;
         case MAIN_NOT_EXISTING:
-            allocated = 0;
             error = concatenate_strings(3, "\033[31;1mmain\033[0m function is required to start the program");
+            break;
+        case VOID_FUNCTION_RETURNING:
+            identifier = (char*) data;
+            error = concatenate_strings(3, "Void function \033[33;1m", identifier, "\033[0m can't return a value");
+            break;
+        case VOID_TYPE_USED_AS_VALUE:
+            error = concatenate_strings(1, "Void used as regular value");
+            break;
+        case UNKNOWN_ERROR:
+            identifier = (char*) data;
+            error = concatenate_strings(3, "Unknown error. Solve previous error(s) and this one should disappear (", identifier, ")");
+            break;
     }
 
     ERR_COUNT ++;
@@ -149,7 +161,12 @@ void report_warning(enum WARNING_TYPE type, void* data){
                                           "\033[0m to be \033[35;1m", type_to_str(wrong_type.expected), "\033[0m, got \033[35;1m",
                                             type_to_str(wrong_type.given), "\033[0m instead");
             break;
-
+        case FUNCTION_WRONG_RETURN_TYPE:
+            wrong_type = *(struct arg_wrong_type*)data;
+            warning = concatenate_strings(7, "Expected return type of \033[33;1m", wrong_type.function_name,
+                                          "\033[0m to be \033[35;1m", type_to_str(wrong_type.expected), "\033[0m, got \033[35;1m",
+                                          type_to_str(wrong_type.given), "\033[0m instead");
+            break;
     }
 
     char* result = concatenate_strings(2, "\033[35;1mWARNING\033[0m : ", warning);

@@ -60,6 +60,7 @@ struct Variable{
     enum TYPE type; // Ne peut pas être VOID
     short int initialized;
     short int is_func_param;
+    short int is_global;
     char* identifier;
 };
 

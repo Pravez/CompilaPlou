@@ -311,10 +311,13 @@ char* operation_on_regs(enum COND_OPERATOR op, int reg_dest, int reg1, int reg2,
     }
 }
 
-char* declare_var(char* id, enum TYPE type, short int is_global){
+char* declare_var(char* id, enum TYPE type, struct global_declaration global){
     char* ret;
-    if(is_global)
-        asprintf(&ret,"TODO déclaration globale de %s", id); //TODO declaration globale
+    if(global.is_global)
+        if(type == T_INT)
+            asprintf(&ret,"@%s = common global %s %d", id, type_of(llvm__convert(type)), global.int_value);
+        else
+            asprintf(&ret,"@%s = common global %s 0x%llx", id, type_of(llvm__convert(type)), *(unsigned long long *)&global.double_value);
     else
         asprintf(&ret,"%%%s = alloca %s", id, TO_LLVM_STRING(type));
     return ret;

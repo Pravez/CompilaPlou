@@ -115,6 +115,18 @@ void report_error(enum ERROR_TYPE type, void* data){
             identifier = (char*) data;
             error = concatenate_strings(3, "Unknown error. Solve previous error(s) and this one should disappear (", identifier, ")");
             break;
+        case GLOBAL_NEED_DOUBLE_INT:
+            identifier = (char*) data;
+            error = concatenate_strings(3, "Global initialization of \033[33;1m", identifier, "\033[0m cannot be anything else than int or double");
+            break;
+        case GLOBAL_NEED_SINGLE_VALUE:
+            identifier = (char*) data;
+            error = concatenate_strings(3, "Global definition of \033[33;1m", identifier, "\033[0m can only be initialized with a direct value");
+            break;
+        case GLOBAL_NEED_SAME_TYPE:
+            identifier = (char*) data;
+            error = concatenate_strings(3, "Global variable \033[33;1m", identifier, "\033[0m needs to be affected with value of its definition type");
+            break;
     }
 
     ERR_COUNT ++;
@@ -166,6 +178,11 @@ void report_warning(enum WARNING_TYPE type, void* data){
             warning = concatenate_strings(7, "Expected return type of \033[33;1m", wrong_type.function_name,
                                           "\033[0m to be \033[35;1m", type_to_str(wrong_type.expected), "\033[0m, got \033[35;1m",
                                           type_to_str(wrong_type.given), "\033[0m instead");
+            break;
+        case GLOBAL_NO_INIT:
+            identifier = (char*) data;
+            warning = concatenate_strings(3, "Global variable \033[35;1m", identifier,
+                                          "\033[0m will have a default value");
             break;
     }
 

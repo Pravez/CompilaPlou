@@ -35,8 +35,9 @@ char** llvm___create_function_def(struct Function function);
 void llvm__print(const struct llvm__program* program);
 struct computed_expression* generate_code(struct Expression* e);
 
-struct llvm__program* generate_var_declaration(struct Variable* v, short int is_global);
-struct llvm__program* generate_multiple_var_declarations(struct DeclaratorList* list, short int are_globals);
+struct llvm__program* generate_var_declaration(struct Variable* v, struct global_declaration global);
+struct llvm__program* generate_multiple_var_declarations(struct DeclaratorList* list, short int is_global);
+struct llvm__program* generate_global_decl_and_affect(struct expr_operand* operand, struct Variable *var);
 
 struct llvm__program* generate_while_code(struct Expression* condition, struct llvm__program* statement_code, int is_dowhile);
 struct llvm__program* generate_if_code(struct Expression* condition, struct llvm__program* statement_code);

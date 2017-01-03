@@ -338,7 +338,7 @@ declaration
 : type_name declarator_list ';' {
     $2 = apply_type($1, $2);
     if(hash__add_items(&scope, $2)){
-        $$ = *generate_multiple_var_declarations(&$2, 0); //TODO gérer le cas où c'est global
+        $$ = *generate_multiple_var_declarations(&$2, scope.current_level == 0 ? 1 : 0);
     }
 }
 | type_name declarator '=' expression ';' {
@@ -352,34 +352,47 @@ declaration
         if(verify_expression_type($2, &$4)){
             $2.declarator.variable.initialized = 1;
             if(hash__add_item(&scope, $2.declarator.variable.identifier, $2)){
-                struct llvm__program* decl = generate_var_declaration(&$2.declarator.variable, false); //TODO gérer le cas où c'est global
-
+                struct llvm__program* decl;
                 struct Expression affected_value;
                 struct expr_operand declarated_operand = variable_to_expr_operand(&$2.declarator.variable);
 
-                if(expression_from_unary_cond(&declarated_operand, OP_SIMPLE_ASSIGN, &$4, &affected_value)){
-                    //TODO clean le magnifique débug <3
-                    set_initialized(&scope, $2.declarator.variable.identifier);
-
-                    struct computed_expression* e = generate_code(&affected_value);
-
-                    // If next expression has already been calculated (it's an affectation)
-                    if($4.type == E_AFFECT || is_already_computed(&$4)){
-                        //TODO je sais pas pourquoi $4.code peut être null... mais bon XD
-                        if(!is_already_computed(&$4)){
-                            debug("NE DEVRAIT PAS ARRIVER.... T.T", RED);
-                        }else{
-                            llvm__fusion_programs($4.code->code, e->code);
-                            free(e->code);
-                            e->code = $4.code->code;
-                        }
+                if(scope.current_level == 0 && $4.type == E_CONDITIONAL && $4.conditional_expression.type == C_LEAF){
+                    if(get_operand_type($4.conditional_expression.leaf) == $1){
+                        decl = generate_global_decl_and_affect(&$4.conditional_expression.leaf, &$2.declarator.variable);
+                        if(decl != NULL)
+                            $$ = *decl;
+                    }else{
+                        report_error(GLOBAL_NEED_SAME_TYPE, $2.declarator.variable.identifier);
                     }
+                }else if(scope.current_level > 0){
+                    if(expression_from_unary_cond(&declarated_operand, OP_SIMPLE_ASSIGN, &$4, &affected_value)){
+                        //TODO clean le magnifique débug <3
+                        set_initialized(&scope, $2.declarator.variable.identifier);
 
-                    llvm__fusion_programs(decl, e->code);
-                    $$ = *decl;
-                    free(e);
+                        struct computed_expression* e = generate_code(&affected_value);
+
+                        // If next expression has already been calculated (it's an affectation)
+                        if($4.type == E_AFFECT || is_already_computed(&$4)){
+                            //TODO je sais pas pourquoi $4.code peut être null... mais bon XD
+                            if(!is_already_computed(&$4)){
+                                debug("NE DEVRAIT PAS ARRIVER.... T.T", RED);
+                            }else{
+                                llvm__fusion_programs($4.code->code, e->code);
+                                free(e->code);
+                                e->code = $4.code->code;
+                            }
+                        }
+
+                        decl = generate_var_declaration(&$2.declarator.variable, (struct global_declaration){ .is_global = false }); 
+
+                        llvm__fusion_programs(decl, e->code);
+                        $$ = *decl;
+                        free(e);
+                    }else{
+                        report_error(NOT_ASSIGNABLE_EXPR, "");
+                    }
                 }else{
-                    report_error(NOT_ASSIGNABLE_EXPR, "");
+                    report_error(GLOBAL_NEED_SINGLE_VALUE, $2.declarator.variable.identifier);
                 }
             }else{
                 report_error(DEFINED_VAR, $2.declarator.variable.identifier);
@@ -406,7 +419,7 @@ type_name
 ;
 
 declarator
-: IDENTIFIER { $$ = init_declarator_as_variable($1); /*PAR DEFAUT UNE VARIABLE, SINON ON RECUPERE JUSTE LA VALEUR PUIS ON ECRASE (plus haut)*/}
+: IDENTIFIER { $$ = init_declarator_as_variable($1); $$.declarator.variable.is_global = scope.current_level == 0 ? 1 : 0; }
 | '(' declarator ')' { $$ = $2; } //TODO SUREMENT PAS CA
 | declarator '(' parameter_list ')' { $$ = declare_function($3, $1.declarator.variable.identifier); /*MOCHE MAIS SOLUTION LA PLUS SIMPLE*/}
 | declarator '(' ')' { struct DeclaratorList empty; empty.size = 0; $$ = declare_function(empty, $1.declarator.variable.identifier); /*PAREIL*/}
@@ -575,6 +588,7 @@ function_declaration
     if(hash__add_item(&scope, $2.declarator.function.identifier, $2)){
         struct llvm__program temp;
         llvm__init_program(&temp);
+        llvm__program_add_line(&temp, "");
         struct Function temp_func = hash__get_item(&scope, $2.declarator.function.identifier).declarator.function;
         char** function_def = llvm___create_function_def(temp_func);
         if(function_def != NULL){
@@ -586,7 +600,8 @@ function_declaration
 
         $$ = temp;
         current_function = $2.declarator.function;
-    }}
+    }
+}
 ;
 
 %%

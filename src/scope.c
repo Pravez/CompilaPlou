@@ -142,24 +142,19 @@ bool hash__add_item_function(struct Scope *hashmap, struct Declarator declarator
 
     for(int i=0;i<declarator.declarator.function.var_list_size;i++){
         //Because the upper level is truly new, the probability to have an error is zero ?
-        if(!hash__key_exists_current(hashmap, declarator.declarator.function.var_list[i].identifier)) {
-            int position = hash__item_find_position(hashmap, declarator.declarator.function.var_list[i].identifier,
-                                                    hashmap->higher_level);
-            if (position == -1) {
-                return false;
-            } else {
-                //Getting the iem
-                struct hashmap_item *item = &hashmap->scope_maps[hashmap->higher_level][position];
-                item->key = declarator.declarator.function.var_list[i].identifier;
-                //Converting the function's variable to a declarator for the new level
-                struct Declarator variable;
-                variable.decl_type = VARIABLE;
-                variable.declarator.variable = declarator.declarator.function.var_list[i];
-                item->value = variable;
-            }
-        }else{
-            report_error( DEFINED_FUNC_VAR, declarator.declarator.function.var_list[i].identifier);
+        int position = hash__item_find_position(hashmap, declarator.declarator.function.var_list[i].identifier,
+                                                hashmap->higher_level);
+        if (position == -1) {
             return false;
+        } else {
+            //Getting the iem
+            struct hashmap_item *item = &hashmap->scope_maps[hashmap->higher_level][position];
+            item->key = declarator.declarator.function.var_list[i].identifier;
+            //Converting the function's variable to a declarator for the new level
+            struct Declarator variable;
+            variable.decl_type = VARIABLE;
+            variable.declarator.variable = declarator.declarator.function.var_list[i];
+            item->value = variable;
         }
     }
 

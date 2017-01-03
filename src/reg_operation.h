@@ -69,6 +69,14 @@ enum REG_LOGICAL_OP{
     REG_LOR      /* || in c */
 };
 
+struct global_declaration{
+    short int is_global;
+    union{
+        int int_value;
+        double double_value;
+    };
+};
+
 char* load_int(int reg, int value);
 char* load_double(int reg, double value);
 char* call_function(int reg, char* function_name, enum TYPE func_type, enum TYPE* args_types, int* args_regs, int args_qty);
@@ -93,7 +101,7 @@ char* comparison_op_on_regs(union COMPARATOR op, int reg_dest, int reg1, int reg
 char* binary_op_on_reg_const(enum REG_BINARY_OP op, int reg_dest, int reg1, double value, enum TYPE type);
 
 char* operation_on_regs(enum COND_OPERATOR op, int reg_dest, int reg1, int reg2, enum TYPE type);
-char* declare_var(char* id, enum TYPE type, short int is_global);
+char* declare_var(char* id, enum TYPE type, struct global_declaration global);
 char* load_var(int reg, char* id);
 char* store_var(char* id, int reg, enum TYPE type);
 

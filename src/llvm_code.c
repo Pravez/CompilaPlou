@@ -311,22 +311,37 @@ struct computed_expression* generate_code(struct Expression* e){
     return ret;
 }
 
-struct llvm__program* generate_multiple_var_declarations(struct DeclaratorList* list, short int are_globals){
+struct llvm__program* generate_multiple_var_declarations(struct DeclaratorList* list, short int is_global){
     struct llvm__program* ret = malloc(sizeof(struct llvm__program));
     llvm__init_program(ret);
     for(int i = 0; i < list->size; ++i){
         llvm__program_add_line(ret, declare_var(
                 list->declarator_list[i].declarator.variable.identifier,
-                list->declarator_list[i].declarator.variable.type,
-                are_globals));
+                list->declarator_list[i].declarator.variable.type, (struct global_declaration){ .is_global = is_global,
+                        .double_value = 0.0, .int_value = 0 }));
+        if(is_global){
+            report_warning(GLOBAL_NO_INIT, list->declarator_list[i].declarator.variable.identifier);
+        }
     }
     return ret;
 }
-struct llvm__program* generate_var_declaration(struct Variable* v, short int is_global){
+
+struct llvm__program* generate_var_declaration(struct Variable* v, struct global_declaration global){
     struct llvm__program* ret = malloc(sizeof(struct llvm__program));
     llvm__init_program(ret);
-    llvm__program_add_line(ret, declare_var(v->identifier, v->type, is_global));
+    llvm__program_add_line(ret, declare_var(v->identifier, v->type, global));
     return ret;
+}
+
+struct llvm__program* generate_global_decl_and_affect(struct expr_operand* operand, struct Variable *var){
+    if(operand->type == O_DOUBLE){
+        return generate_var_declaration(var, (struct global_declaration){ .double_value = operand->operand.double_value, .is_global = 1});
+    }else if(operand->type == O_INT){
+        return generate_var_declaration(var, (struct global_declaration){ .int_value = operand->operand.int_value, .is_global = 1});
+    }else{
+        report_error(GLOBAL_NEED_DOUBLE_INT, var->identifier);
+        return NULL;
+    }
 }
 
 void llvm__print(const struct llvm__program* program){

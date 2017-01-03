@@ -1,6 +1,12 @@
 int a, b;
-double c = (5.0 + 5);
 
+double c(){
+    return 5.0;
+}
+
+int c(){
+    return 3;
+}
 
 double add_one(int a){
     return (double) ++a;

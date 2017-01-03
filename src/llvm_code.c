@@ -44,8 +44,10 @@ void llvm__fusion_programs(struct llvm__program* main, const struct llvm__progra
     //printf("\t toappend:\n");
     //llvm__print(toappend);
     //printf("\n");
-    for(int i=0;i<toappend->line_number;i++){
-        llvm__program_add_line(main, toappend->code[i]);
+    if(main->validity != -1 && toappend->validity != -1) {
+        for (int i = 0; i < toappend->line_number; i++) {
+            llvm__program_add_line(main, toappend->code[i]);
+        }
     }
 }
 

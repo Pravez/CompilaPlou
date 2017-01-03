@@ -516,32 +516,33 @@ iteration_statement
 jump_statement
 : RETURN ';' { llvm__init_program(&$$); llvm__program_add_line(&$$, "ret void");}
 | RETURN expression ';' {
-    if(current_function.return_type == T_VOID){
-            report_error(VOID_FUNCTION_RETURNING, current_function.identifier);
-    }else
-    if($2.type != -1){
-        struct computed_expression* e;
-        if(is_already_computed(&$2)){ // already calculated if cast or affecation
-            e = $2.code;
+    if(current_function.return_type != -1){
+        if(current_function.return_type == T_VOID){
+                report_error(VOID_FUNCTION_RETURNING, current_function.identifier);
+        }else if($2.type != -1){
+            struct computed_expression* e;
+            if(is_already_computed(&$2)){ // already calculated if cast or affecation
+                e = $2.code;
+            }else{
+                e = generate_code(&$2);
+            }
+            enum TYPE given_type = e->type;
+            if(convert_computed_expr_to_type_if_needed(e->code, e, current_function.return_type)){
+                struct arg_wrong_type report;
+                report.given = given_type;
+                report.expected = current_function.return_type;
+                report.function_name = current_function.identifier;
+
+                report_warning(FUNCTION_WRONG_RETURN_TYPE, &report);
+            }
+
+            print_tree(&$2);
+            printf("\n");
+            $$ = *e->code;
+            llvm__program_add_line(&$$, return_expr(e->reg, e->type));
         }else{
-            e = generate_code(&$2);
+            debug("Error 585768754.", RED);
         }
-        enum TYPE given_type = e->type;
-        if(convert_computed_expr_to_type_if_needed(e->code, e, current_function.return_type)){
-            struct arg_wrong_type report;
-            report.given = given_type;
-            report.expected = current_function.return_type;
-            report.function_name = current_function.identifier;
-
-            report_warning(FUNCTION_WRONG_RETURN_TYPE, &report);
-        }
-
-        print_tree(&$2);
-        printf("\n");
-        $$ = *e->code;
-        llvm__program_add_line(&$$, return_expr(e->reg, e->type));
-    }else{
-        debug("Error 585768754.", RED);
     }
 }
 ;
@@ -568,16 +569,18 @@ external_declaration
 
 function_definition
 : function_declaration compound_statement {
-    llvm__fusion_programs(&$1, &$2);
-    if(true/* && TODO return pas fait */){
-        if(current_function.return_type == T_VOID){
-            llvm__program_add_line(&$1, "ret void");
-        }else{
-            //TODO warning pas de return !
+    if($1.validity != -1){
+        llvm__fusion_programs(&$1, &$2);
+        if(true/* && TODO return pas fait */){
+            if(current_function.return_type == T_VOID){
+                llvm__program_add_line(&$1, "ret void");
+            }else{
+                //TODO warning pas de return !
+            }
         }
+        llvm__program_add_line(&$1, "}");
+        $$ = $1;
     }
-    llvm__program_add_line(&$1, "}");
-    $$ = $1;
 }
 ;
 
@@ -600,6 +603,15 @@ function_declaration
 
         $$ = temp;
         current_function = $2.declarator.function;
+    }else{
+        struct Declarator decl = hash__get_item(&scope, $2.declarator.function.identifier);
+        if(decl.decl_type == FUNCTION)
+            report_error(DEFINED_FUNC, decl.declarator.function.identifier);
+        else
+            report_error(DEFINED_VAR, decl.declarator.variable.identifier);
+
+        $$.validity = -1;
+        current_function.return_type = -1;
     }
 }
 ;

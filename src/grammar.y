@@ -358,6 +358,7 @@ declaration
 
                 if(scope.current_level == 0 && $4.type == E_CONDITIONAL && $4.conditional_expression.type == C_LEAF){
                     if(get_operand_type($4.conditional_expression.leaf) == $1){
+                        debug("Attention on dirait que ça marche pas de déclarer + affecter une variable globale !", RED);
                         decl = generate_global_decl_and_affect(&$4.conditional_expression.leaf, &$2.declarator.variable);
                         if(decl != NULL)
                             $$ = *decl;

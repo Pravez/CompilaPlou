@@ -25,6 +25,7 @@ struct computed_expression{
 };
 
 struct Expression;
+struct expr_operand;
 
 void llvm__init_program(struct llvm__program* program);
 int llvm__program_add_line(struct llvm__program* program, char* line);

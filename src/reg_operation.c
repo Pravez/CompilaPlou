@@ -5,6 +5,7 @@
 #include "llvm_code.h"
 
 #define TO_LLVM_STRING(type) type_of(llvm__convert(type))
+#define IS_GLOBAL(ptr_scope, var_id) (hash__get_item(ptr_scope, var_id).declarator.variable.is_global)
 
 char* load_int(int reg, int value){
     char* type_name = type_of(llvm__convert(T_INT));
@@ -327,14 +328,15 @@ char* load_var(int reg, char* id){
     enum TYPE type = hash__get_item(&scope, id).declarator.variable.type;
     char* type_name = type_of(llvm__convert(type));
     char* code;
-    asprintf(&code, "%%x%d = load %s, %s* %%%s", reg, type_name, type_name, id);
+    asprintf(&code, "%%x%d = load %s, %s* %s%s",
+             reg, type_name, type_name, IS_GLOBAL(&scope, id)?"@":"%",id);
     return code;
 }
 
 char* store_var(char* id, int reg, enum TYPE type){
     char* type_name = type_of(llvm__convert(type));
     char* code;
-    asprintf(&code, "store %s %%x%d, %s* %%%s", type_name, reg, type_name, id);
+    asprintf(&code, "store %s %%x%d, %s* %s%s", type_name, reg, type_name, IS_GLOBAL(&scope, id)?"@":"%",id);
     return code;
 }
 

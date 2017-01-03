@@ -104,6 +104,8 @@ struct Declarator declare_function(struct DeclaratorList list, char* identifier)
     if(list.size != 0){
         for(int i=0;i<list.size;i++){
             if(list.declarator_list[i].decl_type == VARIABLE){
+                list.declarator_list[i].declarator.variable.is_global = 0;
+                printf("info à supprimer plus tard. %s n'est pas globale !(5876987987457)\n", list.declarator_list[i].declarator.variable.identifier);
                 function.declarator.function.var_list[function.declarator.function.var_list_size++] = list.declarator_list[i].declarator.variable;
             }
         }

@@ -267,9 +267,11 @@ struct computed_expression* generate_code(struct Expression* e){
     }else if(e->type == E_AFFECT){
         printf("affect\n");
         //register is no longer up to date.
-        hash_delete(&CURRENT_LOADED_REGS, e->expression.operand.operand.variable);
+        char* affected_var_name = e->expression.operand.operand.variable;
+        int old_var_reg = hash_lookup(&CURRENT_LOADED_REGS, affected_var_name);
+        hash_delete(&CURRENT_LOADED_REGS, affected_var_name);
         //return type is the affected variable type
-        ret->type = GET_VAR_TYPE(&scope, e->expression.operand.operand.variable);
+        ret->type = GET_VAR_TYPE(&scope, affected_var_name);
         //if next nested expression is an affectation, it has already been computed
         if(e->expression.cond_expression->type == E_AFFECT ||
                 (is_already_computed(e->expression.cond_expression))){
@@ -288,25 +290,41 @@ struct computed_expression* generate_code(struct Expression* e){
 
             free(affected_value);
         }
+        enum REG_BINARY_OP operation = -1;  //potantial operation before affecation
         switch (e->expression.assign_operator) {
             case OP_SIMPLE_ASSIGN:
-                llvm__program_add_line(ret->code,
-                                       store_var(e->expression.operand.operand.variable, ret->reg, ret->type));
+                // no operation to do before assign
                 break;
             case OP_MUL_ASSIGN:
+                operation = REG_MUL; break;
             case OP_DIV_ASSIGN:
+                operation = REG_DIV; break;
             case OP_REM_ASSIGN:
+                operation = REG_REM; break;
             case OP_SHL_ASSIGN:
+                operation = REG_SHL; break;
             case OP_SHR_ASSIGN:
+                operation = REG_SHR; break;
             case OP_ADD_ASSIGN:
+                operation = REG_ADD; break;
             case OP_SUB_ASSIGN:
-                printf("TODO\n");
-                llvm__program_add_line(ret->code, "TODO ASSIGN");
+                operation = REG_SUB; break;
             default:
                 printf("erreur. Enfin, je crois\n");
         }
+        if(operation != -1){ //operation need to be performed before affectation
+            if(old_var_reg == HASH_FAIL){ // loading var if needed
+                old_var_reg = new_register();
+                llvm__program_add_line(ret->code, load_var(old_var_reg, affected_var_name));
+            }
+            int new_var_reg = new_register();// adding var to the result of the given expression (stored in ret->reg atm)
+            llvm__program_add_line(ret->code, binary_op_on_regs(operation, new_var_reg, old_var_reg, ret->reg, ret->type));
+            ret->reg = new_var_reg;
+        }
+        llvm__program_add_line(ret->code, store_var(affected_var_name, ret->reg, ret->type));
+
         // new register for affected variable
-        hash_insert(&CURRENT_LOADED_REGS, e->expression.operand.operand.variable, ret->reg);
+        hash_insert(&CURRENT_LOADED_REGS, affected_var_name, ret->reg);
     }else{
         printf("erreur. Je suppose.\n");
     }

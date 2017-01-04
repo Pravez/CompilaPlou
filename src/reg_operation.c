@@ -437,8 +437,8 @@ char* return_expr(int reg, enum TYPE type){
 char* invert_value(int reg_src, enum TYPE type, int reg_dest){
     char* ret;
     if(type == T_INT)
-        asprintf(&ret, "%%x%d = sub i32 0, %d", reg_dest, reg_src);
+        asprintf(&ret, "%%x%d = sub i32 0, %%x%d", reg_dest, reg_src);
     else
-        asprintf(&ret, "%%x%d = fsub double 0.0, %d", reg_dest, reg_src);
+        asprintf(&ret, "%%x%d = fsub double 0.0, %%x%d", reg_dest, reg_src);
     return ret;
 }

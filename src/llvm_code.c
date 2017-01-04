@@ -104,6 +104,7 @@ short int convert_if_needed(struct llvm__program* code, struct computed_expressi
     }
     return false;
 }
+
 short int convert_computed_expr_to_type_if_needed(struct llvm__program* code, struct computed_expression* e, enum TYPE t){
     if(e->type == T_VOID && t != T_VOID){
         report_error(VOID_TYPE_USED_AS_VALUE, "");
@@ -567,8 +568,8 @@ struct llvm__program do_jump(int float_or_int, int condition, union COMPARATOR c
     llvm__init_program(&jump);
 
     //float = 1, int = 0
-    asprintf(&cmp_line, "%%x%d = %s %s i32 %%x%d, 0", cmp_register, float_or_int ? "fcmp" : "icmp",
-             comparator_to_string(comparator, float_or_int), condition);
+    asprintf(&cmp_line, "%%x%d = %s %s %s %%x%d, %s", cmp_register, float_or_int ? "fcmp" : "icmp",
+             comparator_to_string(comparator, float_or_int), float_or_int ? "double" : "i32", condition, float_or_int ? "0.0" : "0");
     asprintf(&br_line, "br i1 %%x%d, label %%label%d, label %%label%d", cmp_register, labeltrue, labelfalse);
     llvm__program_add_line(&jump, cmp_line);
     llvm__program_add_line(&jump, br_line);

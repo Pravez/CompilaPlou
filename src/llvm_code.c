@@ -411,9 +411,9 @@ struct llvm__program* generate_for_code(struct Expression* initial, struct Expre
 
 
     //for ( initialisation,
+    llvm__program_add_line(for_program, label_to_string(start, 1, ";for start"));
     llvm__program_add_line(for_program, "; for initialisation");
     llvm__fusion_programs(for_program, computed_initialisation->code);
-    llvm__program_add_line(for_program, label_to_string(start, 1, ";for start"));
 
     //( .. , condition, .., ) {
     llvm__program_add_line(for_program, "; for condition");

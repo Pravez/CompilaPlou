@@ -133,6 +133,10 @@ void report_error(enum ERROR_TYPE type, void* data){
             allocated = 0;
             error = concatenate_strings(1, "Missing a condition in for declaration");
             break;
+        case APPLY_MINUS_ON_AFFECT:
+            allocated = 0;
+            error = concatenate_strings(1, "Cannot apply '\033[33;1m-\033[0m' on an affectation expression");
+            break;
     }
 
     ERR_COUNT ++;

@@ -56,6 +56,7 @@ struct Expression{
         struct{
             enum COND_EXPR_TYPE type;
             int is_alone;
+            short int is_negative;
             union{
                 struct expr_operand leaf;
                 struct{

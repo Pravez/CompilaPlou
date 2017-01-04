@@ -229,6 +229,7 @@ struct Expression create_leaf(struct expr_operand operand){
     expression.conditional_expression.type = C_LEAF;
     expression.conditional_expression.leaf = operand;
     expression.conditional_expression.is_alone = 0;
+    expression.conditional_expression.is_negative = 0;
 
     expression.code = malloc(sizeof(struct computed_expression));
     expression.code->code = NULL;
@@ -248,6 +249,7 @@ struct Expression create_branch(enum COND_OPERATOR operator, struct Expression* 
     expression.conditional_expression.branch.e_right = expression_left;
     expression.conditional_expression.branch.e_left = expression_right;
     expression.conditional_expression.is_alone = 0;
+    expression.conditional_expression.is_negative = 0;
 
     expression.code = malloc(sizeof(struct computed_expression));
     expression.code->code = NULL;
@@ -371,6 +373,7 @@ enum TYPE get_operand_type(struct expr_operand operand){
         case O_DOUBLE:
             return T_DOUBLE;
         case O_VARIABLE:
+            printf("OPERAND %s\n", operand.operand.variable);
             func_or_var = hash__get_item(&scope, operand.operand.variable);
             if(func_or_var.decl_type != -1) {
                 if (func_or_var.decl_type == VARIABLE){

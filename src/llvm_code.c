@@ -133,6 +133,7 @@ struct computed_expression* generate_code(struct Expression* e){
 
         int* args_regs;
         enum TYPE* args_types;
+        short int invert_applied = 0;
 
         if(o->type == O_FUNCCALL_ARGS) {
             args_regs = (int*) malloc(sizeof(int)*o->operand.function.parameters.expression_count);
@@ -144,12 +145,14 @@ struct computed_expression* generate_code(struct Expression* e){
             case O_INT:
                 ret->reg = new_register();
                 ret->type = T_INT;
-                llvm__program_add_line(ret->code,load_int(ret->reg, o->operand.int_value));
+                invert_applied = e->conditional_expression.is_negative;
+                llvm__program_add_line(ret->code,load_int(ret->reg, o->operand.int_value, invert_applied));
                 break;
             case O_DOUBLE:
                 ret->reg = new_register();
                 ret->type = T_DOUBLE;
-                llvm__program_add_line(ret->code,load_double(ret->reg, o->operand.double_value));
+                invert_applied = e->conditional_expression.is_negative;
+                llvm__program_add_line(ret->code,load_double(ret->reg, o->operand.double_value, invert_applied));
                 break;
             case O_VARIABLE:
                 var_name = o->operand.variable;
@@ -226,6 +229,12 @@ struct computed_expression* generate_code(struct Expression* e){
                 llvm__program_add_line(ret->code, call_function(ret->reg, o->operand.function.name, ret->type, args_types,
                                                                 args_regs, o->operand.function.parameters.expression_count));
                 break;
+        }
+
+        if(e->conditional_expression.is_negative && !invert_applied){
+            int temp_reg = new_register();
+            llvm__program_add_line(ret->code, invert_value(ret->reg, ret->type, temp_reg));
+            ret->reg = temp_reg;
         }
 
         if(o->type == O_FUNCCALL_ARGS) {

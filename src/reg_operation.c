@@ -7,18 +7,18 @@
 #define TO_LLVM_STRING(type) type_of(llvm__convert(type))
 #define IS_GLOBAL(ptr_scope, var_id) (hash__get_item(ptr_scope, var_id).declarator.variable.is_global)
 
-char* load_int(int reg, int value){
+char* load_int(int reg, int value, short int negative){
     char* type_name = type_of(llvm__convert(T_INT));
     char* code;
     //"%<reg> = add i32 0, <value>";
-    asprintf(&code, "%%x%d = add %s 0, %d", reg, type_name, value);
+    asprintf(&code, "%%x%d = %s %s 0, %d", reg, negative ? "sub" : "add", type_name, value);
     return code;
 }
 
-char* load_double(int reg, double value){
+char* load_double(int reg, double value, short int negative){
     char* type_name = type_of(llvm__convert(T_DOUBLE));
     char* code;
-    asprintf(&code, "%%x%d = fadd %s 0x0000000000000000, 0x%llx", reg, type_name, *(unsigned long long *)&value);
+    asprintf(&code, "%%x%d = %s %s 0x0000000000000000, 0x%llx", reg, negative ? "fsub" : "fadd", type_name, *(unsigned long long *)&value);
     return code;
 }
 
@@ -120,7 +120,7 @@ char* binary_op_on_reg_const(enum REG_BINARY_OP op, int reg_dest, int reg1, doub
     asprintf(&code, "%%x%d = %s %s %%x%d, %s ; coucou", reg_dest, llvm_op, type_name, reg1, str_value);
 
     free(llvm_op);
-    free(str_value);
+    free(str_value); //TODO PROBLEM HERE (free causes memdump)
     return code;
 }
 
@@ -431,5 +431,14 @@ char* convert_reg(int reg_src, enum TYPE ty_src, int reg_dest, int ty_dest){
 char* return_expr(int reg, enum TYPE type){
     char* ret;
     asprintf(&ret, "ret %s %%x%d", TO_LLVM_STRING(type), reg);
+    return ret;
+}
+
+char* invert_value(int reg_src, enum TYPE type, int reg_dest){
+    char* ret;
+    if(type == T_INT)
+        asprintf(&ret, "%%x%d = sub i32 0, %d", reg_dest, reg_src);
+    else
+        asprintf(&ret, "%%x%d = fsub double 0.0, %d", reg_dest, reg_src);
     return ret;
 }

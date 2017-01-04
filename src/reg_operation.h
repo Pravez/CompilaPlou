@@ -77,8 +77,8 @@ struct global_declaration{
     };
 };
 
-char* load_int(int reg, int value);
-char* load_double(int reg, double value);
+char* load_int(int reg, int value, short int negative);
+char* load_double(int reg, double value, short int negative);
 char* call_function(int reg, char* function_name, enum TYPE func_type, enum TYPE* args_types, int* args_regs, int args_qty);
 char* alloca_func_param(struct Variable variable);
 
@@ -122,4 +122,6 @@ char* jump_to(int label);
 char* convert_reg(int reg_src, enum TYPE ty_src, int reg_dest, int ty_dest);
 
 char* return_expr(int reg, enum TYPE type);
+char* invert_value(int reg_src, enum TYPE type, int reg_dest);
+
 #endif

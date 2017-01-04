@@ -179,8 +179,14 @@ unary_expression
         report_error(PREF_OPERATOR_NOT_USABLE, "--");
     }
 }
-//| unary_operator unary_expression {printf("negation de l'espace\n");}
-| '-' unary_expression {printf("negation de l'espace\n");}
+| '-' unary_expression { 
+    if($2.type == E_CONDITIONAL){ 
+        $$ = $2;
+        $$.conditional_expression.is_negative = 1; 
+    }else{ 
+         report_error(APPLY_MINUS_ON_AFFECT, 0);
+    } 
+}
 ;
 
 argument_expression_list
@@ -344,7 +350,7 @@ declaration
 | type_name declarator '=' expression ';' {
     if($2.decl_type == VARIABLE){
         char* msg;
-        asprintf(&msg, "Declaration + assigment de %s:", $2.declarator.variable.identifier);
+        asprintf(&msg, "Declaration + assigment de %s:\n", $2.declarator.variable.identifier);
         debug(msg, GREEN);
         free(msg);
 
@@ -439,7 +445,7 @@ statement
 : declaration               {printf("--- statement DECL ---\n"); $$ = $1; llvm__print(&$1); printf("--- END  statement ---\n");}
 | compound_statement        { $$ = $1; }
 | expression_statement      {printf("--- statement CODE ---\n"); $$ = $1; llvm__print(&$1); printf("--- END  statement ---\n");}
-| selection_statement       {printf("--- statement IF OR FOR ---\n");$$ = $1; llvm__print(&$1); printf("--- END  statement ---\n");}
+| selection_statement       {printf("--- statement IF OR FOR ---\n");$$ = $1; printf("--- END  statement ---\n");}
 | iteration_statement       {printf("--- statement WHILE ---\n"); $$ = $1; llvm__print(&$1);printf("--- END  statement ---\n");}
 | jump_statement            { $$ = $1; printf("\n\t\t\treturn. FAUT SORTIR !\n\n");}
 ;
@@ -485,21 +491,7 @@ expression_statement
 selection_statement
 : IF '(' expression ')' statement { $$ = *generate_if_code(&$3, &$5); }
 | IF '(' expression ')' statement ELSE statement { $$ = *generate_ifelse_code(&$3, &$5, &$7); }
-| FOR '(' expression ';' expression ';' expression ')' statement {$$ = *generate_for_code(&$3, &$5, &$7, &$9);
-    /*printf("-- code for(e1;e2;e3) s --\n");
-    int loop = new_label();
-    int end = new_label();
-    printf("\te1.code\n");
-    printf("\te2.code\n");
-    printf("\tbr i1 %%<e2.reg> label %%label%d, label %%label%d\n", loop, end);
-    printf("\tlabel%d:\n", loop);
-    printf("\tstatement.code\n");
-    printf("\te3.code\n");
-    printf("\te2.code\n");
-    printf("\tbr i1 %%<e2.reg> label %%label%d, label %%label%d\n", loop, end);
-    printf("\tlabel%d:\n", end);
-    printf("-- /for --\n");*/
-}
+| FOR '(' expression ';' expression ';' expression ')' statement {$$ = *generate_for_code(&$3, &$5, &$7, &$9);}
 | FOR '(' expression ';' expression ';'            ')' statement {$$ = *generate_for_code(&$3, &$5, NULL, &$8);}
 | FOR '(' expression ';'            ';' expression ')' statement {$$ = *generate_for_code(&$3, NULL, &$6, &$8);}
 | FOR '(' expression ';'            ';'            ')' statement {$$ = *generate_for_code(&$3, NULL, NULL, &$7);}
@@ -550,11 +542,11 @@ jump_statement
 
 program
 : program_parts { 
-    if(check_main_exists(&scope)){
+    //if(check_main_exists(&scope)){
         struct llvm__program extern_funcs = add_external_functions_declaration(); 
         llvm__fusion_programs(&program, &extern_funcs); 
         llvm__fusion_programs(&program, &$1); 
-    }
+    //}
 }
 ;
 

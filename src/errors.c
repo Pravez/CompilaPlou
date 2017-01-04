@@ -137,6 +137,12 @@ void report_error(enum ERROR_TYPE type, void* data){
             allocated = 0;
             error = concatenate_strings(1, "Cannot apply '\033[33;1m-\033[0m' on an affectation expression");
             break;
+        case FUNCTION_ARG_WRONG_TYPE:
+            wrong_type = *(struct arg_wrong_type*)data;
+            error = concatenate_strings(9, "Expected parameter \033[33;1m", wrong_type.position, "\033[0m of \033[33;1m", wrong_type.function_name,
+                                          "\033[0m to be \033[34;1m", type_to_str(wrong_type.expected), "\033[0m, got \033[31;1m",
+                                          type_to_str(wrong_type.given), "\033[0m instead");
+            break;
     }
 
     ERR_COUNT ++;
@@ -176,12 +182,6 @@ void report_warning(enum WARNING_TYPE type, void* data){
             break;
         case USELESS_CAST:
             warning = "Cast has no effect"; allocated = 0;
-            break;
-        case FUNCTION_ARG_WRONG_TYPE:
-            wrong_type = *(struct arg_wrong_type*)data;
-            warning = concatenate_strings(9, "Expected parameter \033[33;1m", wrong_type.position, "\033[0m of \033[33;1m", wrong_type.function_name,
-                                          "\033[0m to be \033[35;1m", type_to_str(wrong_type.expected), "\033[0m, got \033[35;1m",
-                                            type_to_str(wrong_type.given), "\033[0m instead");
             break;
         case FUNCTION_WRONG_RETURN_TYPE:
             wrong_type = *(struct arg_wrong_type*)data;

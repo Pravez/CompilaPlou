@@ -64,7 +64,7 @@ int is_corresponding_to_function(struct expr_operand* operand){
                     arg_pos[0] = '\0';
                     sprintf(arg_pos, "%d", i+1);
                     wrong->position = arg_pos;
-                    report_warning(FUNCTION_ARG_WRONG_TYPE, (void*)wrong);
+                    report_error(FUNCTION_ARG_WRONG_TYPE, (void*)wrong);
                     free(wrong);
                 }
             }

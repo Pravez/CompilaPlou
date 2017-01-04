@@ -23,7 +23,6 @@ int main(){
     for(a = 0; a < 10; a++){
         b++;
         //printf("a %d\n", a);
-        break;
     }
 
     return 0;

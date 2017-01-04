@@ -485,7 +485,7 @@ expression_statement
 selection_statement
 : IF '(' expression ')' statement { $$ = *generate_if_code(&$3, &$5); }
 | IF '(' expression ')' statement ELSE statement { $$ = *generate_ifelse_code(&$3, &$5, &$7); }
-| FOR '(' expression ';' expression ';' expression ')' statement {
+| FOR '(' expression ';' expression ';' expression ')' statement {$$ = *generate_for_code(&$3, &$5, &$7, &$9);
     /*printf("-- code for(e1;e2;e3) s --\n");
     int loop = new_label();
     int end = new_label();
@@ -500,13 +500,13 @@ selection_statement
     printf("\tlabel%d:\n", end);
     printf("-- /for --\n");*/
 }
-| FOR '(' expression ';' expression ';'            ')' statement {}
-| FOR '(' expression ';'            ';' expression ')' statement {}
-| FOR '(' expression ';'            ';'            ')' statement {}
-| FOR '('            ';' expression ';' expression ')' statement {}
-| FOR '('            ';' expression ';'            ')' statement {}
-| FOR '('            ';'            ';' expression ')' statement {}
-| FOR '('            ';'            ';'            ')' statement {}
+| FOR '(' expression ';' expression ';'            ')' statement {$$ = *generate_for_code(&$3, &$5, NULL, &$8);}
+| FOR '(' expression ';'            ';' expression ')' statement {$$ = *generate_for_code(&$3, NULL, &$6, &$8);}
+| FOR '(' expression ';'            ';'            ')' statement {$$ = *generate_for_code(&$3, NULL, NULL, &$7);}
+| FOR '('            ';' expression ';' expression ')' statement {$$ = *generate_for_code(NULL, &$4, &$6, &$8);}
+| FOR '('            ';' expression ';'            ')' statement {$$ = *generate_for_code(NULL, &$4, NULL, &$7);}
+| FOR '('            ';'            ';' expression ')' statement {$$ = *generate_for_code(NULL, NULL, &$5, &$7);}
+| FOR '('            ';'            ';'            ')' statement {$$ = *generate_for_code(NULL, NULL, NULL, &$6);}
 ;
 
 iteration_statement

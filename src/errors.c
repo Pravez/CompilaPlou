@@ -127,6 +127,9 @@ void report_error(enum ERROR_TYPE type, void* data){
             identifier = (char*) data;
             error = concatenate_strings(3, "Global variable \033[33;1m", identifier, "\033[0m needs to be affected with value of its definition type");
             break;
+    case MISSING_A_CONDITION:
+        error = concatenate_strings(1, "Missing a condition in for declaration");
+        break;
     }
 
     ERR_COUNT ++;
@@ -183,6 +186,12 @@ void report_warning(enum WARNING_TYPE type, void* data){
             identifier = (char*) data;
             warning = concatenate_strings(3, "Global variable \033[35;1m", identifier,
                                           "\033[0m will have a default value");
+            break;
+        case MISSING_AN_INITIALISATION:
+            warning = concatenate_strings(1, "Missing an initialisation in for declaration. Allowed by default.");
+            break;
+        case MISSING_A_MOVING:
+            warning = concatenate_strings(1, "Missing a moving in for declaration. Allowed by default.");
             break;
     }
 

@@ -5,6 +5,9 @@ CC=gcc
 
 all:clean parse
 
+emcc:
+	emcc output.ll --js-library ../p5-libraries/p5-wrap.js -s EXPORTED_FUNCTIONS="['_my_draw','_my_setup']" -o ../foo.js
+
 parse:grammar.c scanner.c type.c tools.c scope.c expression.c llvm_code.c hash.c reg_operation.c errors.c external_function.c
 	$(CC) $(CFLAGS) -o $@ $^
 

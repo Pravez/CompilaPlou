@@ -1,3 +1,8 @@
+/** Premier test
+ * Simple recopie + "amelioration" du "get started" de la bibliotheque p5
+ */
+
+
 int x, y;
 
 void my_draw(){

@@ -102,13 +102,15 @@ void report_error(enum ERROR_TYPE type, void* data){
             error = concatenate_strings(3, "\033[31;1m", identifier, "\033[0m is not a function");
             break;
         case MAIN_NOT_EXISTING:
-            error = concatenate_strings(3, "\033[31;1mmain\033[0m function is required to start the program");
+            allocated = 0;
+            error = concatenate_strings(1, "\033[31;1mmain\033[0m function is required to start the program");
             break;
         case VOID_FUNCTION_RETURNING:
             identifier = (char*) data;
             error = concatenate_strings(3, "Void function \033[33;1m", identifier, "\033[0m can't return a value");
             break;
         case VOID_TYPE_USED_AS_VALUE:
+            allocated = 0;
             error = concatenate_strings(1, "Void used as regular value");
             break;
         case UNKNOWN_ERROR:
@@ -127,10 +129,10 @@ void report_error(enum ERROR_TYPE type, void* data){
             identifier = (char*) data;
             error = concatenate_strings(3, "Global variable \033[33;1m", identifier, "\033[0m needs to be affected with value of its definition type");
             break;
-    case MISSING_A_CONDITION:
-        allocated = 0;
-        error = concatenate_strings(1, "Missing a condition in for declaration");
-        break;
+        case MISSING_A_CONDITION:
+            allocated = 0;
+            error = concatenate_strings(1, "Missing a condition in for declaration");
+            break;
     }
 
     ERR_COUNT ++;

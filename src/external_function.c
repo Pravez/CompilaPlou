@@ -30,6 +30,9 @@ void add_p5_functions(){
     register_external_function("point", T_VOID, 2, T_DOUBLE, T_DOUBLE);
     register_external_function("line", T_VOID, 4, T_DOUBLE, T_DOUBLE, T_DOUBLE, T_DOUBLE);
     register_external_function("ellipse", T_VOID, 4, T_DOUBLE, T_DOUBLE, T_DOUBLE, T_DOUBLE);
+    register_external_function("log10", T_DOUBLE, 1, T_DOUBLE);
+    register_external_function("cos", T_DOUBLE, 1, T_DOUBLE);
+    register_external_function("sin", T_DOUBLE, 1, T_DOUBLE);
 }
 
 void register_external_function(char* name, enum TYPE return_type, int args_qty, ...){

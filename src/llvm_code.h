@@ -7,7 +7,7 @@
 #include "expression.h"
 #include "reg_operation.h"
 
-#define DEFAULT_SIZE 100
+#define DEFAULT_SIZE 250
 #define DEFAULT_CONSTANT_SIZE 50
 #define DEFAULT_FUNCTION_SIZE 100
 

@@ -38,12 +38,6 @@ char* llvm__create_constant(char* name, enum TYPE type, int size, void* value){
 }
 
 void llvm__fusion_programs(struct llvm__program* main, const struct llvm__program* toappend){
-    //debug("FUSION\n", GREEN);
-    //printf("\t main:\n");
-    //llvm__print(main);
-    //printf("\t toappend:\n");
-    //llvm__print(toappend);
-    //printf("\n");
     if(main->validity != -1 && toappend->validity != -1) {
         for (int i = 0; i < toappend->line_number; i++) {
             llvm__program_add_line(main, toappend->code[i]);
@@ -577,9 +571,12 @@ struct llvm__program add_external_functions_declaration(){
     struct llvm__program functions;
     llvm__init_program(&functions);
 
+    char* functions_lines[external_functions.functions_number];
+
     for(int i = 0;i < external_functions.functions_number; i++){
         if(external_functions.extern_functions[i].to_add){
             char* parameters = "";
+
             for(int j = 0; j < external_functions.extern_functions[i].function.var_list_size;j++){
                 if(j == external_functions.extern_functions[i].function.var_list_size - 1)
                     parameters = concatenate_strings(2, parameters,
@@ -588,10 +585,9 @@ struct llvm__program add_external_functions_declaration(){
                     parameters = concatenate_strings(3, parameters,
                                     type_of(llvm__convert(external_functions.extern_functions[i].function.var_list[j].type)), ", ");
             }
-            char* function_line;
-            asprintf(&function_line, "declare %s @%s(%s)", type_of(llvm__convert(external_functions.extern_functions[i].function.return_type)),
+            asprintf(&functions_lines[i], "declare %s @%s(%s)", type_of(llvm__convert(external_functions.extern_functions[i].function.return_type)),
                      external_functions.extern_functions[i].function.identifier, parameters);
-            llvm__program_add_line(&functions, function_line);
+            llvm__program_add_line(&functions, functions_lines[i]);
         }
     }
 
@@ -609,6 +605,7 @@ void write_file(struct llvm__program* main_program, char* filename){
         exit(1);
     }
 
+    printf("lignes : %d\n", main_program->line_number);
     for(int i=0;i<main_program->line_number;i++){
         fprintf(file, "%s\n", main_program->code[i]);
     }

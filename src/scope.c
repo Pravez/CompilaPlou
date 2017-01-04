@@ -10,9 +10,13 @@
 #define CHECK_LEVEL_SIZE(hashmap) hashmap->current_level == NB_LEVELS - 1
 
 int hachage(char *s) {
-    unsigned int hash = 0;
-    while (*s != '\0') hash = hash * 31 + *s++;
-    return hash % HASH_SIZE;
+    if(s != NULL) {
+        unsigned int hash = 0;
+        while (*s != '\0') hash = hash * 31 + *s++;
+        return hash % HASH_SIZE;
+    }else{
+        return 0;
+    }
 }
 
 /**

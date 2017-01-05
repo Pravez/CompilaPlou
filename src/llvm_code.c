@@ -378,6 +378,7 @@ void llvm__print(const struct llvm__program* program){
 }
 struct llvm__program* generate_for_code(struct Expression* initial, struct Expression* condition, struct Expression* moving, struct llvm__program* statement_code)
 {
+    /*
     printf("\nFOR !!!\n\n");
     printf("initial: ");
     print_tree(initial);
@@ -387,7 +388,8 @@ struct llvm__program* generate_for_code(struct Expression* initial, struct Expre
     print_tree(condition);
     printf("\n moving: ");
     print_tree(moving);
-    printf("\n");
+    printf("\n")
+            */
 
     //initialisation
     int start = new_label();
@@ -400,15 +402,12 @@ struct llvm__program* generate_for_code(struct Expression* initial, struct Expre
     struct computed_expression *computed_condition;
     struct computed_expression *computed_initialisation;
     struct computed_expression *computed_moving;
-/*
-    struct computed_expression *computed_condition = malloc(sizeof(struct computed_expression));
-    struct computed_expression *computed_initialisation = malloc(sizeof(struct computed_expression));;
-    struct computed_expression *computed_moving = malloc(sizeof(struct computed_expression));;
-*/
+
     if (initial == NULL) {
         report_warning(MISSING_AN_INITIALISATION, "");
-        llvm__init_program(computed_initialisation->code);
         computed_initialisation = malloc(sizeof(struct computed_expression));
+        computed_initialisation->code = malloc(sizeof(struct llvm__program));
+        llvm__init_program(computed_initialisation->code);
         }
     else {
         if(is_already_computed(initial))
@@ -431,8 +430,9 @@ struct llvm__program* generate_for_code(struct Expression* initial, struct Expre
 
     if (moving == NULL) {
         report_warning(MISSING_A_MOVING, "");
-        llvm__init_program(computed_moving->code);
         computed_moving = malloc(sizeof(struct computed_expression));
+        computed_moving->code = malloc(sizeof(struct llvm__program));
+        llvm__init_program(computed_moving->code);
     }
     else {
         if(is_already_computed(moving))
@@ -443,7 +443,6 @@ struct llvm__program* generate_for_code(struct Expression* initial, struct Expre
 
     struct llvm__program* for_program = malloc(sizeof(struct llvm__program));
     llvm__init_program(for_program);
-
     struct llvm__program for_jump = do_jump(computed_condition->type == T_INT ? 0 : 1, computed_condition->reg, comparator, loop, end);
 
 
@@ -472,6 +471,9 @@ struct llvm__program* generate_for_code(struct Expression* initial, struct Expre
     llvm__program_add_line(for_program, label_to_string(end, 0, ";for end"));
 
 
+    free(computed_initialisation);
+    free(computed_condition);
+    free(computed_moving);
     return for_program;
 }
 

@@ -381,6 +381,7 @@ struct llvm__program* generate_for_code(struct Expression* initial, struct Expre
     //initialisation
     int start = new_label();
     int loop = new_label();
+    int condition_label = new_label();
     int end = new_label();
     union COMPARATOR comparator;
     comparator.icmp = ICOMP_NE;
@@ -423,12 +424,12 @@ struct llvm__program* generate_for_code(struct Expression* initial, struct Expre
     llvm__fusion_programs(for_program, computed_initialisation->code);
 
     //( .. , condition, .., ) {
-    llvm__program_add_line(for_program, "; for condition");
+    llvm__program_add_line(for_program, label_to_string(condition_label, 0, ";for loop (condition)"));
     llvm__fusion_programs(for_program, computed_condition->code);
     llvm__fusion_programs(for_program, &for_jump);
 
     //statement
-    llvm__program_add_line(for_program, label_to_string(loop, 0, ";for loop"));
+    llvm__program_add_line(for_program, label_to_string(loop, 0, ";for content"));
     llvm__program_add_line(for_program, "; statement");
     llvm__fusion_programs(for_program, statement_code);
 
@@ -438,7 +439,7 @@ struct llvm__program* generate_for_code(struct Expression* initial, struct Expre
 
     //}
     llvm__program_add_line(for_program, "; loop");
-    llvm__program_add_line(for_program, jump_to(start));
+    llvm__program_add_line(for_program, jump_to(condition_label));
     llvm__program_add_line(for_program, label_to_string(end, 0, ";for end"));
 
 

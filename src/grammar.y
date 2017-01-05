@@ -499,7 +499,8 @@ expression_statement
 selection_statement
 : IF '(' expression ')' statement { $$ = *generate_if_code(&$3, &$5); }
 | IF '(' expression ')' statement ELSE statement { $$ = *generate_ifelse_code(&$3, &$5, &$7); }
-| FOR '(' expression ';' expression ';' expression ')' statement {$$ = *generate_for_code(&$3, &$5, &$7, &$9);}
+| FOR '(' expression ';' expression ';' expression ')' statement {    printf("TREEEE \n");
+    print_tree(&$3); $$ = *generate_for_code(&$3, &$5, &$7, &$9);}
 | FOR '(' expression ';' expression ';'            ')' statement {$$ = *generate_for_code(&$3, &$5, NULL, &$8);}
 | FOR '(' expression ';'            ';' expression ')' statement {$$ = *generate_for_code(&$3, NULL, &$6, &$8);}
 | FOR '(' expression ';'            ';'            ')' statement {$$ = *generate_for_code(&$3, NULL, NULL, &$7);}

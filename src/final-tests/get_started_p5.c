@@ -6,9 +6,8 @@
 int x, y;
 
 void my_draw(){
-    double xx = (double) x;
-    double yy = (double) y;
-    ellipse( xx,  yy, 80.0, 80.0);
+
+    ellipse( (double) x , (double) y , 80.0, 80.0);
 }
 
 void my_setup(){

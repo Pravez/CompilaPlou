@@ -378,6 +378,17 @@ void llvm__print(const struct llvm__program* program){
 }
 struct llvm__program* generate_for_code(struct Expression* initial, struct Expression* condition, struct Expression* moving, struct llvm__program* statement_code)
 {
+    printf("\nFOR !!!\n\n");
+    printf("initial: ");
+    print_tree(initial);
+    printf("\ncode:\n");
+    llvm__print(initial->code->code);
+    printf("\ncondition: ");
+    print_tree(condition);
+    printf("\n moving: ");
+    print_tree(moving);
+    printf("\n");
+
     //initialisation
     int start = new_label();
     int loop = new_label();
@@ -385,31 +396,49 @@ struct llvm__program* generate_for_code(struct Expression* initial, struct Expre
     union COMPARATOR comparator;
     comparator.icmp = ICOMP_NE;
 
+    struct computed_expression *computed_condition;
+    struct computed_expression *computed_initialisation;
+    struct computed_expression *computed_moving;
+/*
     struct computed_expression *computed_condition = malloc(sizeof(struct computed_expression));
     struct computed_expression *computed_initialisation = malloc(sizeof(struct computed_expression));;
     struct computed_expression *computed_moving = malloc(sizeof(struct computed_expression));;
-
+*/
     if (initial == NULL) {
         report_warning(MISSING_AN_INITIALISATION, "");
         llvm__init_program(computed_initialisation->code);
+        computed_initialisation = malloc(sizeof(struct computed_expression));
         }
     else {
-        computed_initialisation = generate_code(initial); }
+        if(is_already_computed(initial))
+            computed_initialisation = initial->code;
+        else
+            computed_initialisation = generate_code(initial);
+    }
 
     if (condition == NULL) {
         report_error(MISSING_A_CONDITION, "");
         return NULL;
     }
     else {
-        establish_expression_final_type(condition);
-        computed_condition = generate_code(condition);
+        //establish_expression_final_type(condition);
+        if(is_already_computed(condition))
+            computed_condition = condition->code;
+        else
+            computed_condition = generate_code(condition);
     }
 
     if (moving == NULL) {
         report_warning(MISSING_A_MOVING, "");
-        llvm__init_program(computed_moving->code);}
+        llvm__init_program(computed_moving->code);
+        computed_moving = malloc(sizeof(struct computed_expression));
+    }
     else {
-        computed_moving = generate_code(moving); }
+        if(is_already_computed(moving))
+            computed_moving = moving->code;
+        else
+            computed_moving = generate_code(moving);
+    }
 
     struct llvm__program* for_program = malloc(sizeof(struct llvm__program));
     llvm__init_program(for_program);

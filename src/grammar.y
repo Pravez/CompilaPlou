@@ -119,6 +119,7 @@ primary_expression
 | '(' expression ')' { $$ = $2; }
 | IDENTIFIER '(' ')' {
     $$ = create_leaf(init_operand_function($1, NULL));
+    
     if(!is_declared(&scope, $1, FUNCTION))
             $$.type = -1;
     else if(!is_corresponding_to_function(&$$.conditional_expression.leaf))
@@ -126,6 +127,7 @@ primary_expression
     }
 | IDENTIFIER '(' argument_expression_list ')' {
     $$ = create_leaf(init_operand_function($1, &$3));
+
     if(!is_declared(&scope, $1, FUNCTION))
             $$.type = -1;
     else if(!is_corresponding_to_function(&$$.conditional_expression.leaf))

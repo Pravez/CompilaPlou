@@ -31,7 +31,11 @@ struct expr_operand init_operand_function(char* name, struct Expression_array *a
         operand.operand.function.computed_array = malloc(sizeof(struct computed_expression) * array->expression_count);
 
         for (int i = 0; i < operand.operand.function.parameters.expression_count; i++) {
-            operand.operand.function.computed_array[i] = *generate_code(&operand.operand.function.parameters.array[i]);
+            if(is_already_computed(&operand.operand.function.parameters.array[i])){
+                operand.operand.function.computed_array[i] = *operand.operand.function.parameters.array[i].code;
+            }else {
+                operand.operand.function.computed_array[i] = *generate_code(&operand.operand.function.parameters.array[i]);
+            }
 
         }
     }else{

@@ -180,9 +180,15 @@ unary_expression
     }
 }
 | '-' unary_expression { 
-    if($2.type == E_CONDITIONAL){ 
+    if($2.type == E_CONDITIONAL){
+        if(is_already_computed(&$2)){ // if expression already computed
+            int new_reg = new_register();
+            llvm__program_add_line($2.code->code, invert_value($2.code->reg, $2.code->type, new_reg));
+            $2.code->reg = new_reg;
+        }else{
+            $$.conditional_expression.is_negative = 1;
+        }
         $$ = $2;
-        $$.conditional_expression.is_negative = 1; 
     }else{ 
          report_error(APPLY_MINUS_ON_AFFECT, 0);
     } 

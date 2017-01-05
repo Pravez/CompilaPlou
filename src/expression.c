@@ -377,7 +377,6 @@ enum TYPE get_operand_type(struct expr_operand operand){
         case O_DOUBLE:
             return T_DOUBLE;
         case O_VARIABLE:
-            printf("OPERAND %s\n", operand.operand.variable);
             func_or_var = hash__get_item(&scope, operand.operand.variable);
             if(func_or_var.decl_type != -1) {
                 if (func_or_var.decl_type == VARIABLE){

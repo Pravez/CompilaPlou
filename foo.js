@@ -1933,19 +1933,16 @@ function getTempRet0() {
 }
 
 function _my_draw() {
- var $x1 = 0, $x2 = 0.0, $x3 = 0, $x4 = 0.0, $x5 = 0.0, $x6 = 0.0, $xx = 0.0, $yy = 0.0, label = 0, sp = 0;
+ var $x1 = 0, $x2 = 0.0, $x3 = 0, $x4 = 0.0, $x5 = 0.0, $x6 = 0.0, label = 0, sp = 0;
  sp = STACKTOP;
- STACKTOP = STACKTOP + 16|0; if ((STACKTOP|0) >= (STACK_MAX|0)) abortStackOverflow(16|0);
  $x1 = HEAP32[31]|0;
  $x2 = (+($x1|0));
- $xx = $x2;
  $x3 = HEAP32[32]|0;
  $x4 = (+($x3|0));
- $yy = $x4;
  $x5 = 0.0 + 80.0;
  $x6 = 0.0 + 80.0;
  _ellipse((+$x2),(+$x4),(+$x5),(+$x6));
- STACKTOP = sp;return;
+ return;
 }
 function _my_setup() {
  var $x10 = 0, $x7 = 0.0, $x8 = 0.0, $x9 = 0, label = 0, sp = 0;

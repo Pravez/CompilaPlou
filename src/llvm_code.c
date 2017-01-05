@@ -453,7 +453,7 @@ struct llvm__program* generate_for_code(struct Expression* initial, struct Expre
     llvm__fusion_programs(for_program, computed_initialisation->code);
 
     //( .. , condition, .., ) {
-    llvm__program_add_line(for_program, label_to_string(condition_label, 0, ";for loop (condition)"));
+    llvm__program_add_line(for_program, label_to_string(condition_label, 1, ";for loop (condition)"));
     llvm__fusion_programs(for_program, computed_condition->code);
     llvm__fusion_programs(for_program, &for_jump);
 

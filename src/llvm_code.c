@@ -128,7 +128,9 @@ struct computed_expression* generate_code(struct Expression* e){
     llvm__init_program(ret->code);
 
     if(e->type == E_CONDITIONAL && e->conditional_expression.type == C_LEAF){ // Operand
-        printf("operande %d var %d \n", e->conditional_expression.leaf.prefix,
+        printf("operande %d %svar %d \n",
+               e->conditional_expression.leaf.prefix,
+               e->conditional_expression.is_negative ? "-" : "",
                e->conditional_expression.leaf.postfix);
         struct expr_operand* o = &e->conditional_expression.leaf;
 
@@ -325,6 +327,7 @@ struct computed_expression* generate_code(struct Expression* e){
             llvm__program_add_line(ret->code, binary_op_on_regs(operation, new_var_reg, old_var_reg, ret->reg, ret->type));
             ret->reg = new_var_reg;
         }
+
         llvm__program_add_line(ret->code, store_var(affected_var_name, ret->reg, ret->type));
 
         // new register for affected variable

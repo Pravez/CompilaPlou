@@ -4,11 +4,6 @@
 * Expected result : return fibo(10) : 55
 */
 
-int fibo(int n) {
-	
-}
-
-
 int main() { /* main_not_existing */
    int n, first = 0, second = 1, next, c;
    

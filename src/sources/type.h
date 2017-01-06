@@ -1,5 +1,5 @@
-#ifndef COMPILAPIOU_TYPE_H
-#define COMPILAPIOU_TYPE_H
+#ifndef COMPLL_TYPE_H
+#define COMPLL_TYPE_H
 
 #define MAX_ARGUMENTS 10
 
@@ -110,4 +110,4 @@ char* type_of(enum LLVM_TYPE type);
 enum LLVM_TYPE llvm__convert(enum TYPE type);
 
 
-#endif //COMPILAPIOU_TYPE_H
+#endif //COMPLL_TYPE_H

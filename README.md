@@ -33,14 +33,16 @@ Voici la liste (exhaustive) des tests que vous pouvez lancer, et que vous trouve
 
 - boucles
 - errors
-- example_code_ex
-- example_code_mandelbrot
 - fibonacci
-- get_started_p5
-- get_started_advanced
 - ifAndFunction
 - simple
 - warnings
+
+Tests impliquant l'utilisation de p5 : (et donc d'emcc)
+- get_started_p5
+- get_started_advanced
+- example_code_ex
+- example_code_mandelbrot
 
 ###### Comment réaliser les tests ?
 

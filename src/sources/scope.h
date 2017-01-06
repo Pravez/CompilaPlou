@@ -1,5 +1,5 @@
-#ifndef COMPILAPIOU_SCOPE_H
-#define COMPILAPIOU_SCOPE_H
+#ifndef COMPLL_SCOPE_H
+#define COMPLL_SCOPE_H
 
 #include "type.h"
 #include "errors.h"
@@ -29,31 +29,31 @@ struct Scope scope;
 ////////////
 
 /**HASH FUNCTIONS**/
-bool hash__key_exists_current(struct Scope *hashmap, char *key);
-bool hash__key_exists_all(struct Scope *hashmap, char *key);
-struct Declarator hash__get_item(struct Scope *hashmap, char *key);
-struct Declarator* hash__get_item_reference(struct Scope* hashmap, char*key);
-int hash__item_find_position(struct Scope* hashmap, char *key, int level);
-bool hash__add_item(struct Scope *hashmap, char *key, struct Declarator declarator);
-bool hash__add_item_function(struct Scope *hashmap, struct Declarator declarator);
-bool hash__add_individual_item_function(struct Scope *hashmap, struct Declarator declarator);
-bool hash__add_item_extern_function(struct Scope *hashmap, char* key, struct Declarator declarator);
-void hash__clean_level(struct Scope *hashmap, int level);
-void hash__prepare_upper_level(struct Scope *hashmap);
-bool hash__upper_level(struct Scope *hashmap);
-void hash__lower_level(struct Scope *hashmap);
-void hash__init(struct Scope *hashmap);
+bool scope__key_exists_current(struct Scope *hashmap, char *key);
+bool scope__key_exists(struct Scope *hashmap, char *key);
+struct Declarator scope__get_declarator(struct Scope *hashmap, char *key);
+struct Declarator* scope__get_decl_address(struct Scope* hashmap, char*key);
+int scope_decl_find_position(struct Scope* hashmap, char *key, int level);
+bool scope__add_item(struct Scope *hashmap, char *key, struct Declarator declarator);
+bool scope__add_item_function(struct Scope *hashmap, struct Declarator declarator);
+bool scope__add_individual_function_item(struct Scope *hashmap, struct Declarator declarator);
+bool scope__add_item_extern_function(struct Scope *hashmap, char* key, struct Declarator declarator);
+void scope__clean_level(struct Scope *hashmap, int level);
+void scope__prepare_next_level(struct Scope *hashmap);
+bool scope__next_level(struct Scope *hashmap);
+void scope__previous_level(struct Scope *hashmap);
+void scope__init(struct Scope *hashmap);
 
 /**BONUS**/
-bool hash__add_items(struct Scope *hashmap, struct DeclaratorList list);
-bool verify_no_function(struct DeclaratorList list);
+bool scope__add_items(struct Scope *hashmap, struct DeclaratorList list);
+bool no_function_in_list(struct DeclaratorList list);
 bool is_declared(struct Scope *scope, char* identifier, enum DECL_TYPE type);
 bool is_of_type(struct Scope *scope, char* identifier, enum TYPE type);
 bool set_initialized(struct Scope* scope, char* identifier);
-bool check_main_exists(struct Scope* scope);
+bool is_main_existing(struct Scope* scope);
 
 /**For debug**/
 void display_scope(struct Scope scope);
 
 
-#endif //COMPILAPIOU_HASH_H
+#endif //COMPLL_HASH_H

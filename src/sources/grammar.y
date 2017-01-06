@@ -348,7 +348,7 @@ assignment_operator
 declaration
 : type_name declarator_list ';' {
     $2 = apply_type($1, $2);
-    if(hash__add_items(&scope, $2)){
+    if(scope__add_items(&scope, $2)){
         $$ = *generate_multiple_var_declarations(&$2, scope.current_level == 0 ? 1 : 0);
     }
 }
@@ -362,7 +362,7 @@ declaration
         $2.declarator.variable.type = $1;
         if(verify_expression_type($2, &$4)){
             $2.declarator.variable.initialized = 1;
-            if(hash__add_item(&scope, $2.declarator.variable.identifier, $2)){
+            if(scope__add_item(&scope, $2.declarator.variable.identifier, $2)){
                 struct llvm__program* decl;
                 struct Expression affected_value;
                 struct expr_operand declarated_operand = variable_to_expr_operand(&$2.declarator.variable);
@@ -456,11 +456,11 @@ statement
 ;
 
 LB
-: '{' {if(!hash__upper_level(&scope)) YYABORT; }// pour le hash[i] il faut faire attention si on retourne à un même level, ce n'est pas forcément le même bloc ! il faudra sûrement utiliser deux var, une disant le dernier hash_nb atteint et le hash_nb actuel à utiliser
+: '{' {if(!scope__next_level(&scope)) YYABORT; }// pour le hash[i] il faut faire attention si on retourne à un même level, ce n'est pas forcément le même bloc ! il faudra sûrement utiliser deux var, une disant le dernier hash_nb atteint et le hash_nb actuel à utiliser
 ;
 
 RB
-: '}' {hash__lower_level(&scope);} // normalement ici pas de soucis pour le hash_nb
+: '}' {scope__previous_level(&scope);} // normalement ici pas de soucis pour le hash_nb
 ;
 
 compound_statement
@@ -547,7 +547,7 @@ jump_statement
 
 program
 : program_parts { 
-        check_main_exists(&scope);
+        is_main_existing(&scope);
         struct llvm__program extern_funcs = add_external_functions_declaration(); 
         llvm__fusion_programs(&program, &extern_funcs); 
         llvm__fusion_programs(&program, &$1);
@@ -585,11 +585,11 @@ function_declaration
 : type_name declarator {
     $2.declarator.function.return_type = $1;
     printf("Fonction %s\n", $2.declarator.function.identifier);
-    if(hash__add_item(&scope, $2.declarator.function.identifier, $2)){
+    if(scope__add_item(&scope, $2.declarator.function.identifier, $2)){
         struct llvm__program temp;
         llvm__init_program(&temp);
         llvm__program_add_line(&temp, "");
-        struct Function temp_func = hash__get_item(&scope, $2.declarator.function.identifier).declarator.function;
+        struct Function temp_func = scope__get_declarator(&scope, $2.declarator.function.identifier).declarator.function;
         char** function_def = llvm___create_function_def(temp_func);
         if(function_def != NULL){
             llvm__program_add_line(&temp, function_def[0]);
@@ -601,7 +601,7 @@ function_declaration
         $$ = temp;
         current_function = $2.declarator.function;
     }else{
-        struct Declarator decl = hash__get_item(&scope, $2.declarator.function.identifier);
+        struct Declarator decl = scope__get_declarator(&scope, $2.declarator.function.identifier);
         if(decl.decl_type == FUNCTION)
             report_error(DEFINED_FUNC, decl.declarator.function.identifier);
         else
@@ -634,7 +634,7 @@ void yyerror (char const *s) {
 
 
 int main (int argc, char *argv[]) {
-    hash__init(&scope);
+    scope__init(&scope);
     llvm__init_program(&program);
     error_flag = 0;
     FILE *input = NULL;

@@ -45,7 +45,7 @@ struct expr_operand init_operand_function(char* name, struct Expression_array *a
 }
 
 int is_corresponding_to_function(struct expr_operand* operand){
-    struct Declarator function = hash__get_item(&scope, operand->operand.function.name);
+    struct Declarator function = scope__get_declarator(&scope, operand->operand.function.name);
 
     //Check it is a function
     if(function.decl_type == FUNCTION){
@@ -121,7 +121,7 @@ int operand_add_postfix(struct expr_operand* operand, int value){
         report_error(POSTF_OPERATOR_NOT_USABLE, value > 0 ? "++" : "--");
         return 0;
     }else{
-        struct Declarator declarator = hash__get_item(&scope, operand->operand.variable);
+        struct Declarator declarator = scope__get_declarator(&scope, operand->operand.variable);
         if(declarator.decl_type != -1) {
             if (!declarator.declarator.variable.initialized) {
                 report_warning(UNARY_ON_UNINIT, operand->operand.variable);
@@ -142,7 +142,7 @@ int operand_add_prefix(struct expr_operand* operand, int value){
         report_error(PREF_OPERATOR_NOT_USABLE, value > 0 ? "++" : "--");
         return 0;
     }else{
-        struct Declarator declarator = hash__get_item(&scope, operand->operand.variable);
+        struct Declarator declarator = scope__get_declarator(&scope, operand->operand.variable);
         if(declarator.decl_type != -1) {
             if (declarator.decl_type == FUNCTION) { //really ?
                 report_error(UNARY_ON_FUNCTION, operand->operand.variable);
@@ -305,7 +305,7 @@ struct Expression create_branch_cpy(enum COND_OPERATOR operator, struct Expressi
 ////////////////////////////////////////////////////////////
 
 int expression_from_unary_cond(struct expr_operand* operand, enum ASSIGN_OPERATOR assign_operator, struct Expression* cond, struct Expression* final_expression){
-    struct Declarator item = hash__get_item(&scope, operand->operand.variable);
+    struct Declarator item = scope__get_declarator(&scope, operand->operand.variable);
     if(item.decl_type == FUNCTION){
         return 0;
     }
@@ -376,7 +376,7 @@ enum TYPE get_operand_type(struct expr_operand operand){
         case O_DOUBLE:
             return T_DOUBLE;
         case O_VARIABLE:
-            func_or_var = hash__get_item(&scope, operand.operand.variable);
+            func_or_var = scope__get_declarator(&scope, operand.operand.variable);
             if(func_or_var.decl_type != -1) {
                 if (func_or_var.decl_type == VARIABLE){
                     if(!func_or_var.declarator.variable.initialized)
@@ -386,7 +386,7 @@ enum TYPE get_operand_type(struct expr_operand operand){
             }
             break;
         case O_FUNCCALL_ARGS:
-            func_or_var = hash__get_item(&scope, operand.operand.function.name);
+            func_or_var = scope__get_declarator(&scope, operand.operand.function.name);
             if(func_or_var.decl_type != -1) {
                 if (func_or_var.decl_type == FUNCTION) {
                     return func_or_var.declarator.function.return_type;

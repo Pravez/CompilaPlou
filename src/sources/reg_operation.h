@@ -1,5 +1,5 @@
-#ifndef _REGOPERATION_H_
-#define _REGOPERATION_H_
+#ifndef COMPLL__REGOPS_H
+#define COMPLL__REGOPS_H
 
 #include "type.h"
 #include "scope.h"

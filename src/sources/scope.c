@@ -25,7 +25,7 @@ int hachage(char *s) {
  * @param key
  * @return
  */
-bool hash__key_exists_current(struct Scope *hashmap, char *key) {
+bool scope__key_exists_current(struct Scope *hashmap, char *key) {
     int position = hachage(key);
     do{
         if (strcmp(hashmap->scope_maps[hashmap->current_level][position].key, key) == 0) {
@@ -44,7 +44,7 @@ bool hash__key_exists_current(struct Scope *hashmap, char *key) {
  * @param key
  * @return
  */
-bool hash__key_exists_all(struct Scope *hashmap, char *key) {
+bool scope__key_exists(struct Scope *hashmap, char *key) {
     for (int i = hashmap->higher_level; i >= 0; i--) {
         int position = hachage(key);
         do{
@@ -65,7 +65,7 @@ bool hash__key_exists_all(struct Scope *hashmap, char *key) {
  * @param key
  * @return
  */
-struct Declarator hash__get_item(struct Scope *hashmap, char *key) {
+struct Declarator scope__get_declarator(struct Scope *hashmap, char *key) {
     for (int i = hashmap->current_level; i >= 0; i--) {
         int position = hachage(key);
         do{
@@ -82,12 +82,12 @@ struct Declarator hash__get_item(struct Scope *hashmap, char *key) {
 }
 
 /**
- * Exactly the same as hash__get_item but returns a pointer
+ * Exactly the same as scope__get_declarator but returns a pointer
  * @param hashmap
  * @param key
  * @return
  */
-struct Declarator* hash__get_item_reference(struct Scope* hashmap, char*key){
+struct Declarator* scope__get_decl_address(struct Scope* hashmap, char*key){
     for (int i = hashmap->current_level; i >= 0; i--) {
         int position = hachage(key);
         do{
@@ -108,7 +108,7 @@ struct Declarator* hash__get_item_reference(struct Scope* hashmap, char*key){
  * @param level
  * @return
  */
-int hash__item_find_position(struct Scope* hashmap, char *key, int level){
+int scope_decl_find_position(struct Scope* hashmap, char *key, int level){
     //first we get the eventual position according to the hash function
     int position = hachage(key);
     struct hashmap_item *item = &hashmap->scope_maps[level][position];
@@ -137,16 +137,16 @@ int hash__item_find_position(struct Scope* hashmap, char *key, int level){
  * @param declarator
  * @return
  */
-bool hash__add_item_function(struct Scope *hashmap, struct Declarator declarator){
+bool scope__add_item_function(struct Scope *hashmap, struct Declarator declarator){
     //Because we cannot declare a function inside a function, we always have 1 unit difference with current_level
     if(hashmap->higher_level == hashmap->current_level) {
         hashmap->higher_level++;
-        hash__clean_level(hashmap, hashmap->higher_level); // clean next level
+        scope__clean_level(hashmap, hashmap->higher_level); // clean next level
     }
 
     for(int i=0;i<declarator.declarator.function.var_list_size;i++){
         //Because the upper level is truly new, the probability to have an error is zero ?
-        int position = hash__item_find_position(hashmap, declarator.declarator.function.var_list[i].identifier,
+        int position = scope_decl_find_position(hashmap, declarator.declarator.function.var_list[i].identifier,
                                                 hashmap->higher_level);
         if (position == -1) {
             return false;
@@ -165,9 +165,9 @@ bool hash__add_item_function(struct Scope *hashmap, struct Declarator declarator
     return true;
 }
 
-bool hash__add_individual_item_function(struct Scope *hashmap, struct Declarator declarator){
-    if(!hash__key_exists_current(hashmap, declarator.declarator.variable.identifier)){
-        int position = hash__item_find_position(hashmap, declarator.declarator.variable.identifier, hashmap->higher_level);
+bool scope__add_individual_function_item(struct Scope *hashmap, struct Declarator declarator){
+    if(!scope__key_exists_current(hashmap, declarator.declarator.variable.identifier)){
+        int position = scope_decl_find_position(hashmap, declarator.declarator.variable.identifier, hashmap->higher_level);
         if(position == -1){
             return false;
         }else{
@@ -191,22 +191,22 @@ bool hash__add_individual_item_function(struct Scope *hashmap, struct Declarator
  * @param declarator
  * @return
  */
-bool hash__add_item(struct Scope *hashmap, char *key, struct Declarator declarator) {
+bool scope__add_item(struct Scope *hashmap, char *key, struct Declarator declarator) {
     if(CHECK_LEVEL_SIZE(hashmap)){
         report_error(SCOPE_MAX_IDENT, 0);
         return false;
     }
 
     //If the item is not present in the hashmap
-    if (!hash__key_exists_current(hashmap, key)) {
+    if (!scope__key_exists_current(hashmap, key)) {
         //We find the position
-        int position = hash__item_find_position(hashmap, key, hashmap->current_level);
+        int position = scope_decl_find_position(hashmap, key, hashmap->current_level);
         if(position != -1){
             struct hashmap_item *item = &hashmap->scope_maps[hashmap->current_level][position];
             //If the item is a function
             if(declarator.decl_type == FUNCTION){
                 //If we could add the function
-                if(hash__add_item_function(hashmap, declarator)){
+                if(scope__add_item_function(hashmap, declarator)){
                     item->key = key;
                     item->value = declarator;
                 }else{
@@ -225,9 +225,9 @@ bool hash__add_item(struct Scope *hashmap, char *key, struct Declarator declarat
     return false;
 }
 
-bool hash__add_item_extern_function(struct Scope *hashmap, char* key, struct Declarator declarator){
-    if(!hash__key_exists_all(hashmap, key)){
-        int position = hash__item_find_position(hashmap, key, hashmap->current_level);
+bool scope__add_item_extern_function(struct Scope *hashmap, char* key, struct Declarator declarator){
+    if(!scope__key_exists(hashmap, key)){
+        int position = scope_decl_find_position(hashmap, key, hashmap->current_level);
         if(position != -1) {
             struct hashmap_item *item = &hashmap->scope_maps[hashmap->current_level][position];
             item->key = key;
@@ -245,7 +245,7 @@ bool hash__add_item_extern_function(struct Scope *hashmap, char* key, struct Dec
  * @param hashmap
  * @param level
  */
-void hash__clean_level(struct Scope *hashmap, int level){
+void scope__clean_level(struct Scope *hashmap, int level){
     for (int i = 0; i < HASH_SIZE; i++) {
         hashmap->scope_maps[level][i].key = "";
         hashmap->scope_maps[level][i].next = -1;
@@ -256,12 +256,12 @@ void hash__clean_level(struct Scope *hashmap, int level){
  * Add a level. If higher_level is higher is not bigger, we clean next level (because not already set)
  * @param hashmap
  */
-bool hash__upper_level(struct Scope *hashmap) {
+bool scope__next_level(struct Scope *hashmap) {
     if(hashmap->current_level != NB_LEVELS -1) {
         hashmap->current_level++;
         if (hashmap->current_level > hashmap->higher_level) {
             hashmap->higher_level++;
-            hash__clean_level(hashmap, hashmap->current_level); //clean next level
+            scope__clean_level(hashmap, hashmap->current_level); //clean next level
         }
     }else{
         report_error(SCOPE_MAX_LEVEL, 0);
@@ -275,7 +275,7 @@ bool hash__upper_level(struct Scope *hashmap) {
  * Lower level of a scope
  * @param hashmap
  */
-void hash__lower_level(struct Scope *hashmap) {
+void scope__previous_level(struct Scope *hashmap) {
     if(hashmap->current_level != 0) {
         hashmap->current_level--;
         hashmap->higher_level--;
@@ -286,10 +286,10 @@ void hash__lower_level(struct Scope *hashmap) {
  * Init a scope
  * @param hashmap
  */
-void hash__init(struct Scope *hashmap) {
+void scope__init(struct Scope *hashmap) {
     hashmap->current_level = 0;
     hashmap->higher_level = 0;
-    hash__clean_level(hashmap, hashmap->current_level);
+    scope__clean_level(hashmap, hashmap->current_level);
 }
 
 /**
@@ -298,8 +298,8 @@ void hash__init(struct Scope *hashmap) {
  * @param list
  * @return
  */
-bool hash__add_items(struct Scope *hashmap, struct DeclaratorList list){
-    if(verify_no_function(list))
+bool scope__add_items(struct Scope *hashmap, struct DeclaratorList list){
+    if(no_function_in_list(list))
         return false;
 
     if(CHECK_LEVEL_SIZE(hashmap)){
@@ -309,9 +309,9 @@ bool hash__add_items(struct Scope *hashmap, struct DeclaratorList list){
 
     for(int i=0;i<list.size;i++){
         if(list.declarator_list[i].decl_type == FUNCTION){
-            if(!hash__add_item(hashmap, list.declarator_list[i].declarator.function.identifier, list.declarator_list[i])){
+            if(!scope__add_item(hashmap, list.declarator_list[i].declarator.function.identifier, list.declarator_list[i])){
                 if(error_flag == 0) {
-                    if(hash__get_item(hashmap, list.declarator_list[i].declarator.function.identifier).decl_type == FUNCTION)
+                    if(scope__get_declarator(hashmap, list.declarator_list[i].declarator.function.identifier).decl_type == FUNCTION)
                         report_error(DEFINED_FUNC, list.declarator_list[i].declarator.function.identifier);
                     else
                         report_error(DEFINED_VAR, list.declarator_list[i].declarator.function.identifier);
@@ -323,8 +323,8 @@ bool hash__add_items(struct Scope *hashmap, struct DeclaratorList list){
                 report_error(VOID_UNAUTHORIZED, list.declarator_list[i].declarator.variable.identifier);
                 return false;
             }
-            if(!hash__add_item(hashmap, list.declarator_list[i].declarator.variable.identifier, list.declarator_list[i])){
-                if(hash__get_item(hashmap, list.declarator_list[i].declarator.variable.identifier).decl_type == FUNCTION)
+            if(!scope__add_item(hashmap, list.declarator_list[i].declarator.variable.identifier, list.declarator_list[i])){
+                if(scope__get_declarator(hashmap, list.declarator_list[i].declarator.variable.identifier).decl_type == FUNCTION)
                     report_error(DEFINED_FUNC, list.declarator_list[i].declarator.variable.identifier);
                 else
                     report_error(DEFINED_VAR, list.declarator_list[i].declarator.variable.identifier);
@@ -337,7 +337,7 @@ bool hash__add_items(struct Scope *hashmap, struct DeclaratorList list){
     return true;
 }
 
-bool verify_no_function(struct DeclaratorList list){
+bool no_function_in_list(struct DeclaratorList list){
     bool f_presence = false;
     for(int i=0;i<list.size;i++) {
         if (list.declarator_list[i].decl_type == FUNCTION) {
@@ -388,7 +388,7 @@ void display_scope(struct Scope scope){
  * @return
  */
 bool is_declared(struct Scope *scope, char* identifier, enum DECL_TYPE type){
-    struct Declarator declarator = hash__get_item(scope, identifier);
+    struct Declarator declarator = scope__get_declarator(scope, identifier);
     if(declarator.decl_type != -1){
         if(declarator.decl_type == type){
             return true;
@@ -415,7 +415,7 @@ bool is_declared(struct Scope *scope, char* identifier, enum DECL_TYPE type){
 }
 
 bool is_of_type(struct Scope *scope, char* identifier, enum TYPE type){
-    struct Declarator decl = hash__get_item(scope, identifier);
+    struct Declarator decl = scope__get_declarator(scope, identifier);
     if(decl.decl_type == VARIABLE){
         if(decl.declarator.variable.type != type){
             char* assigned;
@@ -435,7 +435,7 @@ bool is_of_type(struct Scope *scope, char* identifier, enum TYPE type){
 }
 
 bool set_initialized(struct Scope* scope, char* identifier){
-    struct Declarator* declarator = hash__get_item_reference(scope, identifier);
+    struct Declarator* declarator = scope__get_decl_address(scope, identifier);
     if(declarator != NULL){
         declarator->declarator.variable.initialized = 1;
         return true;
@@ -444,8 +444,8 @@ bool set_initialized(struct Scope* scope, char* identifier){
     return false;
 }
 
-bool check_main_exists(struct Scope* scope){
-    struct Declarator main_decl = hash__get_item(scope, "main");
+bool is_main_existing(struct Scope* scope){
+    struct Declarator main_decl = scope__get_declarator(scope, "main");
     if(main_decl.decl_type == FUNCTION){
         return true;
     }

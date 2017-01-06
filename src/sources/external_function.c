@@ -58,7 +58,7 @@ int add_if_registered_as_external(struct Scope *hashmap, char* name){
     for(int i = 0;i < external_functions.functions_number;i++){
         if(strcmp(name, external_functions.extern_functions[i].function.identifier) == 0){
             external_functions.extern_functions[i].to_add = 1;
-            return hash__add_item_extern_function(hashmap, name, (struct Declarator){
+            return scope__add_item_extern_function(hashmap, name, (struct Declarator){
                 .decl_type = FUNCTION, .declarator.function = external_functions.extern_functions[i].function });
         }
     }

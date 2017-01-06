@@ -1,5 +1,5 @@
-#ifndef TESTS_LLVM_CODE_H
-#define TESTS_LLVM_CODE_H
+#ifndef COMPLL_LLVM_CODE_H
+#define COMPLL_LLVM_CODE_H
 
 #include "type.h"
 #include "tools.h"

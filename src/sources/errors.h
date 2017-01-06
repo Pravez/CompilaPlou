@@ -1,5 +1,5 @@
-#ifndef _ERRORS_H_
-#define _ERRORS_H_
+#ifndef COMPLL_ERRORS_H
+#define COMPLL_ERRORS_H
 
 #include "type.h"
 

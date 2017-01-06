@@ -10,8 +10,8 @@
 short int no_optimization = 0;
 
 #define TO_LLVM_STRING(type) type_of(llvm__convert(type))
-#define GET_VAR_TYPE(ptr_scope, var_id) hash__get_item(ptr_scope, var_id).declarator.variable.type
-#define IS_FUNC_PARAM(ptr_scope, var_id) hash__get_item(ptr_scope, var_id).declarator.variable.is_func_param
+#define GET_VAR_TYPE(ptr_scope, var_id) scope__get_declarator(ptr_scope, var_id).declarator.variable.type
+#define IS_FUNC_PARAM(ptr_scope, var_id) scope__get_declarator(ptr_scope, var_id).declarator.variable.is_func_param
 
 void llvm__init_program(struct llvm__program* program){
     program->line_number = 0;
@@ -218,7 +218,7 @@ struct computed_expression* generate_code(struct Expression* e){
                 }
                 break;
             case O_FUNCCALL_ARGS:
-                ret->type = hash__get_item(&scope, o->operand.function.name).declarator.function.return_type;
+                ret->type = scope__get_declarator(&scope, o->operand.function.name).declarator.function.return_type;
                 if(e->conditional_expression.is_alone)
                     ret->reg = -1;
                 else

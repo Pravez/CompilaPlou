@@ -1,5 +1,5 @@
-#ifndef _P5_LIB_H_
-#define _P5_LIB_H_
+#ifndef COMPLL_EXTERN_FUNC_H
+#define COMPLL_EXTERN_FUNC_H
 
 #include "type.h"
 #include "scope.h"

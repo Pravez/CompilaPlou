@@ -648,16 +648,23 @@ int main (int argc, char *argv[]) {
     if(argc>=2){
         if(strcmp(argv[1], "--optim") == 0){
             refuse_optimization = 0;
-            llvm__program_add_line(&program,
-"; This program was generated with optimisation ON, this is an experimental feature.\n; If the result is not what you expected, please try without this feature!");
             argc--;
             if(argc >=2)
                 argv[1] = argv[2];
-        }else
-        if(argc>=3 && strcmp(argv[2], "-optim") == 0){
-            refuse_optimization = 0;
+        }else{
+            if(argc>=3 && strcmp(argv[2], "--optim") == 0){
+                refuse_optimization = 0;
+                argc--;
+            }
         }
     }
+
+    if(refuse_optimization == 0){
+        llvm__program_add_line(&program,
+            "; This program was generated with optimisation ON, this is an experimental feature.\n; If the result is not what you expected, please try without this feature!");
+
+    }
+
     if (argc>=2) {
         input = fopen (argv[1], "r");
         file_name = strdup(argv[1]);

@@ -41,3 +41,17 @@ Voici la liste (exhaustive) des tests que vous pouvez lancer, et que vous trouve
 - ifAndFunction
 - simple
 - warnings
+
+###### Comment réaliser les tests ?
+
+- Tout d'abord, assurez vous d'avoir bien compilé le compilateur : placez vous dans le répertoire `src`.
+Puis faites : `make all`.
+- Ensuite, compilez le fichier de tests que vous souhaitez : `make run [votrefichier].c`.
+- Vous pourrez alors voir dans `output.ll` le résultat de la compilation. Pour le tester via le
+makefile avec le programme `lli`, faites : `make compll [votrefichier].ll`. Ici votre fichier sera donc 
+`output`. Vous aurez alors d'affiché le code de retour du programme. 
+
+==> Cas particulier : compilation et test avec la bibliothèque p5.js
+
+Plutôt que d'utiliser `make compll` utilisez `make emcc [votrefichier].ll` où votre fichier sera
+vraisemblablement `output`. Firefox s'ouvrira alors avec le résultat de la compilation.

@@ -310,7 +310,7 @@ struct computed_expression* generate_code(struct Expression* e){
             case OP_SUB_ASSIGN:
                 operation = REG_SUB; break;
             default:
-				//error
+				break;
         }
         if(operation != -1){ //operation need to be performed before affectation
             int previous_reg = new_register();

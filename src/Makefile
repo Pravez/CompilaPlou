@@ -35,4 +35,5 @@ compll:
 
 emcc:
 	$(EMCC) $(RUN_ARGS) --js-library ../p5-libraries/p5-wrap.js -s EXPORTED_FUNCTIONS="['_my_draw','_my_setup']" -o ../foo.js
+	firefox ../index.html &
 

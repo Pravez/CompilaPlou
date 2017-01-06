@@ -133,7 +133,6 @@ short int convert_computed_expr_to_type_if_needed(struct llvm__program* code, st
 }
 
 struct computed_expression* generate_code(struct Expression* e){
-    print_tree(e); 
 
     struct computed_expression* ret = malloc(sizeof(struct computed_expression));
     ret->code = malloc(sizeof(struct llvm__program));
@@ -267,8 +266,7 @@ struct computed_expression* generate_code(struct Expression* e){
         ret->type = GET_VAR_TYPE(&scope, affected_var_name);
         if(e->expression.cond_expression->type == E_AFFECT ||
                 (is_already_computed(e->expression.cond_expression))){
-            print_tree(e->expression.cond_expression);
-
+                    
             convert_computed_expr_to_type_if_needed(ret->code, e->expression.cond_expression->code, ret->type);
             ret->reg = e->expression.cond_expression->code->reg;
         }else {

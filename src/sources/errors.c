@@ -195,27 +195,30 @@ void report_warning(enum WARNING_TYPE type, void* data){
 
 void print_summary(char* file_name){
     printf("\n\n---------------------------------------------\n");
-    printf("---\t %s: SUMMARY \t ---\n", file_name);
+    printf("\t %s: SUMMARY \t\n", file_name);
     printf("---------------------------------------------\n");
 }
 
 int verify_no_error(char* file_name){
-    short int summary = 0;
+    print_summary(file_name);
+
+    short int somethingwrong = 0;
     if(WARN_COUNT > 0){
-        print_summary(file_name);
-        summary = 1;
+        somethingwrong = 1;
         printf("%s: \033[35;1m%d\033[0m warning(s) appeared. \n", file_name, WARN_COUNT);
         printf("%s: Look out, Warnings can induce to errors when trying to compile LLVM code. \n", file_name);
     }
 
     if(ERR_COUNT > 0){
-        if(!summary)
-            print_summary(file_name);
+        somethingwrong = 1;
         printf("%s: \033[31;1m%d\033[0m error(s) occured. \n", file_name, ERR_COUNT);
         printf("%s: exitting ...\n", file_name);
         free (file_name);
         return 0;
     }
+
+    if(!somethingwrong)
+        printf("%s:Everything seems to be fine !\n ", file_name);
 
     free (file_name);
     return 1;

@@ -41,7 +41,7 @@ void print_declarator_list(struct DeclaratorList list){
             switch(list.declarator_list[i].declarator.variable.type){
                 case T_INT: printf("INT ");break;
                 case T_DOUBLE: printf("DOUBLE "); break;
-                default:
+                default: break;
             }
             printf(" %s, ", list.declarator_list[i].declarator.variable.identifier);
         }else{
@@ -49,14 +49,14 @@ void print_declarator_list(struct DeclaratorList list){
                 case T_INT: printf("INT ");break;
                 case T_DOUBLE: printf("DOUBLE "); break;
                 case T_VOID: printf("VOID "); break;
-                default:
+                default: break;
             }
             printf(" %s(", list.declarator_list[i].declarator.function.identifier);
             for(int j=0;j<list.declarator_list[i].declarator.function.var_list_size;j++){
                 switch(list.declarator_list[i].declarator.function.var_list[j].type){
                     case T_INT: printf("INT ");break;
                     case T_DOUBLE: printf("DOUBLE "); break;
-                    default:
+                    default: break;
                 }
                 printf(" %s, ", list.declarator_list[i].declarator.function.var_list[j].identifier);
             }

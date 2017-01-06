@@ -294,7 +294,6 @@ short int is_logical_op(enum COND_OPERATOR o){
 }
 /****  OPERATION ON REG ****/
 char* operation_on_regs(enum COND_OPERATOR op, int reg_dest, int reg1, int reg2, enum TYPE type){
-    printf("OPERATOR: %d\n", op);
     if(is_binary_op(op)) {
         return binary_op_on_regs(cond_op_to_binary_op(op), reg_dest, reg1, reg2, type);
     }

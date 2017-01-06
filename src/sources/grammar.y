@@ -293,11 +293,9 @@ expression
                 report_warning(USELESS_CAST, "");
             }else{
                 int new_reg = new_register();
-                printf("---- CODE BEFORE\n");
                 llvm__print($$.code->code);
                 llvm__program_add_line($$.code->code, convert_reg(e->reg, e->type, new_reg, $2));
 
-                printf("\n---- CODE AFTER\n");
                 llvm__print($$.code->code);
 
                 $$.code->reg = new_reg;
@@ -421,12 +419,12 @@ parameter_declaration
 ;
 
 statement
-: declaration               {printf("--- statement DECL ---\n"); $$ = $1; llvm__print(&$1); printf("--- END  statement ---\n");}
+: declaration               { $$ = $1; }
 | compound_statement        { $$ = $1; }
-| expression_statement      {printf("--- statement CODE ---\n"); $$ = $1; llvm__print(&$1); printf("--- END  statement ---\n");}
-| selection_statement       {printf("--- statement IF OR FOR ---\n");$$ = $1; printf("--- END  statement ---\n");}
-| iteration_statement       {printf("--- statement WHILE ---\n"); $$ = $1; llvm__print(&$1);printf("--- END  statement ---\n");}
-| jump_statement            { $$ = $1; printf("\n\t\t\treturn. FAUT SORTIR !\n\n");}
+| expression_statement      { $$ = $1; }
+| selection_statement       { $$ = $1; }
+| iteration_statement       { $$ = $1; }
+| jump_statement            { $$ = $1; }
 ;
 
 LB
@@ -524,8 +522,6 @@ jump_statement
                 report_warning(FUNCTION_WRONG_RETURN_TYPE, &report);
             }
 
-            print_tree(&$2);
-            printf("\n");
             $$ = *e->code;
             llvm__program_add_line(&$$, return_expr(e->reg, e->type));
         }
@@ -571,7 +567,6 @@ function_definition
 function_declaration
 : type_name declarator {
     $2.declarator.function.return_type = $1;
-    printf("Fonction %s\n", $2.declarator.function.identifier);
     if(scope__add_item(&scope, $2.declarator.function.identifier, $2)){
         struct llvm__program temp;
         llvm__init_program(&temp);

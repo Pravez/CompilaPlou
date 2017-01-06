@@ -257,8 +257,6 @@ struct Expression create_branch_cpy(enum COND_OPERATOR operator, struct Expressi
     expression.conditional_expression.branch.e_left = left;
     expression.conditional_expression.is_alone = 0;
 
-    printf("\n");
-
     return expression;
 }
 

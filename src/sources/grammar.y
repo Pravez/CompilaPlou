@@ -105,7 +105,6 @@ primary_expression
     $$ = create_leaf(init_operand_identifier($1));
     if(!is_declared(&scope, $1, VARIABLE)){
         $$.type = -1;
-        printf("C'est cassé! \n");
     }
     }
 | CONSTANTI  {

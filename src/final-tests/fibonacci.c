@@ -4,20 +4,19 @@
 * Expected result : return fibo(10) : 55
 */
 
-int main() { /* main_not_existing */
-   int n, first = 0, second = 1, next, c;
-   
-   for (c = 0 ; c < 10 ; c++ )
-   {
-      if ( c <= 1 )
-         next = c;
-      else
-      {
-         next = first + second;
-         first = second;
-         second = next;
-      }
-   }
- 
-   return next;
+int main() {
+
+    int i = 0;
+    int j = 1;
+    int temp;
+    int k;
+    int n = 9;
+
+    for (k = 0; k < n; k++) {
+        temp = i + j;
+        i = j;
+        j = temp;
+    }
+
+    return temp;
 }

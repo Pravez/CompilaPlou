@@ -109,21 +109,17 @@ struct Declarator* scope__get_decl_address(struct Scope* hashmap, char*key){
  * @return
  */
 int scope_decl_find_position(struct Scope* hashmap, char *key, int level){
-    //first we get the eventual position according to the hash function
     int position = hachage(key);
     struct hashmap_item *item = &hashmap->scope_maps[level][position];
     int incr = 0;
-    //After getting the item, we see if the place is occupied
-    //If it is, we link the concerned place with the next one we'll visit (simple position +1 modulo 100)
     while (strcmp(item->key, "") != 0) {
-        //If we increased the position 100 times, then there is no place
         if (incr++ == 100)
             break;
         position = position == HASH_SIZE - 1 ? 0 : position + 1;
         item->next = position;
         item = &hashmap->scope_maps[hashmap->current_level][position];
     }
-    //If there is no place, it's an error
+    
     if(incr != 100)
         return position;
     else
@@ -138,7 +134,6 @@ int scope_decl_find_position(struct Scope* hashmap, char *key, int level){
  * @return
  */
 bool scope__add_item_function(struct Scope *hashmap, struct Declarator declarator){
-    //Because we cannot declare a function inside a function, we always have 1 unit difference with current_level
     if(hashmap->higher_level == hashmap->current_level) {
         hashmap->higher_level++;
         scope__clean_level(hashmap, hashmap->higher_level); // clean next level

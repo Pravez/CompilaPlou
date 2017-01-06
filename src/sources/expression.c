@@ -47,18 +47,15 @@ struct expr_operand init_operand_function(char* name, struct Expression_array *a
 int is_corresponding_to_function(struct expr_operand* operand){
     struct Declarator function = scope__get_declarator(&scope, operand->operand.function.name);
 
-    //Check it is a function
     if(function.decl_type == FUNCTION){
-        //Check it has same parameters number
-        if(function.declarator.function.var_list_size == operand->operand.function.parameters.expression_count){
+        if(function.declarator.function.var_list_size == operand->operand.function.parameters.expression_count){ /*Has same number of parameter */
             enum TYPE arg_type;
             enum TYPE expr_type;
-            //Check parameters have same type
-            for(int i = 0;i < operand->operand.function.parameters.expression_count;i++){
+            for(int i = 0;i < operand->operand.function.parameters.expression_count;i++){ /* Has same type */
                 arg_type = function.declarator.function.var_list[i].type;
                 expr_type = operand->operand.function.computed_array[i].type;
-                //Means that an arg is wrong type
-                if(arg_type != expr_type){
+               
+                if(arg_type != expr_type){ /*wrong type */
                     struct arg_wrong_type* wrong = malloc(sizeof(struct arg_wrong_type));
                     wrong->expected = arg_type;
                     wrong->given = expr_type;
@@ -71,7 +68,6 @@ int is_corresponding_to_function(struct expr_operand* operand){
                     free(wrong);
                 }
             }
-            //Means that different parameters count
         }else{
             struct arg_wrong_type* wrong = malloc(sizeof(struct arg_wrong_type));
             wrong->function_name = operand->operand.function.name;
@@ -144,7 +140,7 @@ int operand_add_prefix(struct expr_operand* operand, int value){
     }else{
         struct Declarator declarator = scope__get_declarator(&scope, operand->operand.variable);
         if(declarator.decl_type != -1) {
-            if (declarator.decl_type == FUNCTION) { //really ?
+            if (declarator.decl_type == FUNCTION) {
                 report_error(UNARY_ON_FUNCTION, operand->operand.variable);
                 return 0;
             } else {
@@ -220,7 +216,7 @@ void print_tree(struct Expression* expr){
             print_tree(expr->conditional_expression.branch.e_right);
         }
         printf(")");
-    }else{ //E_AFFECT
+    }else{
         printf("(%s) = ", expr->expression.operand.operand.variable);
         print_tree(expr->expression.cond_expression);
     }
@@ -237,34 +233,9 @@ struct Expression create_leaf(struct expr_operand operand){
     expression.code = malloc(sizeof(struct computed_expression));
     expression.code->code = NULL;
 
-    //printf("CREATED LEAF "); print_operand(operand); printf(", type= %d\n", operand.type);
-
     return expression;
 }
 
-//////////////////////USELESS////////////////////////////
-struct Expression create_branch(enum COND_OPERATOR operator, struct Expression* expression_right, struct Expression* expression_left){
-    struct Expression expression;
-
-    expression.type = E_CONDITIONAL;
-    expression.conditional_expression.type = C_BRANCH;
-    expression.conditional_expression.branch.operator = operator;
-    expression.conditional_expression.branch.e_right = expression_left;
-    expression.conditional_expression.branch.e_left = expression_right;
-    expression.conditional_expression.is_alone = 0;
-    expression.conditional_expression.is_negative = 0;
-
-    expression.code = malloc(sizeof(struct computed_expression));
-    expression.code->code = NULL;
-
-    expression.code = NULL;
-
-    print_tree(&expression);
-    printf("\n");
-
-    return expression;
-}
-///////////////////////////////////////////////////////
 
 struct Expression create_branch_cpy(enum COND_OPERATOR operator, struct Expression expression_right, struct Expression expression_left){
     struct Expression expression;
@@ -286,23 +257,10 @@ struct Expression create_branch_cpy(enum COND_OPERATOR operator, struct Expressi
     expression.conditional_expression.branch.e_left = left;
     expression.conditional_expression.is_alone = 0;
 
-    //print_tree(&expression);
     printf("\n");
 
     return expression;
 }
-
-/////////////////////////USELESS///////////////////////////
-/*struct Expression expression_from_cond(const struct Expression* e){
-    struct Expression expression;
-
-    expression.cond_expression = *e;
-    expression.type = E_CONDITIONAL;
-    expression.assign_operator = -1;
-
-    return expression;
-}*/
-////////////////////////////////////////////////////////////
 
 int expression_from_unary_cond(struct expr_operand* operand, enum ASSIGN_OPERATOR assign_operator, struct Expression* cond, struct Expression* final_expression){
     struct Declarator item = scope__get_declarator(&scope, operand->operand.variable);
@@ -321,14 +279,12 @@ int expression_from_unary_cond(struct expr_operand* operand, enum ASSIGN_OPERATO
     final_expression->expression.operand = *operand;
     final_expression->code = NULL;
 
-    //Says that now it is initialized
     item.declarator.variable.initialized = 1;
 
     return 1;
 }
 
 int verify_expression_type(struct Declarator item, struct Expression* expression){
-    //We verify if the assigned type is good
     enum TYPE operand_type = item.declarator.variable.type;
     if(operand_type != T_VOID){
         enum TYPE final_type = establish_expression_final_type(expression);
@@ -344,9 +300,9 @@ int verify_expression_type(struct Declarator item, struct Expression* expression
 }
 
 enum TYPE establish_expression_final_type(struct Expression* expression){
-    //If expression has already been calculated (affectation or cast for instance)
+    
     if(is_already_computed(expression)){
-        return expression->code->type;
+        return expression->code->type; /* Already calculated if expression */
     }else
     if(expression->type == E_CONDITIONAL){
         if(expression->conditional_expression.type == C_LEAF){
@@ -355,15 +311,13 @@ enum TYPE establish_expression_final_type(struct Expression* expression){
             enum TYPE left = establish_expression_final_type(expression->conditional_expression.branch.e_left);
             enum TYPE right = establish_expression_final_type(expression->conditional_expression.branch.e_right);
 
-            //So if they are different (int or double), double always wins
             if(left != right){
                 return T_DOUBLE;
             }else{
-                //Else they are exactly the same so we return just one
                 return left;
             }
         }
-    }else /*if(expression->type == E_AFFECT)*/{
+    }else {
         return get_operand_type(expression->expression.operand);
     }
 }

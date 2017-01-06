@@ -67,7 +67,7 @@ struct Expression{
             };
         }conditional_expression;
     };
-    struct computed_expression* code; //Declared in llvm_code.h
+    struct computed_expression* code;
 };
 
 struct Expression_array create_expression_array(struct Expression expression);

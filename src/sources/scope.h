@@ -5,8 +5,8 @@
 #include "errors.h"
 #include "tools.h"
 
-#define HASH_SIZE 100 // nb max de IDENTIFIER stockable par level
-#define NB_LEVELS 50 // nb max of nested levels
+#define HASH_SIZE 100 // maximum of identifier for a level
+#define NB_LEVELS 50 // maximum of nested levels
 
 #define true 1
 #define false 0
@@ -18,15 +18,13 @@ struct hashmap_item {
     int next;
 };
 
-//////Scope
 struct Scope {
     struct hashmap_item scope_maps[NB_LEVELS][HASH_SIZE];
-    int current_level; //Pas necessaire
+    int current_level; 
     int higher_level;
 };
-////////////
+
 struct Scope scope;
-////////////
 
 /**HASH FUNCTIONS**/
 bool scope__key_exists_current(struct Scope *hashmap, char *key);

@@ -10,7 +10,6 @@
 char* load_int(int reg, int value, short int negative){
     char* type_name = type_of(llvm__convert(T_INT));
     char* code;
-    //"%<reg> = add i32 0, <value>";
     asprintf(&code, "%%x%d = %s %s 0, %d", reg, negative ? "sub" : "add", type_name, value);
     return code;
 }
@@ -120,7 +119,7 @@ char* binary_op_on_reg_const(enum REG_BINARY_OP op, int reg_dest, int reg1, doub
     asprintf(&code, "%%x%d = %s %s %%x%d, %s ; coucou", reg_dest, llvm_op, type_name, reg1, str_value);
 
     free(llvm_op);
-    free(str_value); //TODO PROBLEM HERE (free causes memdump)
+    free(str_value);
     return code;
 }
 
@@ -142,7 +141,7 @@ enum REG_BITWISE_OP cond_op_to_bitwise_op(enum COND_OPERATOR o){
         case OP_SSHR:
             return REG_SHR;
         default:
-            return -1; // Error. Should have call is_bitwise_op first.
+            return -1;
     }
 }
 
@@ -397,7 +396,6 @@ char* comparator_to_string(union COMPARATOR comparator, int is_float){
                 return "sle";
         }
     }
-    debug("ERROR COMP TO STRING '245254244'", RED);
     return "ERROR COMP TO STRING '245254244'";
 }
 

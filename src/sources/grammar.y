@@ -236,40 +236,23 @@ expression
             if($3.type != -1){
                 char* msg;
                 asprintf(&msg, "Assigment de %s:", $1.conditional_expression.leaf.operand.variable);
-                debug(msg, GREEN);
                 free(msg);
                 if(expression_from_unary_cond(&($1.conditional_expression.leaf), $2, &$3, &$$)){
-                    //TODO clean le magnifique débug <3
                     set_initialized(&scope, $1.conditional_expression.leaf.operand.variable);
 
                     struct computed_expression* e = generate_code(&$$);
-                    //printf("\n\tcode:\n");
-                    //llvm__print(e->code);
-                    //printf("reg: %%x%d\n", e->reg);
 
-                    //debug("fin 1?", GREEN);
                     // If next expression has already been calculated (it's an affectation or a cast)
                     if($3.type == E_AFFECT || is_already_computed(&$3)){
-                        //TODO je sais pas pourquoi $3.code peut être null... mais bon XD
                         if(!is_already_computed(&$3)){
-                            debug("NE DEVRAIT PAS ARRIVER.... T.T", RED);
                         }else{
-                            debug("pas null, la suite est une affecation ou un cast", GREEN);
                             llvm__fusion_programs($3.code->code, e->code);
                             free(e->code);
                             e->code = $3.code->code;
-
-                            /*debug("dfevrait pas arriver, je crois", RED);
-                            $3.code = malloc(sizeof(struct computed_expression));
-                            llvm__init_program($3.code->code);*/
                         }
                     }
-                    //printf("\t fusionné: \n");
-                    //llvm__print(e->code);
 
                     $$.code = e;
-                    //debug("fin 2?\n", GREEN);
-                    //free(e);
                 }
             }else{
                 report_error(NOT_ASSIGNABLE_EXPR, "");
@@ -298,7 +281,6 @@ expression
     }
 }
 | '(' type_name ')' conditional_expression {
-    debug("EXPLICIT CAST required", BLUE);
     if($2 == T_VOID){
         report_error(VOID_ASSIGN, "");
     }else{
@@ -311,16 +293,15 @@ expression
                 report_warning(USELESS_CAST, "");
             }else{
                 int new_reg = new_register();
-                printf("---- CODE AVANT\n");
+                printf("---- CODE BEFORE\n");
                 llvm__print($$.code->code);
                 llvm__program_add_line($$.code->code, convert_reg(e->reg, e->type, new_reg, $2));
 
-                printf("\n---- CODE APRRES\n");
+                printf("\n---- CODE AFTER\n");
                 llvm__print($$.code->code);
 
                 $$.code->reg = new_reg;
                 $$.code->type = $2;
-                debug("CASTED ! HAHAH", GREEN);
             }
         }else{
             // Undeclared variable... Keep going to look for more errors.
@@ -356,7 +337,6 @@ declaration
     if($2.decl_type == VARIABLE){
         char* msg;
         asprintf(&msg, "Declaration + assigment de %s:\n", $2.declarator.variable.identifier);
-        debug(msg, GREEN);
         free(msg);
 
         $2.declarator.variable.type = $1;
@@ -369,7 +349,6 @@ declaration
 
                 if(scope.current_level == 0 && $4.type == E_CONDITIONAL && $4.conditional_expression.type == C_LEAF){
                     if(get_operand_type($4.conditional_expression.leaf) == $1){
-                        debug("Attention on dirait que ça marche pas de déclarer + affecter une variable globale !", RED);
                         decl = generate_global_decl_and_affect(&$4.conditional_expression.leaf, &$2.declarator.variable);
                         if(decl != NULL)
                             $$ = *decl;
@@ -378,16 +357,13 @@ declaration
                     }
                 }else if(scope.current_level > 0){
                     if(expression_from_unary_cond(&declarated_operand, OP_SIMPLE_ASSIGN, &$4, &affected_value)){
-                        //TODO clean le magnifique débug <3
                         set_initialized(&scope, $2.declarator.variable.identifier);
 
                         struct computed_expression* e = generate_code(&affected_value);
 
                         // If next expression has already been calculated (it's an affectation)
                         if($4.type == E_AFFECT || is_already_computed(&$4)){
-                            //TODO je sais pas pourquoi $4.code peut être null... mais bon XD
                             if(!is_already_computed(&$4)){
-                                debug("NE DEVRAIT PAS ARRIVER.... T.T", RED);
                             }else{
                                 llvm__fusion_programs($4.code->code, e->code);
                                 free(e->code);
@@ -410,8 +386,6 @@ declaration
                 report_error(DEFINED_VAR, $2.declarator.variable.identifier);
             }
         }else{
-            // TODO ?
-            debug("ERROR, OPERAND IS NOT A VARIABLE !!", RED);
         }
     } else{
         report_error(FUNCTION_AS_VARIABLE, $2.declarator.function.identifier);
@@ -456,25 +430,17 @@ statement
 ;
 
 LB
-: '{' {if(!scope__next_level(&scope)) YYABORT; }// pour le hash[i] il faut faire attention si on retourne à un même level, ce n'est pas forcément le même bloc ! il faudra sûrement utiliser deux var, une disant le dernier hash_nb atteint et le hash_nb actuel à utiliser
+: '{' {if(!scope__next_level(&scope)) YYABORT; }
 ;
 
 RB
-: '}' {scope__previous_level(&scope);} // normalement ici pas de soucis pour le hash_nb
+: '}' {scope__previous_level(&scope);}
 ;
 
 compound_statement
 : LB RB { }
 | LB statement_list RB { $$ = $2; }
-/*| LB declaration_list statement_list RB
-| LB declaration_list RB*/
 ;
-/*
-declaration_list
-: declaration
-| declaration_list declaration
-;
-*/
 
 statement_list
 : statement                 { $$ = $1; }
@@ -543,7 +509,7 @@ jump_statement
                 report_error(VOID_FUNCTION_RETURNING, current_function.identifier);
         }else if($2.type != -1){
             struct computed_expression* e;
-            if(is_already_computed(&$2)){ // already calculated if cast or affecation
+            if(is_already_computed(&$2)){ // already calculated if cast or affectation
                 e = $2.code;
             }else{
                 e = generate_code(&$2);
@@ -590,11 +556,10 @@ function_definition
 : function_declaration compound_statement {
     if($1.validity != -1){
         llvm__fusion_programs(&$1, &$2);
-        if(true/* && TODO return pas fait */){
+        if(true){
             if(current_function.return_type == T_VOID){
                 llvm__program_add_line(&$1, "ret void");
             }else{
-                //TODO warning pas de return !
             }
         }
         llvm__program_add_line(&$1, "}");
@@ -650,7 +615,6 @@ void yyerror (char const *s) {
     fflush (stdout);
     fprintf (stderr, "%s:\033[1m%d\033[0m:\033[1m%d\033[0m: %s\n", file_name, yylineno, column, s);
 
-    //No return, we want to continue ...
 }
 
 
@@ -667,7 +631,7 @@ int main (int argc, char *argv[]) {
             yyin = input;
             if(argc == 3){
                 file_name_output = argv[2];
-                //If no extension we add it
+                
                 if(strcmp(".ll", (file_name_output+(strlen(file_name_output)-4))) != 0){
                     asprintf(&file_name_output, "%s.lli", file_name_output);
                 }
@@ -690,9 +654,9 @@ int main (int argc, char *argv[]) {
     init_external_functions_declaration();
     add_p5_functions();
 
-    //First we verify errors
+    //Verification of errors
     if(yyparse() == 0 && verify_no_error(file_name)){
-        //Then we create code
+        //Then creation of code
         printf("Writing program in %s...\n", file_name_output);
         write_file(&program, file_name_output);
     }

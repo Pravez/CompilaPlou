@@ -42,9 +42,6 @@ void print_declarator_list(struct DeclaratorList list){
                 case T_INT: printf("INT ");break;
                 case T_DOUBLE: printf("DOUBLE "); break;
                 default:
-                    debugi("Erreur: une variable doit être INT ou DOUBLE",
-                           list.declarator_list[i].declarator.variable.type,
-                           RED);
             }
             printf(" %s, ", list.declarator_list[i].declarator.variable.identifier);
         }else{
@@ -53,9 +50,6 @@ void print_declarator_list(struct DeclaratorList list){
                 case T_DOUBLE: printf("DOUBLE "); break;
                 case T_VOID: printf("VOID "); break;
                 default:
-                    debugi("Erreur: une variable doit être INT, DOUBLE ou VOID",
-                           list.declarator_list[i].declarator.function.return_type,
-                           RED);
             }
             printf(" %s(", list.declarator_list[i].declarator.function.identifier);
             for(int j=0;j<list.declarator_list[i].declarator.function.var_list_size;j++){
@@ -63,9 +57,6 @@ void print_declarator_list(struct DeclaratorList list){
                     case T_INT: printf("INT ");break;
                     case T_DOUBLE: printf("DOUBLE "); break;
                     default:
-                        debugi("Erreur: une variable doit être INT ou DOUBLE",
-                               list.declarator_list[i].declarator.function.var_list[j].type,
-                               RED);
                 }
                 printf(" %s, ", list.declarator_list[i].declarator.function.var_list[j].identifier);
             }
@@ -106,7 +97,6 @@ struct Declarator declare_function(struct DeclaratorList list, char* identifier)
         for(int i=0;i<list.size;i++){
             if(list.declarator_list[i].decl_type == VARIABLE){
                 list.declarator_list[i].declarator.variable.is_global = 0;
-                printf("info à supprimer plus tard. %s n'est pas globale !(5876987987457)\n", list.declarator_list[i].declarator.variable.identifier);
                 function.declarator.function.var_list[function.declarator.function.var_list_size++] = list.declarator_list[i].declarator.variable;
             }
         }

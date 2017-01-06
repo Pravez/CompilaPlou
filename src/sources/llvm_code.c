@@ -99,7 +99,6 @@ short int convert_if_needed(struct llvm__program* code, struct computed_expressi
         return true;
     }else if(e1->type != e2->type){
         if(e1->type == T_DOUBLE){
-            debug("CONVERT !", GREEN);
             int reg = new_register();
             llvm__program_add_line(code, convert_reg(e2->reg, e2->type, reg, e1->type));
             e2->type = e1->type;
@@ -107,14 +106,12 @@ short int convert_if_needed(struct llvm__program* code, struct computed_expressi
             return true;
         }
         if(e2->type == T_DOUBLE){
-            debug("CONVERT !", GREEN);
             int reg = new_register();
             llvm__program_add_line(code, convert_reg(e1->reg, e1->type, reg, e2->type));
             e1->type = e2->type;
             e1->reg = reg;
             return true;
         }
-        // Should not happend
         report_error(VOID_TYPE_USED_AS_VALUE, "");
         return false;
     }
@@ -126,7 +123,6 @@ short int convert_computed_expr_to_type_if_needed(struct llvm__program* code, st
         report_error(VOID_TYPE_USED_AS_VALUE, "");
     }else
     if(e->type != t){
-        debug("CONVERT", GREEN);
         int reg = new_register();
         llvm__program_add_line(code, convert_reg(e->reg, e->type, reg, t));
         e->type = t;
@@ -253,10 +249,6 @@ struct computed_expression* generate_code(struct Expression* e){
         llvm__fusion_programs(ret->code, left->code);
         llvm__fusion_programs(ret->code, right->code);
 
-        //CONVERSION IF NEEDED
-        if(convert_if_needed(ret->code, right, left, operator == OP_AND ? T_INT : -1)){
-            //TODO report warning ? ou on le fait plus haut, c'est plus logique ?
-        }
 
         ret->reg = new_register();
 
@@ -273,7 +265,6 @@ struct computed_expression* generate_code(struct Expression* e){
     }else if(e->type == E_AFFECT){
         char* affected_var_name = e->expression.operand.operand.variable;
         ret->type = GET_VAR_TYPE(&scope, affected_var_name);
-        //if next nested expression is an affectation, it has already been computed
         if(e->expression.cond_expression->type == E_AFFECT ||
                 (is_already_computed(e->expression.cond_expression))){
             print_tree(e->expression.cond_expression);

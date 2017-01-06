@@ -31,7 +31,7 @@ run:
 	./parse $(addprefix final-tests/, $(RUN_ARGS))
 
 compll:
-	lli $(RUN_ARGS)
+	echo "Returned value : `lli $(RUN_ARGS)` $$?"
 
 emcc:
 	$(EMCC) $(RUN_ARGS) --js-library ../p5-libraries/p5-wrap.js -s EXPORTED_FUNCTIONS="['_my_draw','_my_setup']" -o ../foo.js

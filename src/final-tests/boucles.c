@@ -1,7 +1,7 @@
 /*
 * Test the basic use of while and for
-* 
-* Expected result : 5
+* A bit a stupid test, only idea is to do some operations ...
+* Expected result : 1
 */
 
 int main() {
@@ -18,8 +18,11 @@ int main() {
 	{
 		cpt2++;
 	}
+
+	int i;
+	for(i=0;i<25;i++);
 	
 	int avg = (cpt1 + cpt2) /2;
 	
-	return avg;
+	return (a/avg)/i;
 }

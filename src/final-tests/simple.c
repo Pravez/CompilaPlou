@@ -1,7 +1,7 @@
 /*
 * test the most simple program possible, to verify the basic process of compilation
 * 
-* Expected result : 20
+* Expected result : 15
 */
 
 int main() {

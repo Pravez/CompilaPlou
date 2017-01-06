@@ -1,7 +1,8 @@
 /*
 * Display the main errors implemented
 * 
-* Expected result : display of errors : DEFINED_VAR, UNDEFINED_FUNC, MAIN_NOT_EXISTING, MISSING_A_CONDITION
+* Expected result : display of errors : DEFINED_VAR, UNDEFINED_FUNC
+ * 					display of warning : MAIN_NOT_EXISTING
 */
 
 int fun() { /* main_not_existing */
@@ -9,8 +10,6 @@ int fun() { /* main_not_existing */
 	int b;
 	int a = 8; /* defined_var */
 	fantom(); /* undefined_function */
-	for (i=0; ; i++) {
-		a++;
-	}
+
 	return 1;
 }

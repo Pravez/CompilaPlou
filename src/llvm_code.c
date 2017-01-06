@@ -522,11 +522,15 @@ struct llvm__program* generate_if_code(struct Expression* condition, struct llvm
     int then = new_label();
     int end = new_label();
 
-    union COMPARATOR comparator;
-    comparator.icmp = ICOMP_NE;
-
     establish_expression_final_type(condition);
     struct computed_expression* computed_condition = generate_code(condition);
+
+    union COMPARATOR comparator;
+    if(computed_condition->type == T_DOUBLE)
+        comparator.fcmp = FCOMP_ONE;
+    else
+        comparator.icmp = ICOMP_NE;
+
     struct llvm__program* if_program = malloc(sizeof(struct llvm__program));
     struct llvm__program if_jump = do_jump(computed_condition->type == T_INT ? 0 : 1, computed_condition->reg, comparator,
                                                                 then, end);
@@ -550,11 +554,15 @@ struct llvm__program* generate_ifelse_code(struct Expression* condition, struct 
     int l_else = new_label();
     int end = new_label();
 
-    union COMPARATOR comparator;
-    comparator.icmp = ICOMP_NE;
-
     establish_expression_final_type(condition);
     struct computed_expression* computed_condition = generate_code(condition);
+
+    union COMPARATOR comparator;
+    if(computed_condition->type == T_DOUBLE)
+        comparator.fcmp = FCOMP_ONE;
+    else
+        comparator.icmp = ICOMP_NE;
+
     struct llvm__program* if_else_program = malloc(sizeof(struct llvm__program));
     struct llvm__program if_jump = do_jump(computed_condition->type == T_INT ? 0 : 1, computed_condition->reg, comparator,
                                            then, l_else);

@@ -101,10 +101,6 @@ void report_error(enum ERROR_TYPE type, void* data){
             identifier = (char*) data;
             error = concatenate_strings(3, "\033[31;1m", identifier, "\033[0m is not a function");
             break;
-        case MAIN_NOT_EXISTING:
-            allocated = 0;
-            error = concatenate_strings(1, "\033[31;1mmain\033[0m function is required to start the program");
-            break;
         case VOID_FUNCTION_RETURNING:
             identifier = (char*) data;
             error = concatenate_strings(3, "Void function \033[33;1m", identifier, "\033[0m can't return a value");
@@ -202,7 +198,13 @@ void report_warning(enum WARNING_TYPE type, void* data){
             allocated = 0;
             warning = concatenate_strings(1, "Missing a moving in for declaration. Allowed by default.");
             break;
+        case MAIN_NOT_EXISTING:
+            allocated = 0;
+            warning = concatenate_strings(1, "\033[35;1mmain\033[0m function is required to start the program");
+            break;
     }
+
+    WARN_COUNT++;
 
     char* result = concatenate_strings(2, "\033[35;1mWARNING\033[0m : ", warning);
     yyerror(result);
@@ -211,6 +213,11 @@ void report_warning(enum WARNING_TYPE type, void* data){
 }
 
 int verify_no_error(char* file_name){
+    if(WARN_COUNT > 0){
+        printf("%s: \033[35;1m%d\033[0m warning(s) appeared. \n", file_name, WARN_COUNT);
+        printf("%s: Be careful, warnings can lead to errors when trying to compile LLVM code. \n", file_name);
+    }
+
     if(ERR_COUNT > 0){
         printf("%s: \033[31;1m%d\033[0m error(s) occured. \n", file_name, ERR_COUNT);
         printf("%s: exitting ...\n", file_name);

@@ -450,6 +450,6 @@ bool check_main_exists(struct Scope* scope){
         return true;
     }
 
-    report_error(MAIN_NOT_EXISTING, 0);
+    report_warning(MAIN_NOT_EXISTING, 0);
     return false;
 }

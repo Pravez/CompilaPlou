@@ -3,7 +3,7 @@
 #include <assert.h>
 #include <stdlib.h>
 #include <zconf.h>
-#include "../tools.h"
+#include "../sources/tools.h"
 
 void test_concatenate(){
     printf("%s", __PRETTY_FUNCTION__); fflush(stdout);

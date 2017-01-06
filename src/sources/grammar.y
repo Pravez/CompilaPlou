@@ -16,7 +16,6 @@
 extern int yylineno;
 int yylex ();
 void yyerror (char const*);
-int level = 0; // ne peut pas être négatif
 
 struct llvm__program program;
 struct Function current_function;
@@ -285,7 +284,6 @@ expression
         }
     }
 | conditional_expression { 
-    //TODO implementer les operateurs unaires ici
     if($1.type != -1){
         $$ = $1;
     }else{
@@ -434,7 +432,7 @@ type_name
 
 declarator
 : IDENTIFIER { $$ = init_declarator_as_variable($1); $$.declarator.variable.is_global = scope.current_level == 0 ? 1 : 0; }
-| '(' declarator ')' { $$ = $2; } //TODO SUREMENT PAS CA
+| '(' declarator ')' { $$ = $2; }
 | declarator '(' parameter_list ')' { $$ = declare_function($3, $1.declarator.variable.identifier); /*MOCHE MAIS SOLUTION LA PLUS SIMPLE*/}
 | declarator '(' ')' { struct DeclaratorList empty; empty.size = 0; $$ = declare_function(empty, $1.declarator.variable.identifier); /*PAREIL*/}
 ;
@@ -458,11 +456,11 @@ statement
 ;
 
 LB
-: '{' {level++ ; if(!hash__upper_level(&scope)) YYABORT; }// pour le hash[i] il faut faire attention si on retourne à un même level, ce n'est pas forcément le même bloc ! il faudra sûrement utiliser deux var, une disant le dernier hash_nb atteint et le hash_nb actuel à utiliser
+: '{' {if(!hash__upper_level(&scope)) YYABORT; }// pour le hash[i] il faut faire attention si on retourne à un même level, ce n'est pas forcément le même bloc ! il faudra sûrement utiliser deux var, une disant le dernier hash_nb atteint et le hash_nb actuel à utiliser
 ;
 
 RB
-: '}' {level--; hash__lower_level(&scope);} // normalement ici pas de soucis pour le hash_nb
+: '}' {hash__lower_level(&scope);} // normalement ici pas de soucis pour le hash_nb
 ;
 
 compound_statement
@@ -549,11 +547,11 @@ jump_statement
 
 program
 : program_parts { 
-    //if(check_main_exists(&scope)){
+    if(check_main_exists(&scope)){
         struct llvm__program extern_funcs = add_external_functions_declaration(); 
         llvm__fusion_programs(&program, &extern_funcs); 
         llvm__fusion_programs(&program, &$1); 
-    //}
+    }
 }
 ;
 

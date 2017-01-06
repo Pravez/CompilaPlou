@@ -10,6 +10,7 @@ char CURRENT_REG[10] =  "x0";
 char CURRENT_LBL[10] =  "l0";
 
 int ERR_COUNT = 0;
+int WARN_COUNT = 0;
 
 void debug(char* s, enum color c){
     switch(c){

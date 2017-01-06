@@ -1,7 +1,4 @@
-LEX=lex
-YACC=bison
-CFLAGS=-Wall -std=gnu99 -g
-CC=gcc
+EMCC=usr/lib/emscripten/emcc
 
 #if the command asked is run
 ifeq (run,$(firstword $(MAKECMDGOALS)))
@@ -17,29 +14,25 @@ ifeq (emcc,$(firstword $(MAKECMDGOALS)))
   $(eval $(RUN_ARGS):;@:)
 endif
 
-all:clean parse
+#if the command asked is compll
+ifeq (compll,$(firstword $(MAKECMDGOALS)))
+  RUN_ARGS := $(wordlist 2,$(words $(MAKECMDGOALS)),$(MAKECMDGOALS))
+  $(eval $(RUN_ARGS):;@:)
+endif
 
-emcc:
-	emcc $(RUN_ARGS) --js-library ../p5-libraries/p5-wrap.js -s EXPORTED_FUNCTIONS="['_my_draw','_my_setup']" -o ../foo.js
+all:
+	make -C sources/ all
+
+clean:
+	make -C sources/ clean
+	rm ./parse
 
 run:
 	./parse $(addprefix final-tests/, $(RUN_ARGS))
 
-parse:grammar.c scanner.c type.c tools.c scope.c expression.c llvm_code.c reg_operation.c errors.c external_function.c
-	$(CC) $(CFLAGS) -o $@ $^
+compll:
+	lli $(RUN_ARGS)
 
-grammar.c:grammar.y
-	$(YACC) -t -d -o $@ --defines=grammar.tab.h $^
+emcc:
+	$(EMCC) $(RUN_ARGS) --js-library ../p5-libraries/p5-wrap.js -s EXPORTED_FUNCTIONS="['_my_draw','_my_setup']" -o ../foo.js
 
-%.c:%.l
-	$(LEX) -o $@ $^
-
-srcTest: test-source-code/tst-tools.c tools.c
-	$(CC) $(CFLAGS) -o $@ $^
-
-
-clean:
-	rm -f grammar.c scanner.c *~
-	rm -f grammar.tab.h
-	rm -f srcTest
-	rm -f parse

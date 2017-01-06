@@ -51,7 +51,8 @@ void my_draw()
            of iterations found */
             if (n<maxiter)
                 color= n / maxiter * 255;
-            else color=0;
+            else
+                color=0;
 
             stroke(color);
             point((double) x, (double) y);

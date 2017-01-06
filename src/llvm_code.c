@@ -183,14 +183,14 @@ struct computed_expression* generate_code(struct Expression* e){
                 }
                 printf("\n");
 
-                if(!no_optimization)
-                    ret->reg = hash_lookup(&CURRENT_LOADED_REGS, var_name);
+                //if(!no_optimization)
+                //    ret->reg = hash_lookup(&CURRENT_LOADED_REGS, var_name);
 
                 ret->type = GET_VAR_TYPE(&scope, var_name);
-                if(no_optimization || ret->reg == HASH_FAIL) {
+                //if(no_optimization || ret->reg == HASH_FAIL) {
                     ret->reg = new_register();
                     llvm__program_add_line(ret->code,load_var(ret->reg, var_name));
-                }
+                //}
                 //prefix and postfix modifications
                 int new_reg = 0;
                 while (o->prefix > 0){

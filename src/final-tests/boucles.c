@@ -6,7 +6,9 @@
 
 int main() {
 	int a = 5;
-	int cpt1 =0, cpt2=0;
+	int cpt1, cpt2;
+	cpt1 = 0;
+	cpt2 = 0;
 	while (a < 25) {
 		cpt1++;
 		a *= 5;

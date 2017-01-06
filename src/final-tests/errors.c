@@ -11,6 +11,6 @@ int fun() { /* main_not_existing */
 	fantom(); /* undefined_function */
 	for (i=0; ; i++) {
 		a++;
-	} 
+	}
 	return 1;
 }

@@ -82,8 +82,23 @@ char** llvm___create_function_def(struct Function function){
  * @param e2
  * @return true if conversion occured, false if not
  */
-short int convert_if_needed(struct llvm__program* code, struct computed_expression* e1, struct computed_expression* e2){
-    if(e1->type != e2->type){
+short int convert_if_needed(struct llvm__program* code, struct computed_expression* e1, struct computed_expression* e2, enum TYPE convert_desired){
+    //Probably not the best solution
+    if(convert_desired != -1){
+        if(e1->type != convert_desired){
+            int reg = new_register();
+            llvm__program_add_line(code, convert_reg(e1->reg, e1->type, reg, convert_desired));
+            e1->type = convert_desired;
+            e1->reg = reg;
+        }
+        if(e2->type != convert_desired){
+            int reg = new_register();
+            llvm__program_add_line(code, convert_reg(e2->reg, e2->type, reg, convert_desired));
+            e2->type = convert_desired;
+            e2->reg = reg;
+        }
+        return true;
+    }else if(e1->type != e2->type){
         if(e1->type == T_DOUBLE){
             debug("CONVERT !", GREEN);
             int reg = new_register();
@@ -170,7 +185,7 @@ struct computed_expression* generate_code(struct Expression* e){
 
                 if(!no_optimization)
                     ret->reg = hash_lookup(&CURRENT_LOADED_REGS, var_name);
-                
+
                 ret->type = GET_VAR_TYPE(&scope, var_name);
                 if(no_optimization || ret->reg == HASH_FAIL) {
                     ret->reg = new_register();
@@ -258,7 +273,7 @@ struct computed_expression* generate_code(struct Expression* e){
         llvm__fusion_programs(ret->code, right->code);
 
         //CONVERSION IF NEEDED
-        if(convert_if_needed(ret->code, right, left)){
+        if(convert_if_needed(ret->code, right, left, operator == OP_AND ? T_INT : -1)){
             //TODO report warning ? ou on le fait plus haut, c'est plus logique ?
         }
 

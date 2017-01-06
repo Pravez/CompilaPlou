@@ -56,4 +56,5 @@ makefile avec le programme `lli`, faites : `make compll [votrefichier].ll`. Ici 
 ==> Cas particulier : compilation et test avec la bibliothèque p5.js
 
 Plutôt que d'utiliser `make compll` utilisez `make emcc [votrefichier].ll` où votre fichier sera
-vraisemblablement `output`. Firefox s'ouvrira alors avec le résultat de la compilation.
+vraisemblablement `output`. Firefox s'ouvrira alors avec le résultat de la compilation. Par exemple utilisez `make run get_started_p5.c` suivi
+ de `make emcc output.ll` pour tester le résultat de la compilation de ce fichier.

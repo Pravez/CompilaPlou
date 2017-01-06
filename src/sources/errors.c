@@ -194,9 +194,9 @@ void report_warning(enum WARNING_TYPE type, void* data){
 }
 
 void print_summary(char* file_name){
-    printf("\n\n---------------------------------------------\n");
+    printf("\n\n-------------------------------------------------------------------\n");
     printf("\t %s: SUMMARY \t\n", file_name);
-    printf("---------------------------------------------\n");
+    printf("-------------------------------------------------------------------\n");
 }
 
 int verify_no_error(char* file_name){
@@ -218,7 +218,9 @@ int verify_no_error(char* file_name){
     }
 
     if(!somethingwrong)
-        printf("%s:Everything seems to be fine !\n ", file_name);
+        printf("%s: Everything seems to be fine !\n ", file_name);
+
+    printf("%s: Writing LLVM program in ", file_name);
 
     free (file_name);
     return 1;

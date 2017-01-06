@@ -266,7 +266,7 @@ struct computed_expression* generate_code(struct Expression* e){
         ret->type = GET_VAR_TYPE(&scope, affected_var_name);
         if(e->expression.cond_expression->type == E_AFFECT ||
                 (is_already_computed(e->expression.cond_expression))){
-                    
+
             convert_computed_expr_to_type_if_needed(ret->code, e->expression.cond_expression->code, ret->type);
             ret->reg = e->expression.cond_expression->code->reg;
         }else {
@@ -356,7 +356,7 @@ void llvm__print(const struct llvm__program* program){
     }
 }
 
-struct llvm__program* generate_for_code(struct Expression* initial, struct Expression* condition, struct Expression* moving, struct llvm__program* statement_code)
+struct llvm__program* codegen__for_block(struct Expression* initial, struct Expression* condition, struct Expression* moving, struct llvm__program* statement_code)
 {
     /* INITIALISATION */
     int start = new_label();
@@ -453,7 +453,7 @@ struct llvm__program* generate_for_code(struct Expression* initial, struct Expre
     return for_program;
 }
 
-struct llvm__program* generate_while_code(struct Expression* condition, struct llvm__program* statement_code, int is_dowhile){
+struct llvm__program* codegen__while_block(struct Expression* condition, struct llvm__program* statement_code, int is_dowhile){
 	
 	/* INITIALISATION */
     int start = new_label();
@@ -516,7 +516,7 @@ struct llvm__program* generate_while_code(struct Expression* condition, struct l
     return while_program;
 }
 
-struct llvm__program* generate_if_code(struct Expression* condition, struct llvm__program* statement_code){
+struct llvm__program* codegen__if_block(struct Expression* condition, struct llvm__program* statement_code){
 	
 	/* INITIALISATION */
     int then = new_label();
@@ -555,7 +555,7 @@ struct llvm__program* generate_if_code(struct Expression* condition, struct llvm
     return if_program;
 }
 
-struct llvm__program* generate_ifelse_code(struct Expression* condition, struct llvm__program* statement_if, struct llvm__program* statement_else){
+struct llvm__program* codegen__if_else_block(struct Expression* condition, struct llvm__program* statement_if, struct llvm__program* statement_else){
 	/* INITIALISATION */
     int then = new_label();
     int l_else = new_label();

@@ -39,10 +39,10 @@ struct llvm__program* generate_var_declaration(struct Variable* v, struct global
 struct llvm__program* generate_multiple_var_declarations(struct DeclaratorList* list, short int is_global);
 struct llvm__program* generate_global_decl_and_affect(struct expr_operand* operand, struct Variable *var);
 
-struct llvm__program* generate_for_code(struct Expression* initial, struct Expression* condition, struct Expression* moving, struct llvm__program* statement_code);
-struct llvm__program* generate_while_code(struct Expression* condition, struct llvm__program* statement_code, int is_dowhile);
-struct llvm__program* generate_if_code(struct Expression* condition, struct llvm__program* statement_code);
-struct llvm__program* generate_ifelse_code(struct Expression* condition, struct llvm__program* statement_if, struct llvm__program* statement_else);
+struct llvm__program* codegen__for_block(struct Expression* initial, struct Expression* condition, struct Expression* moving, struct llvm__program* statement_code);
+struct llvm__program* codegen__while_block(struct Expression* condition, struct llvm__program* statement_code, int is_dowhile);
+struct llvm__program* codegen__if_block(struct Expression* condition, struct llvm__program* statement_code);
+struct llvm__program* codegen__if_else_block(struct Expression* condition, struct llvm__program* statement_if, struct llvm__program* statement_else);
 struct llvm__program do_jump(int float_or_int, int condition, union COMPARATOR comparator, int labeltrue, int labelfalse);
 
 struct llvm__program add_external_functions_declaration();

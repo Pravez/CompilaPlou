@@ -293,10 +293,7 @@ expression
                 report_warning(USELESS_CAST, "");
             }else{
                 int new_reg = new_register();
-                llvm__print($$.code->code);
                 llvm__program_add_line($$.code->code, convert_reg(e->reg, e->type, new_reg, $2));
-
-                llvm__print($$.code->code);
 
                 $$.code->reg = new_reg;
                 $$.code->type = $2;
@@ -458,45 +455,45 @@ expression_statement
 ;
 
 selection_statement
-: IF '(' expression ')' statement { $$ = *generate_if_code(&$3, &$5); }
-| IF '(' expression ')' statement ELSE statement { $$ = *generate_ifelse_code(&$3, &$5, &$7); }
+: IF '(' expression ')' statement { $$ = *codegen__if_block(&$3, &$5); }
+| IF '(' expression ')' statement ELSE statement { $$ = *codegen__if_else_block(&$3, &$5, &$7); }
 | FOR '(' expression ';' expression ';' expression ')' statement {
-    struct llvm__program* for_code = generate_for_code(&$3, &$5, &$7, &$9);
+    struct llvm__program* for_code = codegen__for_block(&$3, &$5, &$7, &$9);
     if(for_code == NULL) $$.validity = -1; else $$ = *for_code;
 }
 | FOR '(' expression ';' expression ';'            ')' statement {
-    struct llvm__program* for_code = generate_for_code(&$3, &$5, NULL, &$8);
+    struct llvm__program* for_code = codegen__for_block(&$3, &$5, NULL, &$8);
     if(for_code == NULL) $$.validity = -1; else $$ = *for_code;
 }
 | FOR '(' expression ';'            ';' expression ')' statement {
-    struct llvm__program* for_code = generate_for_code(&$3, NULL, &$6, &$8);
+    struct llvm__program* for_code = codegen__for_block(&$3, NULL, &$6, &$8);
     if(for_code == NULL) $$.validity = -1; else $$ = *for_code;
 }
 | FOR '(' expression ';'            ';'            ')' statement {
-    struct llvm__program* for_code = generate_for_code(&$3, NULL, NULL, &$7);
+    struct llvm__program* for_code = codegen__for_block(&$3, NULL, NULL, &$7);
     if(for_code == NULL) $$.validity = -1; else $$ = *for_code;
 }
 | FOR '('            ';' expression ';' expression ')' statement {
-    struct llvm__program* for_code = generate_for_code(NULL, &$4, &$6, &$8);
+    struct llvm__program* for_code = codegen__for_block(NULL, &$4, &$6, &$8);
     if(for_code == NULL) $$.validity = -1; else $$ = *for_code;
 }
 | FOR '('            ';' expression ';'            ')' statement {
-    struct llvm__program* for_code = generate_for_code(NULL, &$4, NULL, &$7);
+    struct llvm__program* for_code = codegen__for_block(NULL, &$4, NULL, &$7);
     if(for_code == NULL) $$.validity = -1; else $$ = *for_code;
 }
 | FOR '('            ';'            ';' expression ')' statement {
-    struct llvm__program* for_code = generate_for_code(NULL, NULL, &$5, &$7);
+    struct llvm__program* for_code = codegen__for_block(NULL, NULL, &$5, &$7);
     if(for_code == NULL) $$.validity = -1; else $$ = *for_code;
 }
 | FOR '('            ';'            ';'            ')' statement {
-    struct llvm__program* for_code = generate_for_code(NULL, NULL, NULL, &$6);
+    struct llvm__program* for_code = codegen__for_block(NULL, NULL, NULL, &$6);
     if(for_code == NULL) $$.validity = -1; else $$ = *for_code;
 }
 ;
 
 iteration_statement
-: WHILE '(' expression ')' statement { $$ = *generate_while_code(&$3, &$5, 0); }
-| DO statement WHILE '(' expression ')' ';' { $$ = *generate_while_code(&$5, &$2, 1); }
+: WHILE '(' expression ')' statement { $$ = *codegen__while_block(&$3, &$5, 0); }
+| DO statement WHILE '(' expression ')' ';' { $$ = *codegen__while_block(&$5, &$2, 1); }
 ;
 
 jump_statement
@@ -608,7 +605,7 @@ char *file_name = NULL;
 
 void yyerror (char const *s) {
     fflush (stdout);
-    fprintf (stderr, "In file %s, line \033[1m%d\033[0m, column \033[1m%d\033[0m: %s\n", file_name, yylineno, column, s);
+    fprintf (stderr, "\033[1mIn file %s\033[0m, line \033[1m%d\033[0m, column \033[1m%d\033[0m: %s\n", file_name, yylineno, column, s);
 
 }
 
@@ -652,7 +649,7 @@ int main (int argc, char *argv[]) {
     //Verification of errors
     if(yyparse() == 0 && verify_no_error(file_name)){
         //Then creation of code
-        printf("Writing program in %s...\n", file_name_output);
+        printf("%s ...\n", file_name_output);
         write_file(&program, file_name_output);
     }
 

@@ -7,6 +7,8 @@
 #include <stdarg.h>
 #include <string.h>
 
+short int no_optimization = 0;
+
 #define TO_LLVM_STRING(type) type_of(llvm__convert(type))
 #define GET_VAR_TYPE(ptr_scope, var_id) hash__get_item(ptr_scope, var_id).declarator.variable.type
 #define IS_FUNC_PARAM(ptr_scope, var_id) hash__get_item(ptr_scope, var_id).declarator.variable.is_func_param
@@ -165,10 +167,12 @@ struct computed_expression* generate_code(struct Expression* e){
                     printf(" est un argument de fonction chercher %s à la place...", var_name);
                 }
                 printf("\n");
-                ret->reg = hash_lookup(&CURRENT_LOADED_REGS, var_name);
+
+                if(!no_optimization)
+                    ret->reg = hash_lookup(&CURRENT_LOADED_REGS, var_name);
                 
                 ret->type = GET_VAR_TYPE(&scope, var_name);
-                if(ret->reg == HASH_FAIL) {
+                if(no_optimization || ret->reg == HASH_FAIL) {
                     ret->reg = new_register();
                     llvm__program_add_line(ret->code,load_var(ret->reg, var_name));
                 }
@@ -421,11 +425,13 @@ struct llvm__program* generate_for_code(struct Expression* initial, struct Expre
         return NULL;
     }
     else {
+        no_optimization = 1;
         //establish_expression_final_type(condition);
         if(is_already_computed(condition))
             computed_condition = condition->code;
         else
             computed_condition = generate_code(condition);
+        no_optimization = 0;
     }
 
     if (moving == NULL) {
@@ -485,7 +491,9 @@ struct llvm__program* generate_while_code(struct Expression* condition, struct l
     comparator.icmp = ICOMP_NE;
 
     establish_expression_final_type(condition);
+    no_optimization = 1;
     struct computed_expression* computed_condition = generate_code(condition);
+    no_optimization = 0;
     struct llvm__program* while_program = malloc(sizeof(struct llvm__program));
     llvm__init_program(while_program);
 
@@ -540,7 +548,9 @@ struct llvm__program* generate_if_code(struct Expression* condition, struct llvm
     comparator.icmp = ICOMP_NE;
 
     establish_expression_final_type(condition);
+    no_optimization = 1;
     struct computed_expression* computed_condition = generate_code(condition);
+    no_optimization = 0;
     struct llvm__program* if_program = malloc(sizeof(struct llvm__program));
     struct llvm__program if_jump = do_jump(computed_condition->type == T_INT ? 0 : 1, computed_condition->reg, comparator,
                                                                 then, end);
@@ -568,7 +578,9 @@ struct llvm__program* generate_ifelse_code(struct Expression* condition, struct 
     comparator.icmp = ICOMP_NE;
 
     establish_expression_final_type(condition);
+    no_optimization = 1;
     struct computed_expression* computed_condition = generate_code(condition);
+    no_optimization = 0;
     struct llvm__program* if_else_program = malloc(sizeof(struct llvm__program));
     struct llvm__program if_jump = do_jump(computed_condition->type == T_INT ? 0 : 1, computed_condition->reg, comparator,
                                            then, l_else);

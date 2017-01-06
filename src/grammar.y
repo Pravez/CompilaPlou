@@ -119,7 +119,7 @@ primary_expression
 | '(' expression ')' { $$ = $2; }
 | IDENTIFIER '(' ')' {
     $$ = create_leaf(init_operand_function($1, NULL));
-
+    
     if(!is_declared(&scope, $1, FUNCTION))
             $$.type = -1;
     else if(!is_corresponding_to_function(&$$.conditional_expression.leaf))
@@ -289,7 +289,6 @@ expression
     //TODO implementer les operateurs unaires ici
     if($1.type != -1){
         $$ = $1;
-        printf("COND_EXP: "); print_tree(&$$);printf("\n");
     }else{
         // Undeclared variable... Keep going to look for more errors.
         struct llvm__program empty;
@@ -500,7 +499,7 @@ expression_statement
 selection_statement
 : IF '(' expression ')' statement { $$ = *generate_if_code(&$3, &$5); }
 | IF '(' expression ')' statement ELSE statement { $$ = *generate_ifelse_code(&$3, &$5, &$7); }
-| FOR '(' expression ';' expression ';' expression ')' statement {print_tree(&$3); printf("coucou\n");$$ = *generate_for_code(&$3, &$5, &$7, &$9);}
+| FOR '(' expression ';' expression ';' expression ')' statement {$$ = *generate_for_code(&$3, &$5, &$7, &$9);}
 | FOR '(' expression ';' expression ';'            ')' statement {$$ = *generate_for_code(&$3, &$5, NULL, &$8);}
 | FOR '(' expression ';'            ';' expression ')' statement {$$ = *generate_for_code(&$3, NULL, &$6, &$8);}
 | FOR '(' expression ';'            ';'            ')' statement {$$ = *generate_for_code(&$3, NULL, NULL, &$7);}

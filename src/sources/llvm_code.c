@@ -83,7 +83,6 @@ char** llvm___create_function_def(struct Function function){
  * @return true if conversion occured, false if not
  */
 short int convert_if_needed(struct llvm__program* code, struct computed_expression* e1, struct computed_expression* e2, enum TYPE convert_desired){
-    //Probably not the best solution
     if(convert_desired != -1){
         if(e1->type != convert_desired){
             int reg = new_register();
@@ -138,17 +137,13 @@ short int convert_computed_expr_to_type_if_needed(struct llvm__program* code, st
 }
 
 struct computed_expression* generate_code(struct Expression* e){
-    printf("generate_expression : "); print_tree(e); printf(" => ");
+    print_tree(e); 
 
     struct computed_expression* ret = malloc(sizeof(struct computed_expression));
     ret->code = malloc(sizeof(struct llvm__program));
     llvm__init_program(ret->code);
 
     if(e->type == E_CONDITIONAL && e->conditional_expression.type == C_LEAF){ // Operand
-        printf("operande %d %svar %d \n",
-               e->conditional_expression.leaf.prefix,
-               e->conditional_expression.is_negative ? "-" : "",
-               e->conditional_expression.leaf.postfix);
         struct expr_operand* o = &e->conditional_expression.leaf;
 
         int* args_regs;
@@ -176,10 +171,8 @@ struct computed_expression* generate_code(struct Expression* e){
                 break;
             case O_VARIABLE:
                 var_name = o->operand.variable;
-                printf("cherche pour la variable %s...", var_name);
                 if(IS_FUNC_PARAM(&scope, var_name)){
                     asprintf(&var_name, "%s.addr", var_name);
-                    printf(" est un argument de fonction chercher %s à la place...", var_name);
                 }
 
                 ret->type = GET_VAR_TYPE(&scope, var_name);
@@ -201,7 +194,6 @@ struct computed_expression* generate_code(struct Expression* e){
                 }
                 int old_reg = 0;
                 while (o->postfix > 0){
-                    printf("a++\n");
                     old_reg = ret->reg;
                     new_reg = new_register();
                     llvm__program_add_line(ret->code, binary_op_on_reg_const(REG_ADD, new_reg, ret->reg, 1, ret->type));
@@ -255,7 +247,6 @@ struct computed_expression* generate_code(struct Expression* e){
         }
 
     }else if(e->type == E_CONDITIONAL){ // Operation
-        printf("operatioon\n");
         struct computed_expression* left = generate_code(e->conditional_expression.branch.e_left);
         struct computed_expression* right = generate_code(e->conditional_expression.branch.e_right);
         enum COND_OPERATOR operator = e->conditional_expression.branch.operator;
@@ -286,7 +277,6 @@ struct computed_expression* generate_code(struct Expression* e){
         if(e->expression.cond_expression->type == E_AFFECT ||
                 (is_already_computed(e->expression.cond_expression))){
             print_tree(e->expression.cond_expression);
-            printf(" est une expression déjà calculée dans %%x%d.\n", e->expression.cond_expression->code->reg);
 
             convert_computed_expr_to_type_if_needed(ret->code, e->expression.cond_expression->code, ret->type);
             ret->reg = e->expression.cond_expression->code->reg;
@@ -320,7 +310,7 @@ struct computed_expression* generate_code(struct Expression* e){
             case OP_SUB_ASSIGN:
                 operation = REG_SUB; break;
             default:
-                printf("erreur. Enfin, je crois\n");
+				//error
         }
         if(operation != -1){ //operation need to be performed before affectation
             int previous_reg = new_register();
@@ -333,7 +323,7 @@ struct computed_expression* generate_code(struct Expression* e){
         llvm__program_add_line(ret->code, store_var(affected_var_name, ret->reg, ret->type));
 
     }else{
-        printf("erreur. Je suppose.\n");
+        //error
     }
     return ret;
 }
@@ -376,8 +366,10 @@ void llvm__print(const struct llvm__program* program){
         printf("%s\n", program->code[i]);
     }
 }
+
 struct llvm__program* generate_for_code(struct Expression* initial, struct Expression* condition, struct Expression* moving, struct llvm__program* statement_code)
 {
+    /* INITIALISATION */
     int start = new_label();
     int loop = new_label();
     int condition_label = new_label();
@@ -387,7 +379,8 @@ struct llvm__program* generate_for_code(struct Expression* initial, struct Expre
     struct computed_expression *computed_condition;
     struct computed_expression *computed_initialisation;
     struct computed_expression *computed_moving;
-
+	
+    /* Check if there are an initalisation */
     if (initial == NULL) {
         report_warning(MISSING_AN_INITIALISATION, "");
         computed_initialisation = malloc(sizeof(struct computed_expression));
@@ -400,19 +393,20 @@ struct llvm__program* generate_for_code(struct Expression* initial, struct Expre
         else
             computed_initialisation = generate_code(initial);
     }
-
+	
+	/* Check if there are a condition */
     if (condition == NULL) {
         report_error(MISSING_A_CONDITION, "");
         return NULL;
     }
     else {
-        //establish_expression_final_type(condition);
         if(is_already_computed(condition))
             computed_condition = condition->code;
         else
             computed_condition = generate_code(condition);
     }
 
+	/* Check if there are a moving (incrementation for example) */
     if (moving == NULL) {
         report_warning(MISSING_A_MOVING, "");
         computed_moving = malloc(sizeof(struct computed_expression));
@@ -425,7 +419,7 @@ struct llvm__program* generate_for_code(struct Expression* initial, struct Expre
         else
             computed_moving = generate_code(moving);
     }
-
+	
     struct llvm__program* for_program = malloc(sizeof(struct llvm__program));
     llvm__init_program(for_program);
     if(computed_condition != NULL){
@@ -434,35 +428,36 @@ struct llvm__program* generate_for_code(struct Expression* initial, struct Expre
         else
             comparator.icmp = ICOMP_NE;
     }
-
+	
     struct llvm__program for_jump = do_jump(computed_condition->type == T_INT ? 0 : 1, computed_condition->reg, comparator, loop, end);
+	
+    /* GENERATION OF CODE */
 
-
-    //for ( initialisation,
+    //initialisation (ex : i=0)
     llvm__program_add_line(for_program, label_to_string(start, 1, ";for start"));
     llvm__program_add_line(for_program, "; for initialisation");
     llvm__fusion_programs(for_program, computed_initialisation->code);
 
-    //( .. , condition, .., ) {
+    //condition (ex : i<5)
     llvm__program_add_line(for_program, label_to_string(condition_label, 1, ";for loop (condition)"));
     llvm__fusion_programs(for_program, computed_condition->code);
     llvm__fusion_programs(for_program, &for_jump);
 
-    //statement
+    //statement ( { [...] } )
     llvm__program_add_line(for_program, label_to_string(loop, 0, ";for content"));
     llvm__program_add_line(for_program, "; statement");
     llvm__fusion_programs(for_program, statement_code);
 
-    //moving )
+    //moving (ex : i++)
     llvm__program_add_line(for_program, "; for moving");
     llvm__fusion_programs(for_program, computed_moving->code);
 
-    //}
+    // end of for
     llvm__program_add_line(for_program, "; loop");
     llvm__program_add_line(for_program, jump_to(condition_label));
     llvm__program_add_line(for_program, label_to_string(end, 0, ";for end"));
 
-
+	
     free(computed_initialisation);
     free(computed_condition);
     free(computed_moving);
@@ -470,6 +465,8 @@ struct llvm__program* generate_for_code(struct Expression* initial, struct Expre
 }
 
 struct llvm__program* generate_while_code(struct Expression* condition, struct llvm__program* statement_code, int is_dowhile){
+	
+	/* INITIALISATION */
     int start = new_label();
     int loop = new_label();
     int end = new_label();
@@ -486,20 +483,21 @@ struct llvm__program* generate_while_code(struct Expression* condition, struct l
     struct llvm__program* while_program = malloc(sizeof(struct llvm__program));
     llvm__init_program(while_program);
 
+	/* GENERATION OF CODE*/
     if(is_dowhile){
         struct llvm__program while_jump = do_jump(computed_condition->type == T_INT ? 0 : 1, computed_condition->reg,
                                                   comparator, start, end);
 
-        //do{ statement
+        //statement (ex : do {} )
         llvm__program_add_line(while_program, label_to_string(start, 1, ";do while start"));
         llvm__fusion_programs(while_program, statement_code);
 
-        //}While(
+        //condition (ex : i<5)
         llvm__program_add_line(while_program, "; while condition");
         llvm__fusion_programs(while_program, computed_condition->code);
         llvm__fusion_programs(while_program, &while_jump);
 
-        //);
+        //end of while;
         llvm__program_add_line(while_program, "; end of loop");
         llvm__program_add_line(while_program, label_to_string(end, 0, ";while end"));
 
@@ -507,20 +505,20 @@ struct llvm__program* generate_while_code(struct Expression* condition, struct l
         struct llvm__program while_jump = do_jump(computed_condition->type == T_INT ? 0 : 1, computed_condition->reg,
                                                      comparator, loop, end);
 
-        //While(
+        //start of while(
         llvm__program_add_line(while_program, label_to_string(start, 1, ";while start"));
 
-        //expression){
+		//condition (ex : i<5)
         llvm__program_add_line(while_program, "; while condition");
         llvm__fusion_programs(while_program, computed_condition->code);
         llvm__fusion_programs(while_program, &while_jump);
 
-        //statement
+        //statement (ex : do {} )
         llvm__program_add_line(while_program, label_to_string(loop, 0, ";while loop"));
         llvm__program_add_line(while_program, "; statement");
         llvm__fusion_programs(while_program, statement_code);
 
-        //}
+        //end of while
         llvm__program_add_line(while_program, "; loop");
         llvm__program_add_line(while_program, jump_to(start));
         llvm__program_add_line(while_program, label_to_string(end, 0, ";while end"));
@@ -530,6 +528,8 @@ struct llvm__program* generate_while_code(struct Expression* condition, struct l
 }
 
 struct llvm__program* generate_if_code(struct Expression* condition, struct llvm__program* statement_code){
+	
+	/* INITIALISATION */
     int then = new_label();
     int end = new_label();
 
@@ -548,19 +548,26 @@ struct llvm__program* generate_if_code(struct Expression* condition, struct llvm
 
     llvm__init_program(if_program);
 
+	/* GENERATION OF CODE */
+
+	//condition
     llvm__program_add_line(if_program, "; if starting condition");
     llvm__fusion_programs(if_program, computed_condition->code);
     llvm__program_add_line(if_program, "; jump");
     llvm__fusion_programs(if_program, &if_jump);
     llvm__program_add_line(if_program, label_to_string(then, 0, ";then"));
+    
+    //statement
     llvm__fusion_programs(if_program, statement_code);
 
+	//end of if
     llvm__program_add_line(if_program, label_to_string(end, 1, ";endif"));
 
     return if_program;
 }
 
 struct llvm__program* generate_ifelse_code(struct Expression* condition, struct llvm__program* statement_if, struct llvm__program* statement_else){
+	/* INITIALISATION */
     int then = new_label();
     int l_else = new_label();
     int end = new_label();
@@ -575,25 +582,29 @@ struct llvm__program* generate_ifelse_code(struct Expression* condition, struct 
         comparator.icmp = ICOMP_NE;
 
     struct llvm__program* if_else_program = malloc(sizeof(struct llvm__program));
-    struct llvm__program if_jump = do_jump(computed_condition->type == T_INT ? 0 : 1, computed_condition->reg, comparator,
-                                           then, l_else);
+    struct llvm__program if_jump = do_jump(computed_condition->type == T_INT ? 0 : 1, computed_condition->reg, comparator, then, l_else);
 
     llvm__init_program(if_else_program);
 
+	/* GENERATION OF CODE */
+	
+	//start of if : condition
     llvm__program_add_line(if_else_program, "; if starting condition");
     llvm__fusion_programs(if_else_program, computed_condition->code);
     llvm__program_add_line(if_else_program, "; jump");
     llvm__fusion_programs(if_else_program, &if_jump);
-
+	
+	//first statement (if)
     llvm__program_add_line(if_else_program, label_to_string(then, 0, ";then"));
     llvm__fusion_programs(if_else_program, statement_if);
     llvm__program_add_line(if_else_program, jump_to(end));
-
+	
+	//second statement (else)
     llvm__program_add_line(if_else_program, label_to_string(l_else, 0, ";else"));
     llvm__fusion_programs(if_else_program, statement_else);
 
+	//endif
     llvm__program_add_line(if_else_program, label_to_string(end, 1, ";endif"));
-
 
     return if_else_program;
 }
@@ -607,9 +618,8 @@ struct llvm__program do_jump(int float_or_int, int condition, union COMPARATOR c
 
     llvm__init_program(&jump);
 
-    //float = 1, int = 0
     asprintf(&cmp_line, "%%x%d = %s %s %s %%x%d, %s", cmp_register, float_or_int ? "fcmp" : "icmp",
-             comparator_to_string(comparator, float_or_int), float_or_int ? "double" : "i32", condition, float_or_int ? "0.0" : "0");
+             comparator_to_string(comparator, float_or_int), float_or_int ? "double" : "i32", condition, float_or_int ? "0.0" : "0"); //float = 1, int = 0
     asprintf(&br_line, "br i1 %%x%d, label %%label%d, label %%label%d", cmp_register, labeltrue, labelfalse);
     llvm__program_add_line(&jump, cmp_line);
     llvm__program_add_line(&jump, br_line);
@@ -651,11 +661,9 @@ void write_file(struct llvm__program* main_program, char* filename){
 
     if(file == NULL){
         fflush(stdout);
-        fprintf(stderr, "Error when trying to create or open file");
+        fprintf(stderr, "Error : creation or opening of file failed");
         exit(1);
     }
-
-    printf("lignes : %d\n", main_program->line_number);
     for(int i=0;i<main_program->line_number;i++){
         fprintf(file, "%s\n", main_program->code[i]);
     }

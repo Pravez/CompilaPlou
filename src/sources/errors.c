@@ -130,7 +130,7 @@ void report_error(enum ERROR_TYPE type, void* data){
     ERR_COUNT ++;
     error_flag = 1;
 
-    char* result = concatenate_strings(2, "\033[31;1mERROR\033[0m : ", error);
+    char* result = concatenate_strings(2, "\033[31;1mERROR\033[0m\n\t \033[31;1m==>\033[0m  ", error);
     yyerror(result);
     if(allocated)
         free(error);
@@ -187,19 +187,30 @@ void report_warning(enum WARNING_TYPE type, void* data){
 
     WARN_COUNT++;
 
-    char* result = concatenate_strings(2, "\033[35;1mWARNING\033[0m : ", warning);
+    char* result = concatenate_strings(2, "\033[35;1mWARNING\033[0m\n\t \033[35;1m==>\033[0m  ", warning);
     yyerror(result);
     if(allocated)
         free(warning);
 }
 
+void print_summary(char* file_name){
+    printf("\n\n---------------------------------------------\n");
+    printf("---\t %s: SUMMARY \t ---\n", file_name);
+    printf("---------------------------------------------\n");
+}
+
 int verify_no_error(char* file_name){
+    short int summary = 0;
     if(WARN_COUNT > 0){
+        print_summary(file_name);
+        summary = 1;
         printf("%s: \033[35;1m%d\033[0m warning(s) appeared. \n", file_name, WARN_COUNT);
         printf("%s: Look out, Warnings can induce to errors when trying to compile LLVM code. \n", file_name);
     }
 
     if(ERR_COUNT > 0){
+        if(!summary)
+            print_summary(file_name);
         printf("%s: \033[31;1m%d\033[0m error(s) occured. \n", file_name, ERR_COUNT);
         printf("%s: exitting ...\n", file_name);
         free (file_name);

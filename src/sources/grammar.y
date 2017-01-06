@@ -648,7 +648,7 @@ char *file_name = NULL;
 
 void yyerror (char const *s) {
     fflush (stdout);
-    fprintf (stderr, "%s:\033[1m%d\033[0m:\033[1m%d\033[0m: %s\n", file_name, yylineno, column, s);
+    fprintf (stderr, "In file %s, line \033[1m%d\033[0m, column \033[1m%d\033[0m: %s\n", file_name, yylineno, column, s);
 
     //No return, we want to continue ...
 }

@@ -1,8 +1,11 @@
 int main(){
+    int a =99;
+
     if(0){
-        return 1;
+        a = 1;
     }
     else{
-        return 0;
+        a = 0;
     }
+    return a;
 }

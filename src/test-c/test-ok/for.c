@@ -1,7 +1,9 @@
 int main(){
-    int i;
-    for(i=0;i<13;++i){
+    int i, a;
+    a=0;
 
-    }
-    return i-13;
+    for(i=0;i<13;++i)
+        ++a;
+
+    return a;
 }

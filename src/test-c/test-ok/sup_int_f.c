@@ -3,5 +3,5 @@ int main(){
     j = 1;
     k = 2;
     i = (j<k);
-    return i;
+    return i -1;
 }

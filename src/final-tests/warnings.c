@@ -9,7 +9,7 @@ int maint() { /* main_not_existing */
 	int a = 5.0;
 	int b;
 	
-	for( ;a<10; ) {
+	for(;a<10;) {
 		b++;
 		a++;
 	}

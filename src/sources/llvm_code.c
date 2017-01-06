@@ -446,11 +446,11 @@ struct llvm__program* codegen__for_block(struct Expression* initial, struct Expr
     llvm__program_add_line(for_program, jump_to(condition_label));
     llvm__program_add_line(for_program, label_to_string(end, 0, ";for end"));
 
-    if(initial->type != -1)
+    if(initial != NULL && initial->type != -1)
         free(computed_initialisation);
-    if(condition->type != -1)
+    if(condition != NULL && condition->type != -1)
         free(computed_condition);
-    if(moving->type != -1)
+    if(moving != NULL && moving->type != -1)
         free(computed_moving);
 
     return for_program;

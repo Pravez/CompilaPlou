@@ -1,8 +1,9 @@
-
 #include "type.h"
 #include <stdio.h>
 #include "tools.h"
 #include "errors.h"
+
+
 
 struct DeclaratorList add_declarator(struct DeclaratorList list, struct Declarator declarator){      
     list.declarator_list[list.size++] = declarator;

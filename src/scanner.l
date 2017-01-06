@@ -65,7 +65,7 @@ L[a-zA-Z_]
 int yywrap() {
 	return 1;
 }
-/* This function reads a comment. Comments are not part of the grammar. */
+/* Reads a comment (which are not part of the grammar). */
 int comment() {
 	char c, c1;
 loop:
@@ -78,7 +78,7 @@ loop:
 }
 
 int column = 0;
-/* This function counts the number of character, for debugging purposes */
+/* Counts the number of character for debugging */
 void count() {
 	int i;
 	for (i = 0; yytext[i] != '\0'; i++) {

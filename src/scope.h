@@ -4,12 +4,9 @@
 #include "type.h"
 #include "errors.h"
 #include "tools.h"
-#include "hash.h"
 
 #define HASH_SIZE 100 // nb max de IDENTIFIER stockable par level
 #define NB_LEVELS 50 // nb max of nested levels
-
-#define CURRENT_LOADED_REGS (scope.loaded_regs[scope.current_level])
 
 #define true 1
 #define false 0
@@ -24,7 +21,6 @@ struct hashmap_item {
 //////Scope
 struct Scope {
     struct hashmap_item scope_maps[NB_LEVELS][HASH_SIZE];
-    struct hash_t loaded_regs[NB_LEVELS];
     int current_level; //Pas necessaire
     int higher_level;
 };

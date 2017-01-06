@@ -2,7 +2,6 @@
 #include <stdio.h>
 #include "expression.h"
 #include "scope.h"
-#include "hash.h"
 
 struct expr_operand init_operand(enum OPERAND_TYPE type){
     struct expr_operand operand;

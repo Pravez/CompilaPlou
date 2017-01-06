@@ -181,17 +181,11 @@ struct computed_expression* generate_code(struct Expression* e){
                     asprintf(&var_name, "%s.addr", var_name);
                     printf(" est un argument de fonction chercher %s à la place...", var_name);
                 }
-                printf("\n");
-
-                //if(!no_optimization)
-                //    ret->reg = hash_lookup(&CURRENT_LOADED_REGS, var_name);
 
                 ret->type = GET_VAR_TYPE(&scope, var_name);
-                //if(no_optimization || ret->reg == HASH_FAIL) {
-                    ret->reg = new_register();
-                    llvm__program_add_line(ret->code,load_var(ret->reg, var_name));
-                //}
-                //prefix and postfix modifications
+                ret->reg = new_register();
+                llvm__program_add_line(ret->code,load_var(ret->reg, var_name));
+
                 int new_reg = 0;
                 while (o->prefix > 0){
                     new_reg = new_register();
@@ -230,10 +224,6 @@ struct computed_expression* generate_code(struct Expression* e){
                 }else {
                     new_reg = ret->reg;
                 }
-
-                hash_delete(&CURRENT_LOADED_REGS, var_name);
-                hash_insert(&CURRENT_LOADED_REGS, var_name, new_reg); // new register of variable
-
                 break;
             case O_FUNCCALL_ARGS:
                 ret->type = hash__get_item(&scope, o->operand.function.name).declarator.function.return_type;
@@ -290,12 +280,7 @@ struct computed_expression* generate_code(struct Expression* e){
         free(right);
 
     }else if(e->type == E_AFFECT){
-        printf("affect\n");
-        //register is no longer up to date.
         char* affected_var_name = e->expression.operand.operand.variable;
-        int old_var_reg = hash_lookup(&CURRENT_LOADED_REGS, affected_var_name);
-        hash_delete(&CURRENT_LOADED_REGS, affected_var_name);
-        //return type is the affected variable type
         ret->type = GET_VAR_TYPE(&scope, affected_var_name);
         //if next nested expression is an affectation, it has already been computed
         if(e->expression.cond_expression->type == E_AFFECT ||
@@ -338,19 +323,15 @@ struct computed_expression* generate_code(struct Expression* e){
                 printf("erreur. Enfin, je crois\n");
         }
         if(operation != -1){ //operation need to be performed before affectation
-            if(old_var_reg == HASH_FAIL){ // loading var if needed
-                old_var_reg = new_register();
-                llvm__program_add_line(ret->code, load_var(old_var_reg, affected_var_name));
-            }
+            int previous_reg = new_register();
+            llvm__program_add_line(ret->code, load_var(previous_reg, affected_var_name));
             int new_var_reg = new_register();// adding var to the result of the given expression (stored in ret->reg atm)
-            llvm__program_add_line(ret->code, binary_op_on_regs(operation, new_var_reg, old_var_reg, ret->reg, ret->type));
+            llvm__program_add_line(ret->code, binary_op_on_regs(operation, new_var_reg, previous_reg, ret->reg, ret->type));
             ret->reg = new_var_reg;
         }
 
         llvm__program_add_line(ret->code, store_var(affected_var_name, ret->reg, ret->type));
 
-        // new register for affected variable
-        hash_insert(&CURRENT_LOADED_REGS, affected_var_name, ret->reg);
     }else{
         printf("erreur. Je suppose.\n");
     }
@@ -397,20 +378,6 @@ void llvm__print(const struct llvm__program* program){
 }
 struct llvm__program* generate_for_code(struct Expression* initial, struct Expression* condition, struct Expression* moving, struct llvm__program* statement_code)
 {
-    /*
-    printf("\nFOR !!!\n\n");
-    printf("initial: ");
-    print_tree(initial);
-    printf("\ncode:\n");
-    llvm__print(initial->code->code);
-    printf("\ncondition: ");
-    print_tree(condition);
-    printf("\n moving: ");
-    print_tree(moving);
-    printf("\n")
-            */
-
-    //initialisation
     int start = new_label();
     int loop = new_label();
     int condition_label = new_label();
@@ -440,13 +407,11 @@ struct llvm__program* generate_for_code(struct Expression* initial, struct Expre
         return NULL;
     }
     else {
-        no_optimization = 1;
         //establish_expression_final_type(condition);
         if(is_already_computed(condition))
             computed_condition = condition->code;
         else
             computed_condition = generate_code(condition);
-        no_optimization = 0;
     }
 
     if (moving == NULL) {
@@ -506,9 +471,7 @@ struct llvm__program* generate_while_code(struct Expression* condition, struct l
     comparator.icmp = ICOMP_NE;
 
     establish_expression_final_type(condition);
-    no_optimization = 1;
     struct computed_expression* computed_condition = generate_code(condition);
-    no_optimization = 0;
     struct llvm__program* while_program = malloc(sizeof(struct llvm__program));
     llvm__init_program(while_program);
 
@@ -563,9 +526,7 @@ struct llvm__program* generate_if_code(struct Expression* condition, struct llvm
     comparator.icmp = ICOMP_NE;
 
     establish_expression_final_type(condition);
-    no_optimization = 1;
     struct computed_expression* computed_condition = generate_code(condition);
-    no_optimization = 0;
     struct llvm__program* if_program = malloc(sizeof(struct llvm__program));
     struct llvm__program if_jump = do_jump(computed_condition->type == T_INT ? 0 : 1, computed_condition->reg, comparator,
                                                                 then, end);
@@ -593,9 +554,7 @@ struct llvm__program* generate_ifelse_code(struct Expression* condition, struct 
     comparator.icmp = ICOMP_NE;
 
     establish_expression_final_type(condition);
-    no_optimization = 1;
     struct computed_expression* computed_condition = generate_code(condition);
-    no_optimization = 0;
     struct llvm__program* if_else_program = malloc(sizeof(struct llvm__program));
     struct llvm__program if_jump = do_jump(computed_condition->type == T_INT ? 0 : 1, computed_condition->reg, comparator,
                                            then, l_else);

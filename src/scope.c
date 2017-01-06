@@ -250,7 +250,6 @@ void hash__clean_level(struct Scope *hashmap, int level){
         hashmap->scope_maps[level][i].key = "";
         hashmap->scope_maps[level][i].next = -1;
     }
-    hash_destroy(&(hashmap->loaded_regs[level]));
 }
 
 /**
@@ -264,7 +263,6 @@ bool hash__upper_level(struct Scope *hashmap) {
             hashmap->higher_level++;
             hash__clean_level(hashmap, hashmap->current_level); //clean next level
         }
-        hash_init(&CURRENT_LOADED_REGS, AVG_LOADED_REG); //init loaded registers
     }else{
         report_error(SCOPE_MAX_LEVEL, 0);
         return 0;
@@ -281,7 +279,6 @@ void hash__lower_level(struct Scope *hashmap) {
     if(hashmap->current_level != 0) {
         hashmap->current_level--;
         hashmap->higher_level--;
-        hash_init(&CURRENT_LOADED_REGS, AVG_LOADED_REG); //init loaded registers
     }
 }
 

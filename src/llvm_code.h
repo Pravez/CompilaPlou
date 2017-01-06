@@ -3,7 +3,6 @@
 
 #include "type.h"
 #include "tools.h"
-#include "hash.h"
 #include "expression.h"
 #include "reg_operation.h"
 

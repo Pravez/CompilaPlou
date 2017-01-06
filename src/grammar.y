@@ -9,7 +9,6 @@
 #include "scope.h"
 #include "tools.h"
 #include "llvm_code.h"
-#include "hash.h"
 #include "expression.h"
 #include "errors.h"
 #include "external_function.h"

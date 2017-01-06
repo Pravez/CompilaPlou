@@ -496,14 +496,38 @@ expression_statement
 selection_statement
 : IF '(' expression ')' statement { $$ = *generate_if_code(&$3, &$5); }
 | IF '(' expression ')' statement ELSE statement { $$ = *generate_ifelse_code(&$3, &$5, &$7); }
-| FOR '(' expression ';' expression ';' expression ')' statement {$$ = *generate_for_code(&$3, &$5, &$7, &$9);}
-| FOR '(' expression ';' expression ';'            ')' statement {$$ = *generate_for_code(&$3, &$5, NULL, &$8);}
-| FOR '(' expression ';'            ';' expression ')' statement {$$ = *generate_for_code(&$3, NULL, &$6, &$8);}
-| FOR '(' expression ';'            ';'            ')' statement {$$ = *generate_for_code(&$3, NULL, NULL, &$7);}
-| FOR '('            ';' expression ';' expression ')' statement {$$ = *generate_for_code(NULL, &$4, &$6, &$8);}
-| FOR '('            ';' expression ';'            ')' statement {$$ = *generate_for_code(NULL, &$4, NULL, &$7);}
-| FOR '('            ';'            ';' expression ')' statement {$$ = *generate_for_code(NULL, NULL, &$5, &$7);}
-| FOR '('            ';'            ';'            ')' statement {$$ = *generate_for_code(NULL, NULL, NULL, &$6);}
+| FOR '(' expression ';' expression ';' expression ')' statement {
+    struct llvm__program* for_code = generate_for_code(&$3, &$5, &$7, &$9);
+    if(for_code == NULL) $$.validity = -1; else $$ = *for_code;
+}
+| FOR '(' expression ';' expression ';'            ')' statement {
+    struct llvm__program* for_code = generate_for_code(&$3, &$5, NULL, &$8);
+    if(for_code == NULL) $$.validity = -1; else $$ = *for_code;
+}
+| FOR '(' expression ';'            ';' expression ')' statement {
+    struct llvm__program* for_code = generate_for_code(&$3, NULL, &$6, &$8);
+    if(for_code == NULL) $$.validity = -1; else $$ = *for_code;
+}
+| FOR '(' expression ';'            ';'            ')' statement {
+    struct llvm__program* for_code = generate_for_code(&$3, NULL, NULL, &$7);
+    if(for_code == NULL) $$.validity = -1; else $$ = *for_code;
+}
+| FOR '('            ';' expression ';' expression ')' statement {
+    struct llvm__program* for_code = generate_for_code(NULL, &$4, &$6, &$8);
+    if(for_code == NULL) $$.validity = -1; else $$ = *for_code;
+}
+| FOR '('            ';' expression ';'            ')' statement {
+    struct llvm__program* for_code = generate_for_code(NULL, &$4, NULL, &$7);
+    if(for_code == NULL) $$.validity = -1; else $$ = *for_code;
+}
+| FOR '('            ';'            ';' expression ')' statement {
+    struct llvm__program* for_code = generate_for_code(NULL, NULL, &$5, &$7);
+    if(for_code == NULL) $$.validity = -1; else $$ = *for_code;
+}
+| FOR '('            ';'            ';'            ')' statement {
+    struct llvm__program* for_code = generate_for_code(NULL, NULL, NULL, &$6);
+    if(for_code == NULL) $$.validity = -1; else $$ = *for_code;
+}
 ;
 
 iteration_statement
@@ -538,8 +562,6 @@ jump_statement
             printf("\n");
             $$ = *e->code;
             llvm__program_add_line(&$$, return_expr(e->reg, e->type));
-        }else{
-            debug("Error 585768754.", RED);
         }
     }
 }
@@ -624,12 +646,11 @@ extern FILE *yyin;
 
 char *file_name = NULL;
 
-//Voir le error handling de gnu bison et le location-type
 void yyerror (char const *s) {
     fflush (stdout);
     fprintf (stderr, "%s:\033[1m%d\033[0m:\033[1m%d\033[0m: %s\n", file_name, yylineno, column, s);
 
-    //return 0;
+    //No return, we want to continue ...
 }
 
 

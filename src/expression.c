@@ -214,6 +214,8 @@ void print_tree(struct Expression* expr){
                     printf("&&"); break;
                 case OP_OR:
                     printf("||"); break;
+                case OP_REM:
+                    printf("%%"); break;
                 default:
                     printf(" <?> ");  break;
             }

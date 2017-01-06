@@ -82,6 +82,8 @@ enum REG_BINARY_OP cond_op_to_binary_op(enum COND_OPERATOR o){
             return REG_SHL;
         case OP_SSHR:
             return REG_SHR;
+        case OP_REM:
+            return REG_REM;
         default:
             return -1; // Error. Should have call is_binary_op first.
     }
@@ -274,7 +276,8 @@ short int is_binary_op(enum COND_OPERATOR o){
     return (o == OP_ADD  ||
             o == OP_SUB  ||
             o == OP_MUL  ||
-            o == OP_DIV  );
+            o == OP_DIV  ||
+            o == OP_REM  );
 }
 
 short int is_bitwise_op(enum COND_OPERATOR o){

@@ -502,13 +502,18 @@ struct llvm__program* generate_while_code(struct Expression* condition, struct l
     int start = new_label();
     int loop = new_label();
     int end = new_label();
-    union COMPARATOR comparator;
-    comparator.icmp = ICOMP_NE;
 
     establish_expression_final_type(condition);
     no_optimization = 1;
     struct computed_expression* computed_condition = generate_code(condition);
     no_optimization = 0;
+
+    union COMPARATOR comparator;
+    if(computed_condition->type == T_DOUBLE)
+        comparator.fcmp = FCOMP_ONE;
+    else
+        comparator.icmp = ICOMP_NE;
+
     struct llvm__program* while_program = malloc(sizeof(struct llvm__program));
     llvm__init_program(while_program);
 
@@ -559,13 +564,17 @@ struct llvm__program* generate_if_code(struct Expression* condition, struct llvm
     int then = new_label();
     int end = new_label();
 
-    union COMPARATOR comparator;
-    comparator.icmp = ICOMP_NE;
-
     establish_expression_final_type(condition);
     no_optimization = 1;
     struct computed_expression* computed_condition = generate_code(condition);
     no_optimization = 0;
+
+    union COMPARATOR comparator;
+    if(computed_condition->type == T_DOUBLE)
+        comparator.fcmp = FCOMP_ONE;
+    else
+        comparator.icmp = ICOMP_NE;
+
     struct llvm__program* if_program = malloc(sizeof(struct llvm__program));
     struct llvm__program if_jump = do_jump(computed_condition->type == T_INT ? 0 : 1, computed_condition->reg, comparator,
                                                                 then, end);

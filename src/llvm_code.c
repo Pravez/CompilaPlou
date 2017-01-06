@@ -7,7 +7,7 @@
 #include <stdarg.h>
 #include <string.h>
 
-short int no_optimization = 0;
+short int no_optimization = false;
 
 #define TO_LLVM_STRING(type) type_of(llvm__convert(type))
 #define GET_VAR_TYPE(ptr_scope, var_id) hash__get_item(ptr_scope, var_id).declarator.variable.type
@@ -183,11 +183,11 @@ struct computed_expression* generate_code(struct Expression* e){
                 }
                 printf("\n");
 
-                if(!no_optimization)
+                if(!no_optimization && !refuse_optimization)
                     ret->reg = hash_lookup(&CURRENT_LOADED_REGS, var_name);
 
                 ret->type = GET_VAR_TYPE(&scope, var_name);
-                if(no_optimization || ret->reg == HASH_FAIL) {
+                if(refuse_optimization || no_optimization || ret->reg == HASH_FAIL) {
                     ret->reg = new_register();
                     llvm__program_add_line(ret->code,load_var(ret->reg, var_name));
                 }

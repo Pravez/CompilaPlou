@@ -11,6 +11,8 @@
 #define DEFAULT_CONSTANT_SIZE 50
 #define DEFAULT_FUNCTION_SIZE 100
 
+short int refuse_optimization; // should be set before parsing to 1 or 0
+
 struct llvm__program{
     int validity;
     int line_number;

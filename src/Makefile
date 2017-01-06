@@ -1,4 +1,4 @@
-EMCC=usr/lib/emscripten/emcc
+EMCC=/usr/lib/emscripten/emcc
 
 #if the command asked is run
 ifeq (run,$(firstword $(MAKECMDGOALS)))

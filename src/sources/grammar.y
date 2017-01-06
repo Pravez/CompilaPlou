@@ -547,11 +547,10 @@ jump_statement
 
 program
 : program_parts { 
-    if(check_main_exists(&scope)){
+        check_main_exists(&scope);
         struct llvm__program extern_funcs = add_external_functions_declaration(); 
         llvm__fusion_programs(&program, &extern_funcs); 
-        llvm__fusion_programs(&program, &$1); 
-    }
+        llvm__fusion_programs(&program, &$1);
 }
 ;
 

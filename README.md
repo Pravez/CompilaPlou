@@ -26,3 +26,18 @@ vous produirez un code llvm dans output.ll, correspondant au résultat de la com
  Par ailleurs il faut noter que nous avons par défaut mis les fonctions `my_draw` et `my_setup` à exporter. Si vous souhaitez
  exporter d'autres fonctions il sera nécessaire de ne pas utiliser le raccourci crée par ce makefile.
 - `make clean` : permet de "nettoyer" le répertoire des fichiers compilés et intermédiaires de compilation.
+
+##### Liste des tests possibles
+
+Voici la liste (exhaustive) des tests que vous pouvez lancer, et que vous trouverez dans `src/final-tests`
+
+- boucles
+- errors
+- example_code_ex
+- example_code_mandelbrot
+- fibonacci
+- get_started_p5
+- get_started_advanced
+- ifAndFunction
+- simple
+- warnings

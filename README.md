@@ -1,5 +1,4 @@
 # Projet de Compilation
-Groupe Paul BRETON - Nicolas VIDAL
 
 Note : Ce projet a été réalisé avec la version `1.36` d'emscripten et la version `3.9` de LLVM.
 
